@@ -1424,7 +1424,7 @@
                 const { error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: 'https://templifyx.store/productpage',
+                        redirectTo: window.location.origin,
                     }
                 });
                 if (error) throw error;
@@ -1439,7 +1439,7 @@
                 const { error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'github',
                     options: {
-                        redirectTo: 'https://templifyx.store/productpage',
+                        redirectTo: window.location.origin,
                     }
                 });
                 if (error) throw error;
