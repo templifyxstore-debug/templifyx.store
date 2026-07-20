@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TemplifyX — Visual HTML Product Editor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --bg-soft: #0a0a0a;
+    --bg-card: #0f0f0f;
+    --border: #1f1f1f;
+    --text: #ffffff;
+    --text-soft: #a1a1a1;
+    --text-muted: #6b6b6b;
+    --accent: #f7f7f7;
+    --accent-2: #747878;
+    --accent-3: #b794ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  .font-display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .grid-bg {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, #ffffff 0%, #7c7d7d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+  @keyframes pulse-soft { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideOut { to { transform: translateX(120%); opacity: 0; } }
+  @keyframes logo-shimmer { 0%,100% { filter: drop-shadow(0 0 0 rgba(196,255,61,0)); } 50% { filter: drop-shadow(0 0 12px rgba(196,255,61,0.4)); } }
+  .animate-float { animation: float 8s ease-in-out infinite; }
+  .animate-pulse-soft { animation: pulse-soft 5s ease-in-out infinite; }
+  .fade-up { animation: fadeUp 0.6s ease-out backwards; }
+  .logo-mark { animation: logo-shimmer 4s ease-in-out infinite; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+  .btn-primary {
+    background: var(--accent); color: #000; font-weight: 600;
+    transition: all 0.2s; border: 1px solid var(--accent);
+  }
+  .btn-primary:hover { box-shadow: 0 0 40px -5px rgba(196, 255, 61, 0.5); transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--text-soft); background: rgba(255,255,255,0.03); }
+  .btn-ghost { background: transparent; color: var(--text-soft); transition: all 0.2s; }
+  .btn-ghost:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  #previewFrame { width: 100%; height: 100%; border: none; background: #fff; display: block; }
+  .modal-backdrop { backdrop-filter: blur(10px); background: rgba(0,0,0,0.75); }
+  .code-input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.7; tab-size: 2;
+    color: #e0e0e0; background: transparent;
+  }
+  .asset-thumb {
+    aspect-ratio: 1; background-size: cover; background-position: center;
+    border-radius: 8px; cursor: grab; border: 2px solid transparent;
+    transition: all 0.2s; position: relative; overflow: hidden;
+    background-color: #1a1a1a;
+  }
+  .asset-thumb:hover { border-color: var(--accent); transform: scale(1.03); }
+  .asset-thumb:active { cursor: grabbing; }
+  .element-item { transition: all 0.15s; cursor: pointer; }
+  .element-item:hover { background: rgba(255,255,255,0.04); }
+  .element-item.active { background: rgba(196, 255, 61, 0.08); border-color: rgba(196, 255, 61, 0.3) !important; }
+  .toast { animation: slideIn 0.3s ease-out; }
+  .feature-card {
+    transition: all 0.3s;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%);
+    border: 1px solid var(--border);
+  }
+  .feature-card:hover {
+    background: linear-gradient(180deg, rgba(196,255,61,0.04) 0%, rgba(255,255,255,0) 100%);
+    border-color: rgba(196, 255, 61, 0.3); transform: translateY(-4px);
+  }
+  .step-num {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tab-pill {
+    padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500;
+    transition: all 0.2s; cursor: pointer; color: var(--text-muted);
+    text-align: center;
+  }
+  .tab-pill.active { background: rgba(196, 255, 61, 0.1); color: var(--accent); }
+  .tab-pill:not(.active):hover { color: var(--text-soft); }
+  .upgrade-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .upgrade-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .upgrade-modal-card {
+    width: min(460px, 100%);
+    border-radius: 24px;
+    padding: 24px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    transform: translateY(10px) scale(0.97);
+    transition: transform 0.25s ease;
+  }
+  .upgrade-modal-overlay.show .upgrade-modal-card {
+    transform: translateY(0) scale(1);
+  }
+  .upgrade-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .upgrade-modal-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .upgrade-modal-copy {
+    color: rgba(255,255,255,0.72);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .upgrade-modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .upgrade-modal-actions button {
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .upgrade-modal-actions button:hover {
+    transform: translateY(-1px);
+  }
+  .upgrade-primary-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+  }
+  .upgrade-secondary-btn {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .editor-grid {
+    display: grid; grid-template-columns: 280px 1fr 300px;
+    gap: 1px; background: var(--border);
+    height: calc(100vh - 57px); overflow: hidden;
+  }
+  .panel-bg { background: var(--bg-soft); }
+  @media (max-width: 1100px) {
+    .editor-grid { grid-template-columns: 240px 1fr 260px; }
+  }
+  @media (max-width: 900px) {
+    #editor { height: auto !important; min-height: 100vh; }
+    .editor-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      height: auto;
+    }
+    .editor-side-panel { max-height: 280px; }
+    .preview-main { min-height: 60vh; }
+  }
+  .noise::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.03; pointer-events: none; mix-blend-mode: overlay;
+  }
+  kbd {
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const fromIntro = params.get('fromIntro') === '1';
+      if (!fromIntro) {
+        window.location.replace('intro.html?next=productchanger.html');
+      }
+    })();
+  </script>
+
+<!-- ============ WELCOME SCREEN ============ -->
+<section id="welcome" class="min-h-screen relative grid-bg noise">
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none animate-pulse-soft" style="background: radial-gradient(circle, rgba(196,255,61,0.15) 0%, transparent 70%); filter: blur(60px);"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full pointer-events-none animate-pulse-soft" style="background: radial-gradient(circle, rgba(0,224,255,0.12) 0%, transparent 70%); filter: blur(60px); animation-delay: 2s;"></div>
+
+  <nav class="relative z-10 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="images/reallogo.png" width="160" />
+    </div>
+    <div class="flex items-center gap-2 text-sm">
+      <a href="#how" class="btn-ghost px-4 py-2 rounded-lg hidden sm:block">How it works</a>
+      <a href="#features" class="btn-ghost px-4 py-2 rounded-lg hidden sm:block">Features</a>
+      <button id="sampleBtnTop" class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+        <i class="fas fa-wand-magic-sparkles text-xs"></i>
+        <span>Try demo</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 pt-8 pb-20 text-center">
+    <div class="fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs mb-8" style="background: rgba(196,255,61,0.08); border: 1px solid rgba(196,255,61,0.2);">
+      <span class="w-1.5 h-1.5 rounded-full" style="background: var(--accent);"></span>
+      <span class="text-white/80">Visual editor for product pages</span>
+    </div>
+    
+    <h1 class="fade-up font-display text-5xl sm:text-7xl md:text-8xl font-bold leading-none mb-6" style="animation-delay: 0.1s;">
+      Paste HTML.<br>
+      <span class="gradient-text">Edit visually.</span><br>
+      <span class="text-white/60">Export clean.</span>
+    </h1>
+    
+    <p class="fade-up text-base sm:text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed" style="animation-delay: 0.2s;">
+      Drop in any product page HTML. TemplifyX turns it into a drag-and-drop canvas where you can swap photos and tweak prices in seconds — no code, no friction.
+    </p>
+    
+    <div class="fade-up max-w-3xl mx-auto" style="animation-delay: 0.3s;">
+      <div class="relative rounded-2xl overflow-hidden" style="background: #050505; border: 1px solid var(--border);">
+        <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color: var(--border);">
+          <div class="flex items-center gap-1.5">
+            <div class="w-2.5 h-2.5 rounded-full" style="background: #ff5f57;"></div>
+            <div class="w-2.5 h-2.5 rounded-full" style="background: #febc2e;"></div>
+            <div class="w-2.5 h-2.5 rounded-full" style="background: #28c840;"></div>
+          </div>
+          <div class="text-xs text-white/40 font-mono">index.html</div>
+          <div class="text-xs text-white/40">paste below</div>
+        </div>
+        <textarea
+          id="htmlInput"
+          spellcheck="false"
+          class="code-input w-full p-5 outline-none resize-none"
+          style="height: 240px;"
+          placeholder="Paste your product page HTML here.
+
+Example:
+<!DOCTYPE html>
+<html>
+  <body>
+    <img src='https://...' alt='Product'>
+    <div class='price'>$99.99</div>
+  </body>
+</html>"
+        ></textarea>
+        <div class="flex items-center justify-between px-4 py-3 border-t flex-wrap gap-2" style="border-color: var(--border); background: rgba(255,255,255,0.02);">
+          <div class="flex items-center gap-2 text-xs text-white/50">
+            <i class="fas fa-shield-halved"></i>
+            <span>Runs entirely in your browser. Nothing is uploaded.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="sampleBtn" class="btn-secondary px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+              <i class="fas fa-wand-magic-sparkles"></i>
+              <span>Try sample</span>
+            </button>
+            <button id="startBtn" class="btn-primary px-5 py-2 rounded-lg text-sm flex items-center gap-2">
+              <span>Launch editor</span>
+              <i class="fas fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6 text-xs text-white/40">
+        <div class="flex items-center gap-2"><kbd class="px-1.5 py-0.5 rounded text-white/60" style="background: #1a1a1a;">Click</kbd> any image to replace</div>
+        <div class="flex items-center gap-2"><kbd class="px-1.5 py-0.5 rounded text-white/60" style="background: #1a1a1a;">Drag</kbd> assets onto photos</div>
+        <div class="flex items-center gap-2"><kbd class="px-1.5 py-0.5 rounded text-white/60" style="background: #1a1a1a;">Click</kbd> prices to edit inline</div>
+      </div>
+    </div>
+  </div>
+
+  <section id="features" class="relative z-10 max-w-6xl mx-auto px-6 py-20">
+    <div class="text-center mb-14">
+      <div class="text-xs uppercase tracking-[0.3em] text-white/40 mb-3">Why TemplifyX</div>
+      <h2 class="font-display text-3xl sm:text-5xl font-bold">Built for speed.<br>Designed for clarity.</h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background: rgba(196,255,61,0.1);">
+          <i class="fas fa-image" style="color: var(--accent);"></i>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Visual image swap</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Click any product photo to replace it with a URL, upload, or pick from the built-in asset library.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background: rgba(0,224,255,0.1);">
+          <i class="fas fa-tag" style="color: var(--accent-2);"></i>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Inline price editing</h3>
+        <p class="text-sm text-white/60 leading-relaxed">TemplifyX auto-detects prices in your HTML. Click and type — no digging through markup.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background: rgba(183,148,255,0.1);">
+          <i class="fas fa-hand-pointer" style="color: var(--accent-3);"></i>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Drag & drop assets</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Drag image files from your desktop or pull from the gallery — they snap right onto product photos.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background: rgba(196,255,61,0.1);">
+          <i class="fas fa-code" style="color: var(--accent);"></i>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Clean HTML export</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Get back production-ready HTML with your edits baked in. Copy to clipboard or download.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background: rgba(0,224,255,0.1);">
+          <i class="fas fa-history" style="color: var(--accent-2);"></i>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Change tracking</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Every edit is logged in a timeline. See exactly what changed, then export with confidence.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background: rgba(183,148,255,0.1);">
+          <i class="fas fa-lock" style="color: var(--accent-3);"></i>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">100% private</h3>
+        <p class="text-sm text-white/60 leading-relaxed">No servers, no accounts, no tracking. Your HTML never leaves your browser. Period.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="relative z-10 max-w-6xl mx-auto px-6 py-20">
+    <div class="text-center mb-14">
+      <div class="text-xs uppercase tracking-[0.3em] text-white/40 mb-3">Workflow</div>
+      <h2 class="font-display text-3xl sm:text-5xl font-bold">Three steps. Zero friction.</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="relative rounded-2xl p-8" style="background: var(--bg-card); border: 1px solid var(--border);">
+        <div class="font-display text-6xl font-bold step-num mb-4">01</div>
+        <h3 class="font-display text-xl font-semibold mb-2">Paste your HTML</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Drop the source of any product page — your own template, a scraped page, or a starter you want to remix.</p>
+      </div>
+      <div class="relative rounded-2xl p-8" style="background: var(--bg-card); border: 1px solid var(--border);">
+        <div class="font-display text-6xl font-bold step-num mb-4">02</div>
+        <h3 class="font-display text-xl font-semibold mb-2">Edit visually</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Swap product photos by clicking or dragging. Edit prices inline. TemplifyX highlights every editable element.</p>
+      </div>
+      <div class="relative rounded-2xl p-8" style="background: var(--bg-card); border: 1px solid var(--border);">
+        <div class="font-display text-6xl font-bold step-num mb-4">03</div>
+        <h3 class="font-display text-xl font-semibold mb-2">Export & ship</h3>
+        <p class="text-sm text-white/60 leading-relaxed">Copy the modified HTML to your clipboard or download it as a file. Drop it straight into your CMS or deploy.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="relative z-10 border-t" style="border-color: var(--border);">
+    <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <img src="images/reallogo.png" width="120" />
+          <svg viewBox="0 0 24 24" fill="none" class="w-3 h-3"><path d="M4 4h16v16H4z" stroke="#000" stroke-width="2.5"/></svg>
+        </div>
+        <span class="text-sm text-white/60">TemplifyX — visual product page editor</span>
+      </div>
+     
+    </div>
+  </footer>
+</section>
+
+<!-- ============ EDITOR SCREEN ============ -->
+<section id="editor" class="hidden" style="height: 100vh; display: none; flex-direction: column;">
+  <header class="flex items-center justify-between px-4 py-3 border-b" style="border-color: var(--border); background: var(--bg-soft);">
+    <div class="flex items-center gap-4">
+      <button id="backBtn" class="btn-ghost px-3 py-1.5 rounded-lg text-sm flex items-center gap-2">
+        <i class="fas fa-arrow-left text-xs"></i>
+        <span class="hidden sm:inline">New</span>
+      </button>
+      <div class="h-5 w-px" style="background: var(--border);"></div>
+      <div class="flex items-center gap-2">
+        <img src="images/reallogo.png" width="120" />
+          <svg viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5">
+            <path d="M4 4h16v16H4z" stroke="#000" stroke-width="2.5"/>
+            <path d="M4 12h16M12 4v16" stroke="#000" stroke-width="2.5"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <div id="statusPill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs" style="background: rgba(196,255,61,0.08); border: 1px solid rgba(196,255,61,0.2);">
+        <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background: var(--accent);"></span>
+        <span class="text-white/70">Live preview</span>
+      </div>
+      <button id="resetBtn" class="btn-ghost px-3 py-1.5 rounded-lg text-sm flex items-center gap-2">
+        <i class="fas fa-rotate-left text-xs"></i>
+        <span class="hidden sm:inline">Reset</span>
+      </button>
+      <button id="viewCodeBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-sm flex items-center gap-2">
+        <i class="fas fa-code text-xs"></i>
+        <span class="hidden sm:inline">View code</span>
+      </button>
+      <button id="exportBtn" class="btn-primary px-4 py-1.5 rounded-lg text-sm flex items-center gap-2">
+        <i class="fas fa-download text-xs"></i>
+        <span>Export</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="editor-grid flex-1">
+    <!-- LEFT PANEL -->
+    <aside class="editor-side-panel panel-bg overflow-y-auto">
+      <div class="p-4">
+        <div class="flex items-center gap-1 mb-4 p-1 rounded-lg" style="background: #050505;">
+          <button class="left-tab tab-pill active flex-1" data-tab="assets">Assets</button>
+          <button class="left-tab tab-pill flex-1" data-tab="elements">Elements</button>
+        </div>
+        
+        <div id="assetsTab" class="left-tab-content">
+          <div class="mb-4">
+            <div class="text-xs uppercase tracking-wider text-white/40 mb-2">Upload</div>
+            <label id="uploadZone" class="block rounded-lg border-2 border-dashed p-4 text-center cursor-pointer transition-colors hover:border-white/30" style="border-color: var(--border);">
+              <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
+              <i class="fas fa-cloud-arrow-up text-2xl text-white/40 mb-2"></i>
+              <div class="text-xs text-white/60">Drop or click to upload</div>
+              <div class="text-[10px] text-white/30 mt-1">PNG, JPG, WebP, SVG</div>
+            </label>
+          </div>
+          
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-xs uppercase tracking-wider text-white/40">Stock library</div>
+              <span class="text-[10px] text-white/30">Drag onto image</span>
+            </div>
+            <div id="assetGallery" class="grid grid-cols-2 gap-2"></div>
+          </div>
+        </div>
+        
+        <div id="elementsTab" class="left-tab-content hidden">
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-3">Detected elements</div>
+          <div id="elementsList" class="space-y-1.5"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PREVIEW -->
+    <main class="preview-main relative panel-bg overflow-hidden flex flex-col">
+      <div class="flex items-center justify-between px-4 py-2 border-b" style="border-color: var(--border); background: var(--bg-soft);">
+        <div class="flex items-center gap-2 text-xs text-white/50">
+          <i class="fas fa-eye text-[10px]"></i>
+          <span>Preview</span>
+          <span class="text-white/20">·</span>
+          <span id="elementCount" class="text-white/40">scanning...</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="preview-mode-btn btn-ghost px-2.5 py-1 rounded text-xs active" data-mode="desktop" title="Desktop">
+            <i class="fas fa-desktop text-xs"></i>
+          </button>
+          <button class="preview-mode-btn btn-ghost px-2.5 py-1 rounded text-xs" data-mode="tablet" title="Tablet">
+            <i class="fas fa-tablet-screen-button text-xs"></i>
+          </button>
+          <button class="preview-mode-btn btn-ghost px-2.5 py-1 rounded text-xs" data-mode="mobile" title="Mobile">
+            <i class="fas fa-mobile-screen-button text-xs"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-auto flex items-start justify-center p-4" style="background: #1a1a1a;">
+        <div id="previewWrapper" class="bg-white rounded-lg shadow-2xl overflow-hidden transition-all" style="width: 100%; height: 100%; max-width: 100%;">
+          <iframe id="previewFrame" title="Preview"></iframe>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL -->
+    <aside class="editor-side-panel panel-bg overflow-y-auto">
+      <div class="p-4">
+        <div class="flex items-center gap-1 mb-4 p-1 rounded-lg" style="background: #050505;">
+          <button class="right-tab tab-pill active flex-1" data-tab="inspect">Inspect</button>
+          <button class="right-tab tab-pill flex-1 flex items-center justify-center gap-1" data-tab="changes">
+            Changes
+            <span id="changesBadge" class="text-[10px] hidden" style="background: var(--accent); color: #000; padding: 1px 6px; border-radius: 100px;"></span>
+          </button>
+        </div>
+        
+        <div id="inspectTab" class="right-tab-content">
+          <div id="inspectEmpty" class="text-center py-8">
+            <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background: rgba(255,255,255,0.03);">
+              <i class="fas fa-arrow-pointer text-white/30"></i>
+            </div>
+            <div class="text-sm text-white/50 mb-1">No element selected</div>
+            <div class="text-xs text-white/30">Click an image or price in the preview to edit it.</div>
+          </div>
+          <div id="inspectContent" class="hidden"></div>
+        </div>
+        
+        <div id="changesTab" class="right-tab-content hidden">
+          <div id="changesList" class="space-y-2">
+            <div class="text-center py-8 text-xs text-white/40">
+              <i class="fas fa-circle-info text-xl mb-2 text-white/30 block"></i>
+              <div>No changes yet.</div>
+              <div class="mt-1">Edits you make will appear here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ IMAGE MODAL ============ -->
+<div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4">
+  <div class="w-full max-w-2xl rounded-2xl overflow-hidden my-auto" style="background: var(--bg-card); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto;">
+    <div class="flex items-center justify-between px-5 py-4 border-b sticky top-0" style="border-color: var(--border); background: var(--bg-card);">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(196,255,61,0.1);">
+          <i class="fas fa-image" style="color: var(--accent);"></i>
+        </div>
+        <div>
+          <div class="font-display font-semibold text-sm">Replace image</div>
+          <div class="text-xs text-white/40">Choose a source</div>
+        </div>
+      </div>
+      <button id="closeImageModal" class="btn-ghost w-8 h-8 rounded-lg flex items-center justify-center">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-5 space-y-5">
+      <div class="flex gap-4">
+        <div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0" style="background: #1a1a1a;">
+          <img id="currentImgPreview" class="w-full h-full object-cover" alt="Current">
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Current</div>
+          <div id="currentImgUrl" class="text-xs font-mono text-white/60 truncate"></div>
+          <div id="currentImgSize" class="text-xs text-white/40 mt-1"></div>
+        </div>
+      </div>
+      
+      <div>
+        <label class="text-xs uppercase tracking-wider text-white/40 mb-2 block">Image URL</label>
+        <div class="flex gap-2">
+          <input id="imgUrlInput" type="text" placeholder="https://..." class="flex-1 px-3 py-2 rounded-lg text-sm outline-none font-mono" style="background: #050505; border: 1px solid var(--border); color: var(--text);">
+          <button id="applyUrlBtn" class="btn-primary px-4 py-2 rounded-lg text-sm">Apply</button>
+        </div>
+      </div>
+      
+      <div>
+        <label class="text-xs uppercase tracking-wider text-white/40 mb-2 block">Or upload from device</label>
+        <label class="block rounded-lg border-2 border-dashed p-4 text-center cursor-pointer hover:border-white/30 transition-colors" style="border-color: var(--border);">
+          <input type="file" id="modalFileInput" accept="image/*" class="hidden">
+          <i class="fas fa-cloud-arrow-up text-xl text-white/40 mb-1"></i>
+          <div class="text-xs text-white/60">Click to choose a file</div>
+        </label>
+      </div>
+      
+      <div>
+        <label class="text-xs uppercase tracking-wider text-white/40 mb-2 block">Or pick from library</label>
+        <div id="modalGallery" class="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EXPORT MODAL ============ -->
+<div id="exportModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4">
+  <div class="w-full max-w-3xl rounded-2xl overflow-hidden flex flex-col" style="background: var(--bg-card); border: 1px solid var(--border); max-height: 90vh;">
+    <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color: var(--border);">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(196,255,61,0.1);">
+          <i class="fas fa-download" style="color: var(--accent);"></i>
+        </div>
+        <div>
+          <div class="font-display font-semibold text-sm">Export HTML</div>
+          <div class="text-xs text-white/40">Your edits are baked into the markup</div>
+        </div>
+      </div>
+      <button id="closeExportModal" class="btn-ghost w-8 h-8 rounded-lg flex items-center justify-center">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-5 flex-1 overflow-hidden flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-xs text-white/40"><span id="exportChangesCount">0</span> changes applied</div>
+        <div class="h-3 w-px" style="background: var(--border);"></div>
+        <div class="text-xs text-white/40"><span id="exportSize">0</span> KB</div>
+      </div>
+      <pre id="exportCode" class="flex-1 overflow-auto code-input p-4 rounded-lg" style="background: #050505; border: 1px solid var(--border); max-height: 50vh; white-space: pre-wrap; word-break: break-all;"></pre>
+    </div>
+    <div class="flex items-center justify-end gap-2 px-5 py-4 border-t" style="border-color: var(--border);">
+      <button id="copyExportBtn" class="btn-secondary px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+        <i class="fas fa-copy text-xs"></i>
+        <span>Copy to clipboard</span>
+      </button>
+      <button id="downloadExportBtn" class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+        <i class="fas fa-download text-xs"></i>
+        <span>Download .html</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST CONTAINER ============ -->
+<div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2 pointer-events-none"></div>
+
+<script>
+// ============ STATE ============
+const state = {
+  originalHTML: '',
+  changes: [],
+  selectedElement: null,
+  iframeDoc: null,
+  editableElements: [],
+  uploadedAssets: [],
+  previewMode: 'desktop'
+};
+
+function showUpgradeNotice(message) {
+  let overlay = document.getElementById('upgradeNoticeOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'upgradeNoticeOverlay';
+    overlay.className = 'upgrade-modal-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+    <div class="upgrade-modal-card">
+      <div class="upgrade-badge"><i class="fa-solid fa-crown"></i> Upgrade required</div>
+      <div class="upgrade-modal-title">Unlock the full editor</div>
+      <div class="upgrade-modal-copy">${message || 'Upgrade to Basic, Pro, or Premium to continue using this tool.'}</div>
+      <div class="upgrade-modal-actions">
+        <button class="upgrade-primary-btn" onclick="window.location.href='index.html#pricing'">View plans</button>
+        <button class="upgrade-secondary-btn" onclick="closeUpgradeNotice()">Maybe later</button>
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(() => overlay.classList.add('show'));
+}
+
+function closeUpgradeNotice() {
+  const overlay = document.getElementById('upgradeNoticeOverlay');
+  if (overlay) {
+    overlay.classList.remove('show');
+    setTimeout(() => overlay.remove(), 220);
+  }
+}
+
+function normalizePlanName(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return ['free', 'basic', 'pro', 'premium'].includes(normalized) ? normalized : 'free';
+}
+
+function getStoredPlanState() {
+  const plan = normalizePlanName(localStorage.getItem('selectedPlan') || 'free');
+  const status = String(localStorage.getItem('planStatus') || '').trim().toLowerCase();
+  return { plan, isActive: status === 'active' || plan === 'free' };
+}
+
+function getAccessUsageKey(feature) {
+  return feature === 'designer' ? 'templifyxDesignerUseCount' : 'templifyxBuilderUseCount';
+}
+
+function canAccessFeature(feature) {
+  const state = getStoredPlanState();
+  if (state.plan !== 'free') {
+    return {
+      allowed: state.isActive,
+      message: state.isActive ? '' : 'Your plan has expired. Upgrade to Basic, Pro, or Premium to keep using the Web Builder and Product Designer.'
+    };
+  }
+
+  const key = getAccessUsageKey(feature);
+  const count = Number(localStorage.getItem(key) || '0');
+  if (count >= 1) {
+    return {
+      allowed: false,
+      message: 'Free access has been used up. Upgrade to Basic, Pro, or Premium to keep using this tool.'
+    };
+  }
+
+  localStorage.setItem(key, '1');
+  return { allowed: true, message: '' };
+}
+
+function enforceAccess(feature, label) {
+  const result = canAccessFeature(feature);
+  if (!result.allowed) {
+    showUpgradeNotice(result.message || `Upgrade to Basic, Pro, or Premium to use ${label}.`);
+    return false;
+  }
+  return true;
+}
+
+// ============ STOCK ASSETS ============
+const stockAssets = [
+  { name: 'Sneakers', url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80' },
+  { name: 'Watch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80' },
+  { name: 'Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80' },
+  { name: 'Sunglasses', url: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80' },
+  { name: 'Bag', url: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80' },
+  { name: 'Camera', url: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&q=80' },
+  { name: 'Perfume', url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&q=80' },
+  { name: 'Coffee', url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=600&q=80' },
+  { name: 'Plant', url: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&q=80' },
+  { name: 'Chair', url: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&q=80' }
+];
+
+
+
+// ============ DOM HELPERS ============
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+// ============ WELCOME SCREEN ============
+$('#sampleBtn').addEventListener('click', loadSample);
+$('#sampleBtnTop').addEventListener('click', loadSample);
+$('#startBtn').addEventListener('click', startEditing);
+
+function loadDesignerTemplateIfPresent() {
+  const incomingHtml = sessionStorage.getItem('templifyxDesignerHtml');
+  if (!incomingHtml) return false;
+
+  sessionStorage.removeItem('templifyxDesignerHtml');
+  $('#htmlInput').value = incomingHtml;
+  showToast('Template loaded from designer', 'success');
+  setTimeout(() => startEditing(), 250);
+  return true;
+}
+
+function loadSample() {
+  $('#htmlInput').value = sampleHTML;
+  showToast('Sample template loaded', 'success');
+  setTimeout(() => startEditing(), 300);
+}
+
+loadDesignerTemplateIfPresent();
+
+function startEditing() {
+  if (!enforceAccess('designer', 'the Product Designer')) {
+    return;
+  }
+
+  const code = $('#htmlInput').value.trim();
+  if (!code) {
+    showToast('Please paste your HTML code first', 'error');
+    $('#htmlInput').focus();
+    return;
+  }
+  state.originalHTML = code;
+  state.changes = [];
+  state.uploadedAssets = [];
+  $('#welcome').classList.add('hidden');
+  $('#editor').classList.remove('hidden');
+  $('#editor').style.display = 'flex';
+  loadHTMLIntoIframe(code);
+  populateAssetGallery();
+  updateChangesList();
+  updateChangesBadge();
+}
+
+// ============ IFRAME LOADING ============
+function loadHTMLIntoIframe(html) {
+  const iframe = $('#previewFrame');
+  $('#elementCount').textContent = 'loading...';
+  iframe.onload = () => {
+    state.iframeDoc = iframe.contentDocument;
+    setupEditableElements();
+    updateElementList();
+    updateElementCount();
+  };
+  iframe.srcdoc = html;
+}
+
+function setupEditableElements() {
+  const doc = state.iframeDoc;
+  if (!doc) return;
+  
+  state.editableElements = [];
+  let counter = 0;
+  
+  // Images
+  const images = doc.querySelectorAll('img');
+  images.forEach((img) => {
+    const id = 'tx-img-' + (counter++);
+    img.setAttribute('data-tx-id', id);
+    img.setAttribute('data-tx-type', 'image');
+    img.addEventListener('click', handleElementClick, true);
+    img.addEventListener('dragover', handleDragOver, false);
+    img.addEventListener('dragleave', handleDragLeave, false);
+    img.addEventListener('drop', handleDrop, false);
+    state.editableElements.push({
+      id, type: 'image', element: img,
+      label: getImgLabel(img),
+      preview: img.src, value: img.src
+    });
+  });
+  
+  // Background images
+  const allEls = doc.querySelectorAll('*');
+  allEls.forEach((el) => {
+    if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
+    if (el.hasAttribute('data-tx-type')) return;
+    const bg = doc.defaultView.getComputedStyle(el).backgroundImage;
+    if (bg && bg !== 'none' && bg.includes('url')) {
+      const urlMatch = bg.match(/url\(["']?(.*?)["']?\)/);
+      if (urlMatch && urlMatch[1]) {
+        const id = 'tx-bgimg-' + (counter++);
+        el.setAttribute('data-tx-id', id);
+        el.setAttribute('data-tx-type', 'bgimage');
+        el.addEventListener('click', handleElementClick, true);
+        el.addEventListener('dragover', handleDragOver, false);
+        el.addEventListener('dragleave', handleDragLeave, false);
+        el.addEventListener('drop', handleDrop, false);
+        state.editableElements.push({
+          id, type: 'bgimage', element: el,
+          label: 'Background image',
+          preview: urlMatch[1], value: urlMatch[1]
+        });
+      }
+    }
+  });
+  
+  // Prices - walk text nodes
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      const text = node.nodeValue.trim();
+      if (!text || text.length > 80) return NodeFilter.FILTER_REJECT;
+      const parent = node.parentElement;
+      if (!parent || parent.hasAttribute('data-tx-type')) return NodeFilter.FILTER_REJECT;
+      if (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') return NodeFilter.FILTER_REJECT;
+      
+      // Strict: text is mostly a price
+      if (/^[$€£¥₹₩]\s?\d[\d,]*(?:\.\d{1,2})?$/.test(text)) return NodeFilter.FILTER_ACCEPT;
+      if (/^\d[\d,]*(?:\.\d{1,2})?\s?(?:USD|EUR|GBP|JPY|INR|KRW)$/i.test(text)) return NodeFilter.FILTER_ACCEPT;
+      
+      // Lenient: parent has price-related class
+      const parentClass = (parent.getAttribute('class') || '').toLowerCase();
+      const parentId = (parent.getAttribute('id') || '').toLowerCase();
+      if ((parentClass.includes('price') || parentClass.includes('amount') || parentId.includes('price')) 
+          && /[$€£¥₹₩]\s?\d/.test(text)) {
+        return NodeFilter.FILTER_ACCEPT;
+      }
+      
+      return NodeFilter.FILTER_REJECT;
+    }
+  });
+  
+  const priceNodes = [];
+  while (walker.nextNode()) priceNodes.push(walker.currentNode);
+  
+  priceNodes.forEach((node) => {
+    const parent = node.parentElement;
+    if (!parent) return;
+    const id = 'tx-price-' + (counter++);
+    parent.setAttribute('data-tx-id', id);
+    parent.setAttribute('data-tx-type', 'price');
+    parent.addEventListener('click', handlePriceClick, true);
+    state.editableElements.push({
+      id, type: 'price', element: parent,
+      label: node.nodeValue.trim(),
+      value: node.nodeValue.trim()
+    });
+  });
+  
+  // Inject editable indicator styles
+  const style = doc.createElement('style');
+  style.id = 'tx-editable-styles';
+  style.textContent = `
+    [data-tx-type] { cursor: pointer !important; transition: outline 0.15s ease !important; }
+    [data-tx-type]:hover { outline: 2px dashed #c4ff3d !important; outline-offset: 3px; }
+    [data-tx-type="price"]:hover { outline-color: #00e0ff !important; background-color: rgba(0, 224, 255, 0.08) !important; }
+    .tx-selected { outline: 3px solid #c4ff3d !important; outline-offset: 3px; }
+    .tx-selected[data-tx-type="price"] { outline-color: #00e0ff !important; background-color: rgba(0, 224, 255, 0.12) !important; }
+    [contenteditable="true"] { outline: 2px solid #00e0ff !important; background: rgba(0, 224, 255, 0.1) !important; cursor: text !important; }
+    .tx-drag-over { outline: 4px dashed #c4ff3d !important; outline-offset: 4px; filter: brightness(1.1); }
+  `;
+  doc.head.appendChild(style);
+}
+
+function getImgLabel(img) {
+  const alt = img.getAttribute('alt');
+  if (alt && alt.trim()) return alt.trim();
+  const src = img.getAttribute('src') || '';
+  const filename = src.split('/').pop().split('?')[0];
+  return filename || 'Image';
+}
+
+function updateElementCount() {
+  const imgCount = state.editableElements.filter(e => e.type === 'image' || e.type === 'bgimage').length;
+  const priceCount = state.editableElements.filter(e => e.type === 'price').length;
+  $('#elementCount').textContent = `${imgCount} image${imgCount !== 1 ? 's' : ''} · ${priceCount} price${priceCount !== 1 ? 's' : ''}`;
+}
+
+// ============ ELEMENT CLICK HANDLERS ============
+function handleElementClick(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const el = e.currentTarget;
+  selectElement(el.getAttribute('data-tx-id'));
+  const type = el.getAttribute('data-tx-type');
+  if (type === 'image' || type === 'bgimage') {
+    openImageModal(el.getAttribute('data-tx-id'));
+  }
+}
+
+function handlePriceClick(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const el = e.currentTarget;
+  selectElement(el.getAttribute('data-tx-id'));
+  el.setAttribute('contenteditable', 'true');
+  el.focus();
+  const doc = state.iframeDoc;
+  const range = doc.createRange();
+  range.selectNodeContents(el);
+  const sel = doc.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  
+  const finishEdit = () => {
+    el.removeAttribute('contenteditable');
+    const newVal = el.textContent.trim();
+    const entry = state.editableElements.find(x => x.id === el.getAttribute('data-tx-id'));
+    if (entry && newVal !== entry.value) {
+      const oldVal = entry.value;
+      entry.value = newVal;
+      entry.label = newVal;
+      logChange('price', entry.id, oldVal, newVal);
+      updateElementList();
+      if (state.selectedElement === entry.id) updateInspectPanel(entry);
+    }
+    el.removeEventListener('blur', finishEdit);
+    el.removeEventListener('keydown', onKey);
+  };
+  const onKey = (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+    if (ev.key === 'Escape') { el.blur(); }
+  };
+  el.addEventListener('blur', finishEdit);
+  el.addEventListener('keydown', onKey);
+}
+
+function selectElement(id) {
+  if (state.iframeDoc) {
+    state.iframeDoc.querySelectorAll('.tx-selected').forEach(el => el.classList.remove('tx-selected'));
+  }
+  state.selectedElement = id;
+  const entry = state.editableElements.find(x => x.id === id);
+  if (entry) {
+    entry.element.classList.add('tx-selected');
+    updateInspectPanel(entry);
+    // Auto-switch to inspect tab
+    $$('.right-tab').forEach(t => t.classList.remove('active'));
+    $('.right-tab[data-tab="inspect"]').classList.add('active');
+    $('#inspectTab').classList.remove('hidden');
+    $('#changesTab').classList.add('hidden');
+  }
+  $$('.element-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.id === id);
+  });
+}
+
+// ============ DRAG & DROP ============
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.add('tx-drag-over');
+}
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('tx-drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const target = e.currentTarget;
+  target.classList.remove('tx-drag-over');
+  const id = target.getAttribute('data-tx-id');
+  
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    const file = e.dataTransfer.files[0];
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        applyImageToElement(id, ev.target.result);
+        addUploadedAsset(ev.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      showToast('Please drop an image file', 'error');
+    }
+    return;
+  }
+  
+  const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+  if (url) applyImageToElement(id, url);
+}
+
+function applyImageToElement(id, url) {
+  const entry = state.editableElements.find(x => x.id === id);
+  if (!entry) return;
+  const oldVal = entry.value;
+  if (entry.type === 'image') {
+    entry.element.setAttribute('src', url);
+  } else if (entry.type === 'bgimage') {
+    entry.element.style.backgroundImage = `url("${url}")`;
+  }
+  entry.value = url;
+  entry.preview = url;
+  logChange(entry.type, id, oldVal, url);
+  updateElementList();
+  if (state.selectedElement === id) updateInspectPanel(entry);
+  showToast('Image updated', 'success');
+}
+
+// ============ IMAGE MODAL ============
+function openImageModal(id) {
+  const entry = state.editableElements.find(x => x.id === id);
+  if (!entry) return;
+  const modal = $('#imageModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  modal.dataset.targetId = id;
+  $('#currentImgPreview').src = entry.preview;
+  $('#currentImgUrl').textContent = entry.value.length > 80 ? entry.value.substring(0, 80) + '...' : entry.value;
+  $('#imgUrlInput').value = entry.value.startsWith('data:') ? '' : entry.value;
+  const img = new Image();
+  img.onload = () => { $('#currentImgSize').textContent = `${img.naturalWidth} × ${img.naturalHeight}px`; };
+  img.onerror = () => { $('#currentImgSize').textContent = 'Size unavailable'; };
+  img.src = entry.preview;
+  populateModalGallery();
+}
+
+function closeImageModal() {
+  const modal = $('#imageModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+$('#closeImageModal').addEventListener('click', closeImageModal);
+$('#imageModal').addEventListener('click', (e) => {
+  if (e.target === $('#imageModal')) closeImageModal();
+});
+
+$('#applyUrlBtn').addEventListener('click', () => {
+  const url = $('#imgUrlInput').value.trim();
+  if (!url) { showToast('Enter a URL', 'error'); return; }
+  const id = $('#imageModal').dataset.targetId;
+  applyImageToElement(id, url);
+  closeImageModal();
+});
+
+$('#modalFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const id = $('#imageModal').dataset.targetId;
+    applyImageToElement(id, ev.target.result);
+    addUploadedAsset(ev.target.result, file.name);
+    closeImageModal();
+  };
+  reader.readAsDataURL(file);
+});
+
+function populateModalGallery() {
+  const gallery = $('#modalGallery');
+  gallery.innerHTML = '';
+  const allAssets = [...stockAssets, ...state.uploadedAssets];
+  allAssets.forEach(asset => {
+    const div = document.createElement('div');
+    div.className = 'asset-thumb';
+    div.style.backgroundImage = `url("${asset.url}")`;
+    div.title = asset.name;
+    div.addEventListener('click', () => {
+      const id = $('#imageModal').dataset.targetId;
+      applyImageToElement(id, asset.url);
+      closeImageModal();
+    });
+    gallery.appendChild(div);
+  });
+}
+
+// ============ ASSET GALLERY (LEFT PANEL) ============
+function populateAssetGallery() {
+  const gallery = $('#assetGallery');
+  gallery.innerHTML = '';
+  const renderAsset = (asset) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative group';
+    wrapper.draggable = true;
+    
+    const thumb = document.createElement('div');
+    thumb.className = 'asset-thumb';
+    thumb.style.backgroundImage = `url("${asset.url}")`;
+    thumb.title = asset.name;
+    
+    thumb.addEventListener('click', () => {
+      if (state.selectedElement) {
+        const entry = state.editableElements.find(x => x.id === state.selectedElement);
+        if (entry && (entry.type === 'image' || entry.type === 'bgimage')) {
+          applyImageToElement(entry.id, asset.url);
+        } else {
+          showToast('Select an image in the preview first', 'info');
+        }
+      } else {
+        showToast('Click an image in the preview first', 'info');
+      }
+    });
+    
+    wrapper.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/uri-list', asset.url);
+      e.dataTransfer.setData('text/plain', asset.url);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    
+    wrapper.appendChild(thumb);
+    gallery.appendChild(wrapper);
+  };
+  
+  stockAssets.forEach(a => renderAsset(a));
+  state.uploadedAssets.forEach(a => renderAsset(a));
+}
+
+// Upload zone
+$('#uploadZone').addEventListener('click', () => $('#fileInput').click());
+$('#uploadZone').addEventListener('dragover', (e) => {
+  e.preventDefault();
+  $('#uploadZone').style.borderColor = 'var(--accent)';
+});
+$('#uploadZone').addEventListener('dragleave', () => {
+  $('#uploadZone').style.borderColor = 'var(--border)';
+});
+$('#uploadZone').addEventListener('drop', (e) => {
+  e.preventDefault();
+  $('#uploadZone').style.borderColor = 'var(--border)';
+  const files = e.dataTransfer.files;
+  for (let file of files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => addUploadedAsset(ev.target.result, file.name);
+      reader.readAsDataURL(file);
+    }
+  }
+});
+$('#fileInput').addEventListener('change', (e) => {
+  for (let file of e.target.files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => addUploadedAsset(ev.target.result, file.name);
+      reader.readAsDataURL(file);
+    }
+  }
+  e.target.value = '';
+});
+
+function addUploadedAsset(url, name) {
+  state.uploadedAssets.push({ url, name: name || 'Uploaded image' });
+  populateAssetGallery();
+  showToast(`Added "${name || 'image'}" to library`, 'success');
+}
+
+// ============ ELEMENT LIST ============
+function updateElementList() {
+  const list = $('#elementsList');
+  list.innerHTML = '';
+  if (state.editableElements.length === 0) {
+    list.innerHTML = `<div class="text-center py-6 text-xs text-white/40">No editable elements detected.</div>`;
+    return;
+  }
+  state.editableElements.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'element-item rounded-lg p-2.5 flex items-center gap-2.5 border';
+    item.style.borderColor = 'transparent';
+    item.dataset.id = entry.id;
+    
+    let iconHtml = '';
+    let typeColor = '';
+    if (entry.type === 'image' || entry.type === 'bgimage') {
+      iconHtml = `<div class="w-8 h-8 rounded-md bg-cover bg-center flex-shrink-0" style="background-image: url('${entry.preview}'); background-color: #1a1a1a;"></div>`;
+      typeColor = 'var(--accent)';
+    } else {
+      iconHtml = `<div class="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style="background: rgba(0,224,255,0.1);"><i class="fas fa-tag text-xs" style="color: var(--accent-2);"></i></div>`;
+      typeColor = 'var(--accent-2)';
+    }
+    
+    item.innerHTML = `
+      ${iconHtml}
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-medium truncate" style="color: var(--text);">${escapeHtml(entry.label)}</div>
+        <div class="text-[10px] uppercase tracking-wider" style="color: ${typeColor};">${entry.type}</div>
+      </div>
+      <i class="fas fa-chevron-right text-[10px] text-white/30"></i>
+    `;
+    item.addEventListener('click', () => {
+      selectElement(entry.id);
+      try { entry.element.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e) {}
+      if (entry.type === 'image' || entry.type === 'bgimage') {
+        openImageModal(entry.id);
+      }
+    });
+    list.appendChild(item);
+  });
+}
+
+// ============ INSPECT PANEL ============
+function updateInspectPanel(entry) {
+  $('#inspectEmpty').classList.add('hidden');
+  $('#inspectContent').classList.remove('hidden');
+  const content = $('#inspectContent');
+  
+  if (entry.type === 'image' || entry.type === 'bgimage') {
+    content.innerHTML = `
+      <div class="space-y-4">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-2">Selected</div>
+          <div class="rounded-lg overflow-hidden" style="background: #1a1a1a;">
+            <img src="${escapeAttr(entry.preview)}" class="w-full h-32 object-cover" alt="Preview" onerror="this.style.display='none'">
+          </div>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Type</div>
+          <div class="text-sm font-mono" style="color: var(--accent);">${entry.type}</div>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Source</div>
+          <div class="text-xs font-mono text-white/60 break-all p-2 rounded" style="background: #050505; border: 1px solid var(--border); max-height: 80px; overflow-y: auto;">${escapeHtml(entry.value)}</div>
+        </div>
+        <button class="btn-primary w-full px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2" data-action="replace-img" data-id="${entry.id}">
+          <i class="fas fa-arrows-rotate text-xs"></i>
+          Replace image
+        </button>
+      </div>
+    `;
+    content.querySelector('[data-action="replace-img"]').addEventListener('click', () => openImageModal(entry.id));
+  } else if (entry.type === 'price') {
+    content.innerHTML = `
+      <div class="space-y-4">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-2">Selected</div>
+          <div class="rounded-lg p-3 text-center" style="background: rgba(0,224,255,0.08); border: 1px solid rgba(0,224,255,0.2);">
+            <div class="font-display text-2xl font-bold" style="color: var(--accent-2);">${escapeHtml(entry.value)}</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Type</div>
+          <div class="text-sm font-mono" style="color: var(--accent-2);">price</div>
+        </div>
+        <div>
+          <label class="text-xs uppercase tracking-wider text-white/40 mb-2 block">New value</label>
+          <div class="flex gap-2">
+            <input id="inspectPriceInput" type="text" value="${escapeAttr(entry.value)}" class="flex-1 px-3 py-2 rounded-lg text-sm outline-none font-mono" style="background: #050505; border: 1px solid var(--border); color: var(--text);">
+            <button id="inspectPriceApply" class="btn-primary px-3 py-2 rounded-lg text-sm">Set</button>
+          </div>
+        </div>
+        <div class="text-xs text-white/40 leading-relaxed pt-2 border-t" style="border-color: var(--border);">
+          <i class="fas fa-lightbulb mr-1" style="color: var(--accent);"></i>
+          Tip: click the price in the preview to edit it inline.
+        </div>
+      </div>
+    `;
+    $('#inspectPriceApply').addEventListener('click', () => {
+      const newVal = $('#inspectPriceInput').value.trim();
+      if (newVal && newVal !== entry.value) {
+        const oldVal = entry.value;
+        entry.element.textContent = newVal;
+        entry.value = newVal;
+        entry.label = newVal;
+        logChange('price', entry.id, oldVal, newVal);
+        updateElementList();
+        updateInspectPanel(entry);
+        showToast('Price updated', 'success');
+      }
+    });
+    $('#inspectPriceInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('#inspectPriceApply').click();
+    });
+  }
+}
+
+// ============ CHANGES LOG ============
+function logChange(type, id, oldVal, newVal) {
+  const existing = state.changes.find(c => c.id === id);
+  if (existing) {
+    existing.newVal = newVal;
+    existing.timestamp = Date.now();
+    existing.count = (existing.count || 1) + 1;
+  } else {
+    state.changes.push({ type, id, oldVal, newVal, timestamp: Date.now(), count: 1 });
+  }
+  updateChangesList();
+  updateChangesBadge();
+}
+
+function updateChangesList() {
+  const list = $('#changesList');
+  if (state.changes.length === 0) {
+    list.innerHTML = `<div class="text-center py-8 text-xs text-white/40">
+      <i class="fas fa-circle-info text-xl mb-2 text-white/30 block"></i>
+      <div>No changes yet.</div>
+      <div class="mt-1">Edits you make will appear here.</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML = '';
+  state.changes.slice().reverse().forEach(change => {
+    const item = document.createElement('div');
+    item.className = 'rounded-lg p-3 text-xs';
+    item.style.background = '#050505';
+    item.style.border = '1px solid var(--border)';
+    const typeColor = change.type === 'price' ? 'var(--accent-2)' : 'var(--accent)';
+    const typeIcon = change.type === 'price' ? 'fa-tag' : 'fa-image';
+    item.innerHTML = `
+      <div class="flex items-center gap-2 mb-2">
+        <i class="fas ${typeIcon} text-[10px]" style="color: ${typeColor};"></i>
+        <span class="font-medium" style="color: ${typeColor};">${change.type}</span>
+        ${change.count > 1 ? `<span class="text-[10px] text-white/40">×${change.count}</span>` : ''}
+        <span class="text-[10px] text-white/30 ml-auto">${timeAgo(change.timestamp)}</span>
+      </div>
+      ${change.type === 'price' ? `
+        <div class="flex items-center gap-2 font-mono flex-wrap">
+          <span class="text-white/40 line-through">${escapeHtml(truncate(change.oldVal, 30))}</span>
+          <i class="fas fa-arrow-right text-[8px] text-white/30"></i>
+          <span style="color: ${typeColor};">${escapeHtml(truncate(change.newVal, 30))}</span>
+        </div>
+      ` : `
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded bg-cover bg-center flex-shrink-0" style="background-image: url('${escapeAttr(change.oldVal)}'); background-color: #1a1a1a;"></div>
+          <i class="fas fa-arrow-right text-[8px] text-white/30"></i>
+          <div class="w-8 h-8 rounded bg-cover bg-center flex-shrink-0" style="background-image: url('${escapeAttr(change.newVal)}'); background-color: #1a1a1a;"></div>
+          <div class="flex-1 min-w-0 ml-2">
+            <div class="text-white/60 truncate font-mono text-[10px]">${escapeHtml(truncate(String(change.newVal).split('/').pop().split('?')[0], 20))}</div>
+          </div>
+        </div>
+      `}
+    `;
+    list.appendChild(item);
+  });
+}
+
+function updateChangesBadge() {
+  const badge = $('#changesBadge');
+  if (state.changes.length > 0) {
+    badge.classList.remove('hidden');
+    badge.textContent = state.changes.length;
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+// ============ TABS ============
+$$('.left-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.left-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const tabName = tab.dataset.tab;
+    $('#assetsTab').classList.toggle('hidden', tabName !== 'assets');
+    $('#elementsTab').classList.toggle('hidden', tabName !== 'elements');
+  });
+});
+
+$$('.right-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.right-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const tabName = tab.dataset.tab;
+    $('#inspectTab').classList.toggle('hidden', tabName !== 'inspect');
+    $('#changesTab').classList.toggle('hidden', tabName !== 'changes');
+  });
+});
+
+// ============ PREVIEW MODE ============
+$$('.preview-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.preview-mode-btn').forEach(b => {
+      b.classList.remove('active');
+      b.style.background = '';
+      b.style.color = '';
+    });
+    btn.classList.add('active');
+    btn.style.background = 'rgba(255,255,255,0.05)';
+    btn.style.color = 'var(--accent)';
+    const mode = btn.dataset.mode;
+    state.previewMode = mode;
+    const wrapper = $('#previewWrapper');
+    if (mode === 'desktop') {
+      wrapper.style.maxWidth = '100%';
+      wrapper.style.width = '100%';
+    } else if (mode === 'tablet') {
+      wrapper.style.maxWidth = '768px';
+      wrapper.style.width = '100%';
+    } else if (mode === 'mobile') {
+      wrapper.style.maxWidth = '390px';
+      wrapper.style.width = '100%';
+    }
+  });
+});
+$('.preview-mode-btn[data-mode="desktop"]').style.background = 'rgba(255,255,255,0.05)';
+$('.preview-mode-btn[data-mode="desktop"]').style.color = 'var(--accent)';
+
+// ============ EXPORT ============
+$('#exportBtn').addEventListener('click', openExportModal);
+$('#viewCodeBtn').addEventListener('click', openExportModal);
+$('#closeExportModal').addEventListener('click', closeExportModal);
+$('#exportModal').addEventListener('click', (e) => {
+  if (e.target === $('#exportModal')) closeExportModal();
+});
+
+function openExportModal() {
+  const doc = state.iframeDoc;
+  if (!doc) return;
+  const clone = doc.documentElement.cloneNode(true);
+  clone.querySelectorAll('[data-tx-id]').forEach(el => {
+    el.removeAttribute('data-tx-id');
+    el.removeAttribute('data-tx-type');
+    el.classList.remove('tx-selected', 'tx-drag-over');
+  });
+  clone.querySelectorAll('#tx-editable-styles').forEach(s => s.remove());
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  
+  const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+  $('#exportCode').textContent = html;
+  $('#exportChangesCount').textContent = state.changes.length;
+  $('#exportSize').textContent = (new Blob([html]).size / 1024).toFixed(1);
+  $('#exportModal').classList.remove('hidden');
+  $('#exportModal').classList.add('flex');
+}
+
+function closeExportModal() {
+  $('#exportModal').classList.add('hidden');
+  $('#exportModal').classList.remove('flex');
+}
+
+$('#copyExportBtn').addEventListener('click', () => {
+  const code = $('#exportCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('HTML copied to clipboard', 'success');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('HTML copied to clipboard', 'success'); }
+    catch(e) { showToast('Copy failed — select and copy manually', 'error'); }
+    document.body.removeChild(ta);
+  });
+});
+
+$('#downloadExportBtn').addEventListener('click', () => {
+  const code = $('#exportCode').textContent;
+  const blob = new Blob([code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'templifyx-export.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Downloaded templifyx-export.html', 'success');
+});
+
+// ============ RESET ============
+$('#resetBtn').addEventListener('click', () => {
+  if (state.changes.length === 0) {
+    showToast('No changes to reset', 'info');
+    return;
+  }
+  if (confirm('Reset all changes? This will restore the original HTML.')) {
+    state.changes = [];
+    updateChangesList();
+    updateChangesBadge();
+    loadHTMLIntoIframe(state.originalHTML);
+    showToast('Reset to original', 'success');
+  }
+});
+
+// ============ BACK ============
+$('#backBtn').addEventListener('click', () => {
+  if (state.changes.length > 0) {
+    if (!confirm('You have unsaved changes. Leave the editor?')) return;
+  }
+  $('#editor').classList.add('hidden');
+  $('#editor').style.display = 'none';
+  $('#welcome').classList.remove('hidden');
+  state.changes = [];
+  state.editableElements = [];
+  state.selectedElement = null;
+  state.uploadedAssets = [];
+});
+
+// ============ TOAST ============
+function showToast(message, type = 'info') {
+  const container = $('#toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast pointer-events-auto rounded-lg px-4 py-3 text-sm flex items-center gap-2.5 min-w-[240px]';
+  let icon = 'fa-circle-info';
+  let iconColor = 'var(--accent-2)';
+  if (type === 'success') { icon = 'fa-circle-check'; iconColor = 'var(--accent)'; }
+  if (type === 'error') { icon = 'fa-circle-exclamation'; iconColor = '#ff5f57'; }
+  toast.style.background = '#1a1a1a';
+  toast.style.border = '1px solid var(--border)';
+  toast.style.boxShadow = '0 8px 30px rgba(0,0,0,0.4)';
+  toast.innerHTML = `<i class="fas ${icon}" style="color: ${iconColor};"></i><span class="text-white/90">${escapeHtml(message)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease-in forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 2800);
+}
+
+// ============ UTILS ============
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escapeAttr(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
+}
+function truncate(str, len) {
+  if (String(str).length <= len) return str;
+  return String(str).substring(0, len) + '...';
+}
+function timeAgo(ts) {
+  const seconds = Math.floor((Date.now() - ts) / 1000);
+  if (seconds < 5) return 'just now';
+  if (seconds < 60) return seconds + 's ago';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + 'm ago';
+  return Math.floor(minutes / 60) + 'h ago';
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (!$('#imageModal').classList.contains('hidden')) closeImageModal();
+    if (!$('#exportModal').classList.contains('hidden')) closeExportModal();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && !$('#editor').classList.contains('hidden')) {
+    e.preventDefault();
+    openExportModal();
+  }
+});
+
+// Auto-load sample on first visit for instant demo (commented out — let user choose)
+$('#htmlInput').focus();
+</script>
+
+</body>
+</html>

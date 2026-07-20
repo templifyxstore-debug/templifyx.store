@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Instrument Sans', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['Fragment Mono', 'ui-monospace', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif; }
+    .mono { font-family: 'Fragment Mono', ui-monospace, monospace; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .nav-active { background: #e2e0df !important; color: black !important; }
+  </style>
+</head>
+<body class="bg-black text-white overflow-hidden">
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const fromIntro = params.get('fromIntro') === '1';
+      if (!fromIntro) {
+        window.location.replace('intro.html?next=dashboard.html');
+      }
+    })();
+  </script>
+  <div class="min-h-screen flex">
+    <!-- Mobile overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden hidden" onclick="closeMobileMenu()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed lg:relative z-50 h-full w-[260px] bg-black border-r border-[#1a1a1a] flex flex-col shrink-0 -translate-x-full lg:translate-x-0 transition-transform duration-300">
+      <div class="h-[68px] flex items-center px-6 border-b border-[#1a1a1a] shrink-0">
+        <div class="flex items-center gap-3">
+          <img src="images/reallogo.png" alt="TemplifyX logo" class="h-20 w-auto object-contain" />
+          <div>
+            <div class="font-semibold tracking-tight leading-none"></div>
+            <div class="text-[10px] text-[#666] uppercase tracking-widest mono"></div>
+          </div>
+        </div>
+        <button onclick="closeMobileMenu()" class="ml-auto lg:hidden p-1.5 hover:bg-[#111] rounded">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 p-3 overflow-y-auto">
+        <div class="space-y-1">
+          <button onclick="switchView('products')" data-nav="products" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] transition-all text-[#999] hover:text-white hover:bg-[#0a0a0a] nav-active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <span class="font-[450]">Purchased items</span>
+          </button>
+          <button onclick="switchView('profile')" data-nav="profile" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] transition-all text-[#999] hover:text-white hover:bg-[#0a0a0a]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="font-[450]">Profile</span>
+          </button>
+          <button onclick="window.location.href='customize.html'" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] transition-all text-[#999] hover:text-white hover:bg-[#0a0a0a]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 6v6c0 5 3.4 9.7 9 10 5.6-.3 9-5 9-10V6l-9-4Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            <span class="font-[450]">Web Builder</span>
+          </button>
+          <button onclick="window.location.href='productchanger.html'" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] transition-all text-[#999] hover:text-white hover:bg-[#0a0a0a]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"/><path d="M3 12h18"/><path d="M7 7l10 10"/><path d="M17 7 7 17"/></svg>
+            <span class="font-[450]">Product Designer</span>
+          </button>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-[#1a1a1a]">
+          <div class="px-3 mb-3">
+            <div class="text-[11px] text-[#555] uppercase tracking-wider font-medium mono">Workspace</div>
+          </div>
+          <div class="space-y-1">
+            <button class="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[14px] text-[#666] hover:text-[#999] hover:bg-[#0a0a0a] transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span>Analytics</span>
+            </button>
+            <button class="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[14px] text-[#666] hover:text-[#999] hover:bg-[#0a0a0a] transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Settings</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="p-3 border-t border-[#1a1a1a] shrink-0">
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-[8px] hover:bg-[#0a0a0a] cursor-pointer group">
+          <div id="sidebarProfileInitials" class="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center text-[12px] font-medium group-hover:bg-[#222] transition-colors overflow-hidden">JD</div>
+          <div class="flex-1 min-w-0">
+            <div id="sidebarProfileUsername" class="text-[13px] font-[450] truncate">new-user</div>
+            <div id="sidebarProfilePlan" class="text-[11px] text-[#666] truncate">Free Plan</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1 flex flex-col min-w-0 h-screen">
+      <!-- Top bar -->
+      <header class="h-[68px] border-b border-[#1a1a1a] flex items-center px-4 lg:px-6 gap-4 shrink-0 bg-black/80 backdrop-blur-xl sticky top-0 z-30">
+        <button onclick="toggleSidebar()" class="p-2 hover:bg-[#111] rounded-lg transition-colors lg:hidden">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+
+        <button onclick="window.location.href='/productpage/'" class="p-2 hover:bg-[#111] rounded-lg transition-colors flex items-center gap-2 text-[13px] font-[450] text-[#999] hover:text-white">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span>Back to Products</span>
+        </button>
+
+        <div class="hidden md:flex items-center gap-2 text-[13px]">
+          <span class="text-[#555]">Dashboard</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span id="breadcrumb" class="text-white capitalize">Purchased items</span>
+        </div>
+
+        <div class="flex-1 max-w-[480px] hidden sm:block">
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input placeholder="Search products, orders, customers…" class="w-full h-9 pl-9 pr-3 bg-[#0a0a0a] border border-[#1a1a1a] rounded-[8px] text-[13px] placeholder-[#555] focus:outline-none focus:border-[#333] focus:bg-black transition-all" />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 ml-auto">
+          <button class="p-2 hover:bg-[#111] rounded-lg transition-colors relative">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-white rounded-full animate-pulse"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <main class="flex-1 overflow-auto bg-[#050505]">
+        <!-- HOME VIEW -->
+        <div id="view-home" class="view p-4 lg:p-8 max-w-[1400px] mx-auto">
+          <div class="flex items-start justify-between mb-8">
+            <div>
+              <h1 id="welcomeGreeting" class="text-[28px] font-semibold tracking-tight mb-1">Good evening, John</h1>
+              <p class="text-[#777] text-[14px]">Here's what's happening with your store today.</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <button class="h-9 px-3.5 bg-[#0a0a0a] hover:bg-[#111] border border-[#1a1a1a] rounded-[8px] text-[13px] font-[450] transition-colors flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Quick actions
+              </button>
+              <button class="h-9 px-3.5 bg-[#ffffff] text-white hover:bg-[#fd2a00]/90 rounded-[8px] text-[13px] font-medium transition-colors">New product</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-5 hover:border-[#222] transition-colors group">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-9 h-9 rounded-[8px] bg-[#0a0a0a] group-hover:bg-[#111] flex items-center justify-center transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.75"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <span class="text-[12px] font-medium mono px-2 py-1 rounded-[6px] text-[#0f0] bg-[#0f0]/10">+12.5%</span>
+              </div>
+              <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1">Total revenue</div>
+              <div class="text-[26px] font-semibold tracking-tight mono">$84,294</div>
+            </div>
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-5 hover:border-[#222] transition-colors group">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-9 h-9 rounded-[8px] bg-[#0a0a0a] group-hover:bg-[#111] flex items-center justify-center transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.75"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                </div>
+                <span class="text-[12px] font-medium mono px-2 py-1 rounded-[6px] text-[#0f0] bg-[#0f0]/10">+8.2%</span>
+              </div>
+              <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1">Orders</div>
+              <div class="text-[26px] font-semibold tracking-tight mono">1,429</div>
+            </div>
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-5 hover:border-[#222] transition-colors group">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-9 h-9 rounded-[8px] bg-[#0a0a0a] group-hover:bg-[#111] flex items-center justify-center transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.75"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.8-7.8 5.5 5.5 0 0 0 7.8 7.8Z"/></svg>
+                </div>
+                <span class="text-[12px] font-medium mono px-2 py-1 rounded-[6px] text-[#0f0] bg-[#0f0]/10">+23.1%</span>
+              </div>
+              <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1">Customers</div>
+              <div class="text-[26px] font-semibold tracking-tight mono">3,847</div>
+            </div>
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-5 hover:border-[#222] transition-colors group">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-9 h-9 rounded-[8px] bg-[#0a0a0a] group-hover:bg-[#111] flex items-center justify-center transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.75"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <span class="text-[12px] font-medium mono px-2 py-1 rounded-[6px] text-[#f44] bg-[#f44]/10">-0.4%</span>
+              </div>
+              <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1">Conversion</div>
+              <div class="text-[26px] font-semibold tracking-tight mono">4.8%</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-3">
+            <div class="xl:col-span-2 bg-black border border-[#1a1a1a] rounded-[12px] p-5 lg:p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-[15px] font-semibold mb-1">Revenue overview</h2>
+                  <p class="text-[12px] text-[#666]">Last 7 days performance</p>
+                </div>
+              </div>
+              <div class="h-[240px] relative">
+                <svg class="w-full h-full" viewBox="0 0 600 240">
+                  <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white" stop-opacity="0.15"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient></defs>
+                  <line x1="0" y1="0" x2="600" y2="0" stroke="#1a1a1a" stroke-width="1"/><line x1="0" y1="60" x2="600" y2="60" stroke="#1a1a1a" stroke-width="1"/><line x1="0" y1="120" x2="600" y2="120" stroke="#1a1a1a" stroke-width="1"/><line x1="0" y1="180" x2="600" y2="180" stroke="#1a1a1a" stroke-width="1"/>
+                  <path d="M 0 180 C 50 160, 100 140, 150 130 S 250 110, 300 100 S 400 85, 450 70 S 550 50, 600 45 L 600 240 L 0 240 Z" fill="url(#grad)"/>
+                  <path d="M 0 180 C 50 160, 100 140, 150 130 S 250 110, 300 100 S 400 85, 450 70 S 550 50, 600 45" fill="none" stroke="white" stroke-width="2"/>
+                  <circle cx="0" cy="180" r="3" fill="black" stroke="white" stroke-width="2"/><circle cx="150" cy="130" r="3" fill="black" stroke="white" stroke-width="2"/><circle cx="300" cy="100" r="3" fill="black" stroke="white" stroke-width="2"/><circle cx="450" cy="70" r="3" fill="black" stroke="white" stroke-width="2"/><circle cx="600" cy="45" r="3" fill="black" stroke="white" stroke-width="2"/>
+                </svg>
+                <div class="absolute bottom-0 left-0 right-0 flex justify-between text-[11px] text-[#555] mono px-1">
+                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-5 lg:p-6">
+              <div class="flex items-center justify-between mb-5">
+                <h2 class="text-[15px] font-semibold">Live activity</h2>
+                <div class="w-2 h-2 bg-[#0f0] rounded-full animate-pulse"></div>
+              </div>
+              <div class="space-y-3.5" id="activity-feed">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRODUCTS VIEW -->
+        <div id="view-products" class="view active p-4 lg:p-8 max-w-[1400px] mx-auto">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h1 class="text-[28px] font-semibold tracking-tight mb-1">Purchased items</h1>
+              <p id="purchased-summary" class="text-[#777] text-[14px]">No purchases yet. Complete checkout on product page.</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="products-grid">
+            <!-- Purchased items loaded by JS -->
+          </div>
+        </div>
+
+        <!-- CUSTOMIZE VIEW -->
+        <div id="view-customize" class="view p-4 lg:p-8 max-w-[1100px] mx-auto">
+          <div class="mb-8">
+            <h1 class="text-[28px] font-semibold tracking-tight mb-1">Customize Product</h1>
+            <p class="text-[#777] text-[14px]">Adjust product presentation and styling options for your storefront.</p>
+          </div>
+          <div class="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-6">
+              <h2 class="text-[15px] font-semibold mb-4">Quick customization</h2>
+              <div class="space-y-4">
+                <label class="block text-[13px] text-[#999]">Theme color
+                  <input type="color" value="#fd2a00" class="mt-2 w-full h-10 rounded-[8px] bg-[#0a0a0a] border border-[#1a1a1a] p-1" />
+                </label>
+                <label class="block text-[13px] text-[#999]">Product label
+                  <input type="text" value="Featured Product" class="mt-2 w-full h-10 px-3 rounded-[8px] bg-[#0a0a0a] border border-[#1a1a1a] text-white" />
+                </label>
+                <button class="h-10 px-4 bg-[#fd2a00] text-white hover:bg-[#fd2a00]/90 rounded-[8px] text-[13px] font-medium transition-colors">Save customization</button>
+              </div>
+            </div>
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-6">
+              <h2 class="text-[15px] font-semibold mb-4">Preview</h2>
+              <div class="rounded-[12px] border border-[#1a1a1a] bg-[#0a0a0a] p-4">
+                <div class="text-[11px] text-[#666] uppercase tracking-wider mb-2">Preview card</div>
+                <div class="rounded-[10px] border border-[#1a1a1a] bg-black p-4">
+                  <div class="text-[12px] text-[#fd2a00] font-medium mb-2">Featured Product</div>
+                  <div class="text-[18px] font-semibold">Modern UI Template</div>
+                  <p class="text-[13px] text-[#999] mt-2">A polished product presentation with quick customization controls.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROFILE VIEW -->
+        <div id="view-profile" class="view p-4 lg:p-8 max-w-[900px] mx-auto">
+          <div class="mb-8">
+            <h1 class="text-[28px] font-semibold tracking-tight mb-1">Profile</h1>
+            <p class="text-[#777] text-[14px]">Manage your account and preferences</p>
+          </div>
+          <div class="grid gap-3">
+            <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-6">
+              <div class="flex items-start gap-5">
+                <div id="profileAvatarInitials" class="w-20 h-20 rounded-[12px] bg-[#0a0a0a] border border-[#1a1a1a] flex items-center justify-center text-[28px] font-medium overflow-hidden">JD</div>
+                <div class="flex-1">
+                  <h2 id="profileFullName" class="text-[18px] font-semibold mb-1">Your name</h2>
+                  <p id="profileEmailPlan" class="text-[#999] text-[14px] mb-4">No account details yet • Free Plan</p>
+                  <div class="flex flex-wrap gap-2">
+                    <input id="avatarUploadInput" type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)" />
+                    <button onclick="document.getElementById('avatarUploadInput').click()" class="h-8 px-3 bg-[#0a0a0a] hover:bg-[#111] border border-[#1a1a1a] rounded-[8px] text-[12px] font-[450] transition-colors">Upload photo</button>
+                    <button onclick="removeProfileAvatar()" class="h-8 px-3 bg-transparent hover:bg-white/5 border border-[#1a1a1a] rounded-[8px] text-[12px] font-[450] text-[#999] hover:text-white transition-colors">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-4 hover:border-[#222] transition-colors group">
+                <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1.5">Full name</div>
+                <div class="flex items-center justify-between gap-3">
+                  <input id="profileFullNameField" type="text" class="w-full bg-transparent text-[14px] font-[450] text-white outline-none" placeholder="Your name" />
+                  <button onclick="saveProfileEdits()" class="text-[12px] text-[#666] hover:text-white transition-all">Save</button>
+                </div>
+              </div>
+              <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-4 hover:border-[#222] transition-colors group">
+                <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1.5">Username</div>
+                <div class="flex items-center justify-between gap-3">
+                  <input id="profileUsernameField" type="text" class="w-full bg-transparent text-[14px] font-[450] text-white outline-none" placeholder="new-user" />
+                  <button onclick="saveProfileEdits()" class="text-[12px] text-[#666] hover:text-white transition-all">Save</button>
+                </div>
+              </div>
+              <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-4 hover:border-[#222] transition-colors group">
+                <div class="text-[11px] text-[#666] uppercase tracking-wider font-medium mb-1.5">Email</div>
+                <div class="flex items-center justify-between"><div id="profileEmailField" class="text-[14px] font-[450] text-[#999]">No email on file</div><span class="text-[12px] text-[#666]">Read only</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const products = [
+      { id: 1, name: 'NOIR Terminal Pro', price: 299, image: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400', category: 'Hardware', stock: 12 },
+      { id: 2, name: 'Obsidian Keyboard', price: 189, image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400', category: 'Hardware', stock: 8 },
+      { id: 3, name: 'Void Monitor 4K', price: 599, image: 'https://images.unsplash.com/photo-1527443224154-cfa2c0d1cbde?w=400', category: 'Display', stock: 5 },
+      { id: 4, name: 'Shadow Mouse', price: 79, image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=400', category: 'Hardware', stock: 23 },
+      { id: 5, name: 'Dark Mode Pro License', price: 49, image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400', category: 'Software', stock: 999 },
+      { id: 6, name: 'Night Vision Webcam', price: 129, image: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400', category: 'Hardware', stock: 15 },
+    ];
+
+    const activities = [
+      { user: 'alex.chen', action: 'purchased NOIR Terminal Pro', time: '2m ago', amount: '$299' },
+      { user: 'sarah.k', action: 'viewed your product', time: '5m ago' },
+      { user: 'marcus_w', action: 'added to cart', time: '12m ago', amount: '$189' },
+      { user: 'jordan.lee', action: 'purchased Void Monitor 4K', time: '23m ago', amount: '$599' },
+      { user: 'taylor.m', action: 'left a review', time: '1h ago' },
+    ];
+
+    const CART_STORAGE_KEY = 'templifyxCart';
+    const SUPABASE_URL = 'https://vrhtmoovtnslxvqxvmmi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHRtb292dG5zbHh2cXh2bW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NTEwODcsImV4cCI6MjA4NzIyNzA4N30.mqV74VmW4O4pqX8c4fOtpZX6AoemcVvPsbh9zHEE74w';
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const savedCart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+    let cart = savedCart.length ? savedCart : [];
+
+    function saveCart() {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    }
+
+    function switchView(view) {
+      const targetView = view || 'products';
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const targetPanel = document.getElementById(`view-${targetView}`);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+      }
+      
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('nav-active');
+        btn.classList.add('text-[#999]');
+      });
+      const activeBtn = document.querySelector(`[data-nav="${targetView}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('nav-active');
+        activeBtn.classList.remove('text-[#999]');
+      }
+      
+      const names = { home: 'Home', products: 'Purchased items', profile: 'Profile', customize: 'Customize Product' };
+      document.getElementById('breadcrumb').textContent = names[targetView] || targetView;
+      
+      closeMobileMenu();
+      if (targetView === 'products') renderPurchasedItems();
+      if (targetView === 'cart') renderCart();
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    function closeMobileMenu() {
+      document.getElementById('sidebar').classList.add('-translate-x-full');
+      document.getElementById('mobile-overlay').classList.add('hidden');
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      const existing = cart.find(item => item.id === id);
+      if (existing) {
+        existing.quantity++;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+      saveCart();
+      updateCartBadge();
+      // Visual feedback
+      const btn = event.target.closest('button');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Added';
+      setTimeout(() => btn.innerHTML = original, 1200);
+    }
+
+    function updateQuantity(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(i => i.id !== id);
+      }
+      saveCart();
+      renderCart();
+      updateCartBadge();
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(i => i.id !== id);
+      saveCart();
+      renderCart();
+      updateCartBadge();
+    }
+
+    function updateCartBadge() {
+      const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const badge = document.getElementById('cart-badge');
+      const countText = document.getElementById('cart-count-text');
+      if (!badge && !countText) return;
+
+      if (count > 0) {
+        if (badge) {
+          badge.textContent = count;
+          badge.classList.remove('hidden');
+        }
+        if (countText) {
+          countText.textContent = count;
+        }
+      } else {
+        if (badge) badge.classList.add('hidden');
+        if (countText) countText.textContent = '0';
+      }
+    }
+
+    function renderCart() {
+      const empty = document.getElementById('cart-empty');
+      const full = document.getElementById('cart-full');
+      const itemsEl = document.getElementById('cart-items');
+      if (!empty || !full || !itemsEl) return;
+      
+      if (cart.length === 0) {
+        empty.classList.remove('hidden');
+        full.classList.add('hidden');
+        return;
+      }
+      
+      empty.classList.add('hidden');
+      full.classList.remove('hidden');
+      
+      itemsEl.innerHTML = cart.map(item => `
+        <div class="bg-black border border-[#1a1a1a] rounded-[12px] p-4 flex gap-4 hover:border-[#222] transition-colors group">
+          <div class="w-24 h-24 rounded-[8px] bg-[#0a0a0a] overflow-hidden shrink-0">
+            <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="font-[550] mb-1">${item.name}</h3>
+                <p class="text-[12px] text-[#666]">${item.category ? `${item.category} • ` : ''}SKU-${item.id.toString().padStart(4, '0')}</p>
+              </div>
+              <button onclick="removeFromCart(${item.id})" class="p-1.5 hover:bg-[#111] rounded-[6px] text-[#555] hover:text-[#f44] transition-colors opacity-0 group-hover:opacity-100">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              </button>
+            </div>
+            <div class="flex items-end justify-between mt-4">
+              <div class="flex items-center gap-2">
+                <button onclick="updateQuantity(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center bg-[#0a0a0a] hover:bg-[#111] border border-[#1a1a1a] rounded-[6px] transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="w-8 text-center text-[14px] font-medium mono">${item.quantity}</span>
+                <button onclick="updateQuantity(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center bg-[#0a0a0a] hover:bg-[#111] border border-[#1a1a1a] rounded-[6px] transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <div class="text-right">
+                <div class="text-[18px] font-semibold mono">$${(item.price * item.quantity).toLocaleString()}</div>
+                <div class="text-[11px] text-[#666]">$${item.price} each</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const tax = Math.round(subtotal * 0.08);
+      const total = subtotal + tax;
+      
+      document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
+      document.getElementById('tax').textContent = `$${tax.toLocaleString()}`;
+      document.getElementById('total').textContent = `$${total.toLocaleString()}`;
+    }
+
+    function getSessionUser() {
+      try {
+        const raw = localStorage.getItem('templifyx_local_session');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+
+        const email = parsed.email || parsed.user?.email || '';
+        const fullName = parsed.user_metadata?.full_name || parsed.name || parsed.user?.user_metadata?.full_name || '';
+        const createdAt = parsed.created_at || parsed.user?.created_at || '';
+
+        return {
+          ...parsed,
+          email,
+          created_at: createdAt,
+          user_metadata: {
+            ...(parsed.user_metadata || {}),
+            full_name: fullName,
+          },
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function formatUserInitials(name) {
+      if (!name) return 'U';
+      return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0].toUpperCase())
+        .join('');
+    }
+
+    function formatUsernameFromEmail(email) {
+      if (!email) return 'user';
+      return email.split('@')[0];
+    }
+
+    function formatCreatedDate(createdAt) {
+      if (!createdAt) return 'Unknown';
+      const date = new Date(createdAt);
+      if (Number.isNaN(date.getTime())) return 'Unknown';
+      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function normalizePlanName(plan) {
+      const normalized = String(plan || '').trim().toLowerCase();
+      return ['free', 'basic', 'pro', 'premium'].includes(normalized) ? normalized : 'free';
+    }
+
+    function getDisplayPlanLabel() {
+      const planMap = {
+        free: 'Free Plan',
+        basic: 'Basic Plan',
+        pro: 'Pro Plan',
+        premium: 'Premium Plan'
+      };
+
+      const selectedPlan = normalizePlanName(localStorage.getItem('selectedPlan'));
+      const planStatus = String(localStorage.getItem('planStatus') || '').toLowerCase();
+
+      if (selectedPlan && selectedPlan !== 'free') {
+        const label = planMap[selectedPlan] || 'Free Plan';
+        return planStatus === 'active' ? `${label} (Active)` : label;
+      }
+
+      try {
+        const purchasedPlans = JSON.parse(localStorage.getItem('templifyxPurchasedPlans') || '[]');
+        const activePlan = purchasedPlans.find(plan => String(plan.status || '').toLowerCase() === 'active');
+        if (activePlan) {
+          const planName = normalizePlanName(activePlan.plan);
+          const label = planMap[planName] || 'Free Plan';
+          return `${label} (Active)`;
+        }
+      } catch (_) {
+        // no purchased plan found; keep the default free label
+      }
+
+      return 'Free Plan';
+    }
+
+    function getUserAvatarStorageKey(user) {
+      const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || '';
+      const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      return normalizedIdentity ? `templifyx_profile_avatar_${normalizedIdentity}` : 'templifyx_profile_avatar_default';
+    }
+
+    function getStoredAvatarData(user) {
+      if (!user) return '';
+      const avatarFromUser = user.avatar || user.user_metadata?.avatar || '';
+      if (avatarFromUser) return avatarFromUser;
+      return localStorage.getItem(getUserAvatarStorageKey(user)) || '';
+    }
+
+    function setStoredAvatarData(user, avatarData) {
+      const storageKey = getUserAvatarStorageKey(user);
+      if (avatarData) {
+        localStorage.setItem(storageKey, avatarData);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+      localStorage.removeItem('templifyx_profile_avatar');
+    }
+
+    function renderProfileAvatar(element, initials, avatarData) {
+      if (!element) return;
+      if (avatarData) {
+        element.innerHTML = `<img src="${avatarData}" alt="Profile avatar" class="w-full h-full object-cover" />`;
+        element.classList.add('p-0');
+        return;
+      }
+      element.innerHTML = initials || 'U';
+      element.classList.remove('p-0');
+    }
+
+    async function handleAvatarUpload(event) {
+      const file = event?.target?.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imageData = reader.result;
+        const sessionUser = getSessionUser() || {};
+        const updatedSession = {
+          ...sessionUser,
+          avatar: imageData,
+          user_metadata: {
+            ...(sessionUser.user_metadata || {}),
+            avatar: imageData,
+          },
+        };
+
+        localStorage.setItem('templifyx_local_session', JSON.stringify(updatedSession));
+        setStoredAvatarData(updatedSession, imageData);
+        loadUserProfile();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function removeProfileAvatar() {
+      const sessionUser = getSessionUser() || {};
+      const updatedSession = {
+        ...sessionUser,
+        avatar: '',
+        user_metadata: {
+          ...(sessionUser.user_metadata || {}),
+          avatar: '',
+        },
+      };
+      localStorage.setItem('templifyx_local_session', JSON.stringify(updatedSession));
+      setStoredAvatarData(updatedSession, '');
+      loadUserProfile();
+    }
+
+    function saveProfileEdits() {
+      const fullNameField = document.getElementById('profileFullNameField');
+      const usernameField = document.getElementById('profileUsernameField');
+      const sessionUser = getSessionUser() || {};
+      const updatedFullName = String(fullNameField?.value || '').trim();
+      const updatedUsername = String(usernameField?.value || '').trim().replace(/\s+/g, '-').toLowerCase();
+      const nextUser = {
+        ...sessionUser,
+        name: updatedFullName || sessionUser.name || '',
+        username: updatedUsername || sessionUser.username || '',
+        user_metadata: {
+          ...(sessionUser.user_metadata || {}),
+          full_name: updatedFullName || sessionUser.user_metadata?.full_name || '',
+          username: updatedUsername || sessionUser.user_metadata?.username || '',
+        },
+      };
+
+      localStorage.setItem('templifyx_local_session', JSON.stringify(nextUser));
+      loadUserProfile();
+    }
+
+    function loadUserProfile() {
+      const user = getSessionUser();
+      const fullNameRaw = user?.user_metadata?.full_name || user?.name || '';
+      const emailRaw = user?.email || '';
+      const normalizedFullName = String(fullNameRaw || '').trim() || (emailRaw ? emailRaw.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : 'New user');
+      const normalizedEmail = String(emailRaw || '').trim();
+      const username = (user?.user_metadata?.username || user?.username || (normalizedEmail ? formatUsernameFromEmail(normalizedEmail) : 'new-user')).toString().trim();
+      const initials = formatUserInitials(normalizedFullName);
+      const accountCreated = formatCreatedDate(user?.created_at);
+      const planLabel = getDisplayPlanLabel();
+      const avatarData = getStoredAvatarData(user);
+
+      renderProfileAvatar(document.getElementById('profileAvatarInitials'), initials, avatarData);
+      document.getElementById('profileFullName').textContent = normalizedFullName;
+      document.getElementById('profileEmailPlan').textContent = normalizedEmail ? `${normalizedEmail} • ${planLabel}` : planLabel;
+      const fullNameField = document.getElementById('profileFullNameField');
+      const usernameField = document.getElementById('profileUsernameField');
+      const emailField = document.getElementById('profileEmailField');
+      if (fullNameField) fullNameField.value = normalizedFullName;
+      if (usernameField) usernameField.value = username || 'new-user';
+      if (emailField) emailField.textContent = normalizedEmail || 'No email on file';
+      const sidebarInitials = document.getElementById('sidebarProfileInitials');
+      const sidebarUsername = document.getElementById('sidebarProfileUsername');
+      const sidebarPlan = document.getElementById('sidebarProfilePlan');
+      const greet = document.getElementById('welcomeGreeting');
+      renderProfileAvatar(sidebarInitials, initials, avatarData);
+      if (sidebarUsername) sidebarUsername.textContent = username || 'new-user';
+      if (sidebarPlan) sidebarPlan.textContent = planLabel;
+      if (greet) greet.textContent = `Good evening, ${normalizedFullName.split(' ')[0] || 'there'}`;
+
+      const accountCreatedEl = document.getElementById('userCreated');
+      if (accountCreatedEl) {
+        accountCreatedEl.textContent = accountCreated;
+      }
+    }
+
+    function loadPurchasedItems() {
+      function normalizeItems(items) {
+        if (!Array.isArray(items)) return [];
+        return items.map(item => ({
+          id: typeof item.id === 'string' && item.id.trim() !== '' && !Number.isNaN(Number(item.id)) ? Number(item.id) : item.id,
+          name: item.name || '',
+          price: Number(item.price) || 0,
+          image: item.image || '',
+          previewUrl: item.previewUrl || '',
+          templateHtml: item.templateHtml || item.template_html || '',
+          category: item.category || '',
+          quantity: Number(item.quantity) || 0,
+          purchasedAt: item.purchasedAt || ''
+        }));
+      }
+
+      try {
+        const raw = localStorage.getItem('templifyxPurchased');
+        const items = raw ? JSON.parse(raw) : [];
+        const normalized = normalizeItems(items);
+        if (normalized.length) return normalized;
+      } catch (error) {
+        console.warn('Unable to read purchased items from localStorage', error);
+      }
+
+      try {
+        if (window.name) {
+          const sharedState = JSON.parse(window.name);
+          if (sharedState && Array.isArray(sharedState.templifyxPurchased)) {
+            const windowItems = normalizeItems(sharedState.templifyxPurchased);
+            if (windowItems.length) {
+              savePurchasedItems(windowItems);
+              return windowItems;
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Unable to read purchased items from window.name fallback', error);
+      }
+
+      return [];
+    }
+
+
+    const STORE_KEY = 'templifyx_v1';
+
+    function b64(str) { return btoa(unescape(encodeURIComponent(str))); }
+    function b64d(str) { return decodeURIComponent(escape(atob(str))); }
+    function encrypt(str) {
+      const salt = 'TX-'+(localStorage.getItem('templifyx_salt')||'default');
+      let out = '';
+      for (let i = 0; i < str.length; i++) out += String.fromCharCode(str.charCodeAt(i) ^ salt.charCodeAt(i % salt.length));
+      return b64(out);
+    }
+    function decrypt(str) {
+      try {
+        const salt = 'TX-'+(localStorage.getItem('templifyx_salt')||'default');
+        const raw = b64d(str);
+        let out = '';
+        for (let i = 0; i < raw.length; i++) out += String.fromCharCode(raw.charCodeAt(i) ^ salt.charCodeAt(i % salt.length));
+        return out;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function idsMatch(a, b) {
+      return String(a) === String(b);
+    }
+
+    function jsStringEscape(value) {
+      return String(value)
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
+    }
+
+    function loadProductsFromFileStorage() {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return [];
+      const json = decrypt(raw);
+      if (!json) return [];
+      try {
+        const items = JSON.parse(json);
+        return Array.isArray(items) ? items : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function getProductById(id) {
+      return loadProductsFromFileStorage().find(p => idsMatch(p.id, id) || idsMatch(p.product_id, id));
+    }
+
+    function savePurchasedItems(items) {
+      localStorage.setItem('templifyxPurchased', JSON.stringify(items));
+      localStorage.setItem('templifyxPurchasedLastUpdated', new Date().toISOString());
+    }
+
+    function renderPurchasedItems() {
+      const grid = document.getElementById('products-grid');
+      const summary = document.getElementById('purchased-summary');
+      
+      if (!grid || !summary) return;
+
+      const purchased = loadPurchasedItems();
+
+      if (!purchased || purchased.length === 0) {
+        summary.textContent = 'No purchases yet. Complete checkout on product page.';
+        grid.innerHTML = `
+          <div class="lg:col-span-3 bg-black border border-[#1a1a1a] rounded-[12px] p-12 text-center text-[#777]">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-4 opacity-40"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            <p class="text-[15px] font-medium">No purchases yet</p>
+            <p class="text-[13px] mt-3">Go to product page and complete checkout to see your purchases here.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const totalQuantity = purchased.reduce((sum, item) => sum + item.quantity, 0);
+      summary.textContent = `${purchased.length} purchased item${purchased.length === 1 ? '' : 's'} • ${totalQuantity} total`;
+
+      grid.innerHTML = purchased.map(item => {
+        const productCode = item.category || `SKU-${String(item.id).padStart(4, '0')}`;
+        const isVideoAsset = /\.(mp4|webm|ogg)$/i.test(item.image || '');
+        const mediaHTML = isVideoAsset
+          ? `<video class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500" autoplay muted loop playsinline><source src="${item.image}" type="video/mp4"></video>`
+          : `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'" />`;
+
+        return `
+          <div class="group bg-black border border-[#1a1a1a] rounded-[12px] overflow-hidden hover:border-[#333] transition-all relative">
+            <div class="aspect-[4/3] bg-[#0a0a0a] relative overflow-hidden">
+              ${mediaHTML}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+              <button onclick="showTemplateHtml('${jsStringEscape(item.id)}')" title="View HTML Code" class="absolute top-3 right-3 inline-flex items-center justify-center rounded-full border border-white/10 bg-transparent p-2 text-white text-[13px] transition-all hover:bg-white/10">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/>
+                  <path d="M14 3v5h5"/>
+                  <path d="M8 13h8M8 17h8"/>
+                </svg>
+              </button>
+            </div>
+            <div class="p-4">
+              <h3 class="font-[550] text-white mb-1">${item.name}</h3>
+              <p class="text-[11px] text-[#666] mb-3">${productCode}</p>
+              <div class="flex items-end justify-between">
+                <div>
+                  <div class="text-[18px] font-semibold mono">$${Number(item.price).toLocaleString()}</div>
+                  <div class="text-[12px] text-[#666]">Qty: ${item.quantity}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-[12px] text-[#999]">Total</div>
+                  <div class="text-[16px] font-semibold mono">$${(Number(item.price) * Number(item.quantity)).toLocaleString()}</div>
+                </div>
+              </div>
+              <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+                <button onclick="previewPurchasedItem('${jsStringEscape(item.id)}')" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#111] px-3 py-2 text-[13px] font-medium text-white hover:bg-[#1a1a1a] transition-all">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Preview
+                </button>
+                <button onclick="openInBuilder('${jsStringEscape(item.id)}')" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#111] px-3 py-2 text-[13px] font-medium text-white hover:bg-[#1a1a1a] transition-all">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+                  Edit
+                </button>
+                <button onclick="deletePurchasedItem('${jsStringEscape(item.id)}')" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[13px] font-medium text-red-200 hover:bg-red-500/20 transition-all">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deletePurchasedItem(productId) {
+      const purchased = loadPurchasedItems();
+      const item = purchased.find(p => idsMatch(p.id, productId));
+      
+      if (!item) return;
+
+      const confirmed = confirm(`Are you sure you want to delete "${item.name}"?`);
+      
+      if (confirmed) {
+        const updated = purchased.filter(p => !idsMatch(p.id, productId));
+        savePurchasedItems(updated);
+        renderPurchasedItems();
+      }
+    }
+
+    function previewPurchasedItem(productId) {
+      const purchased = loadPurchasedItems();
+      const item = purchased.find(p => idsMatch(p.id, productId));
+      if (!item) {
+        console.error('Purchased item not found:', productId);
+        return;
+      }
+
+      const fileProduct = getProductById(item.id);
+      const previewSource = item.previewUrl || item.image || fileProduct?.previewUrl || fileProduct?.previewImage || '';
+
+      console.log('Preview item:', {
+        name: item.name,
+        previewUrl: item.previewUrl,
+        image: item.image,
+        fileProductPreviewUrl: fileProduct?.previewUrl,
+        fileProductPreviewImage: fileProduct?.previewImage
+      });
+
+      console.log('Opening preview source:', previewSource);
+      
+      if (previewSource) {
+        window.open(previewSource, '_blank', 'noopener');
+        return;
+      }
+
+      alert(`Preview is not available for "${item.name}".`);
+    }
+
+    function openInBuilder(productId) {
+      const purchased = loadPurchasedItems();
+      const item = purchased.find(p => idsMatch(p.id, productId));
+      if (!item) {
+        console.error('Purchased item not found:', productId);
+        return;
+      }
+
+      const fileProduct = getProductById(item.id);
+      const templateHtml = item.templateHtml || fileProduct?.templateHtml || fileProduct?.template_html || '';
+      if (!templateHtml) {
+        alert(`Template HTML is not available for "${item.name}".`);
+        return;
+      }
+
+      try {
+        sessionStorage.setItem('templifyxLoadTemplateHtml', templateHtml);
+        sessionStorage.setItem('templifyxLoadTemplateName', item.name || 'Template');
+        sessionStorage.setItem('templifyxAutoLoadTemplate', '1');
+        localStorage.setItem('templifyxLoadTemplateHtml', templateHtml);
+        localStorage.setItem('templifyxLoadTemplateName', item.name || 'Template');
+        localStorage.setItem('templifyxAutoLoadTemplate', '1');
+      } catch (error) {
+        console.warn('Unable to save template to session storage', error);
+      }
+
+      window.location.href = 'customize.html';
+    }
+
+    function showTemplateHtml(productId) {
+      const purchased = loadPurchasedItems();
+      const item = purchased.find(p => idsMatch(p.id, productId));
+      if (!item) {
+        console.error('Purchased item not found:', productId);
+        return;
+      }
+
+      const fileProduct = getProductById(item.id);
+      const templateHtml = item.templateHtml || fileProduct?.templateHtml || fileProduct?.template_html || '';
+
+      if (!templateHtml) {
+        alert(`Template HTML is not available for "${item.name}".`);
+        return;
+      }
+
+      const backdrop = document.getElementById('templateHtmlBackdrop');
+      const title = document.getElementById('templateHtmlTitle');
+      const code = document.getElementById('templateHtmlCode');
+
+      if (title) title.textContent = `${item.name} — Template HTML`;
+      if (code) code.textContent = templateHtml;
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+
+    function closeTemplateHtmlModal() {
+      const backdrop = document.getElementById('templateHtmlBackdrop');
+      const code = document.getElementById('templateHtmlCode');
+      if (backdrop) backdrop.classList.add('hidden');
+      if (code) code.textContent = '';
+    }
+
+    function renderActivities() {
+      const feed = document.getElementById('activity-feed');
+      feed.innerHTML = activities.map(a => `
+        <div class="flex items-start gap-3 group">
+          <div class="w-7 h-7 rounded-full bg-[#0a0a0a] group-hover:bg-[#111] flex items-center justify-center shrink-0 mt-0.5 transition-colors">
+            <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-[13px] leading-snug">
+              <span class="font-medium text-white">${a.user}</span>
+              <span class="text-[#999]"> ${a.action}</span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[11px] text-[#555] mono">${a.time}</span>
+              ${a.amount ? `<span class="text-[11px] font-medium text-white mono">${a.amount}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize
+    window.addEventListener('storage', event => {
+      if (
+        event.key === 'templifyxPurchased' ||
+        event.key === 'templifyxPurchasedLastUpdated' ||
+        event.key === 'selectedPlan' ||
+        event.key === 'planStatus' ||
+        event.key === 'templifyxPurchasedPlans'
+      ) {
+        renderPurchasedItems();
+        loadUserProfile();
+      }
+    });
+
+    window.addEventListener('planChanged', () => {
+      loadUserProfile();
+      renderPurchasedItems();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Dashboard loaded');
+      const params = new URLSearchParams(window.location.search);
+      const initialView = params.get('view');
+      loadUserProfile();
+      renderPurchasedItems();
+      renderActivities();
+      updateCartBadge();
+      renderCart();
+      if (initialView) {
+        switchView(initialView);
+      }
+    });
+  </script>
+
+  <div id="templateHtmlBackdrop" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center px-4 py-8">
+    <div class="relative w-full max-w-4xl bg-[#080808] border border-white/10 rounded-[20px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)]">
+      <div class="flex items-center justify-between gap-3 p-4 border-b border-white/10 bg-[#090909]">
+        <div>
+          <h3 id="templateHtmlTitle" class="text-lg font-semibold">Template HTML</h3>
+          <p class="text-xs text-[#888]">Preview the saved HTML code for this purchased item.</p>
+        </div>
+        <button onclick="closeTemplateHtmlModal()" class="rounded-full p-2 text-[#aaa] hover:text-white hover:bg-white/10 transition">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 max-h-[70vh] overflow-auto">
+        <pre id="templateHtmlCode" class="whitespace-pre-wrap break-words text-[13px] leading-6 font-mono text-[#e6e6e6] bg-[#020202] p-4 rounded-[14px] border border-white/10 shadow-inner"></pre>
+      </div>
+      <div class="p-4 border-t border-white/10 bg-[#090909] text-right">
+        <button onclick="closeTemplateHtmlModal()" class="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-white/90 transition">Close</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

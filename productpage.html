@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TemplifyX — Premium Digital Products</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #141414;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: #ffffff33;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.6);
+    --accent: #ffffff;
+  }
+  * { font-family: 'Inter', sans-serif; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+    isolation: isolate;
+  }
+  #evil-eye-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: transparent;
+  }
+  #evil-eye-background canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+  .glow-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+      radial-gradient(600px circle at 10% 10%, rgba(139, 92, 246, 0.12), transparent 40%),
+      radial-gradient(500px circle at 90% 30%, rgba(236, 72, 153, 0.08), transparent 40%),
+      radial-gradient(700px circle at 50% 90%, rgba(59, 130, 246, 0.08), transparent 50%);
+  }
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(26, 1, 1, 0) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glass {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+  }
+  .glass:hover { border-color: var(--border-hover); }
+  .card {
+    background: #000000;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgb(0, 0, 0), transparent 50%);
+    background: linear-gradient(#e0060600 0 0) content-box, linear-gradient(#ffffff00 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .card:hover::before { opacity: 1; }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 60px -20px #fd2a00 , 0 0 40px -10px rgba(139, 92, 246, 0.2);
+  }
+  .card-img-wrap {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+  }
+  .card-img-wrap img {
+    transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .card:hover .card-img-wrap img { transform: scale(1.08); }
+  .img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.485) 100%);
+  }
+  .tag {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(1, 1, 1, 0.964);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+  }
+  .tier-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: rgba(255,255,255,0.08);
+    color: #f8fafc;
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    z-index: 2;
+  }
+  .tier-badge-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #f8fafc;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+  }
+  .tier-badge-inline {
+    position: static;
+    top: auto;
+    right: auto;
+    margin-left: 0.5rem;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+    color: #f8fafc;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .tier-badge i,
+  .tier-badge-card i { font-size: 0.9em; }
+  .btn-white {
+    background: #fff;
+    color: #000;
+    transition: all 0.3s;
+    font-weight: 600;
+  }
+  .btn-white:hover {
+    background: #e5e5e5;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px -10px rgba(255,255,255,0.3);
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--border-hover);
+  }
+  .filter-btn {
+    padding: 10px 22px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-btn:hover {
+    color: #fff;
+    border-color: var(--border-hover);
+    background: rgba(255,255,255,0.06);
+  }
+  .filter-btn.active {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+  }
+  .search-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .search-box:focus-within {
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.06);
+  }
+  .badge-cart {
+    background: #fff;
+    color: #000;
+  }
+  .price-old {
+    text-decoration: line-through;
+    color: rgba(255,255,255,0.35);
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .price-new {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .chip-cat {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.5);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .logo-mark {
+    background: linear-gradient(135deg, #fff, #a0a0a0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .pill-products {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+  }
+  .headline {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+  .fab {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+  }
+  .fab:hover {
+    background: rgba(255,255,255,0.12);
+    transform: scale(1.05);
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .float-anim { animation: float 4s ease-in-out infinite; }
+  .stat-num {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .sparkle {
+    color: #fff;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.4));
+  }
+  /* Sidebar Styles */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    background: rgba(10, 10, 10, 0.98);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 40;
+    padding: 20px 0;
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 39;
+    pointer-events: none;
+  }
+  .sidebar-overlay.active {
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sidebar-header {
+    padding: 0 24px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sidebar-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  .sidebar-close:hover {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-menu li {
+    margin: 0;
+  }
+  .sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 15px;
+  }
+  .sidebar-menu a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    padding-left: 32px;
+  }
+  .sidebar-menu a i {
+    font-size: 16px;
+    width: 20px;
+  }
+  .upgrade-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.74);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .upgrade-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .upgrade-modal-card {
+    width: min(460px, 100%);
+    border-radius: 24px;
+    padding: 24px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    transform: translateY(10px) scale(0.97);
+    transition: transform 0.25s ease;
+  }
+  .upgrade-modal-overlay.show .upgrade-modal-card {
+    transform: translateY(0) scale(1);
+  }
+  .upgrade-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .upgrade-modal-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .upgrade-modal-copy {
+    color: rgba(255,255,255,0.72);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .upgrade-modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .upgrade-modal-actions button {
+    flex: 1;
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .upgrade-modal-actions button:hover {
+    transform: translateY(-1px);
+  }
+  .upgrade-modal-primary {
+    background: #fff;
+    color: #000;
+    border: none;
+  }
+  .upgrade-modal-secondary {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span class="text-lg font-bold logo-mark" style="background: linear-gradient(135deg, #fff, #a0a0a0); -webkit-background-clip: text; background-clip: text; color: transparent;">Menu</span>
+    <button class="sidebar-close" id="sidebarClose" onclick="toggleSidebar()">
+      <i class="fa-solid fa-times"></i>
+    </button>
+  </div>
+  
+  <ul class="sidebar-menu">
+    <li><a href="index.html" onclick="handleSidebarNav(event, 'index.html')"><i class="fa-solid fa-home"></i> Home</a></li>
+    <li><a href="dashboard.html" onclick="handleSidebarNav(event, 'dashboard.html')"><i class="fa-solid fa-chart-line"></i> Go to Dashboard</a></li>
+    <li><a href="customize.html" onclick="handleSidebarNav(event, 'customize.html')"><i class="fa-solid fa-paint-brush"></i> Web Builder</a></li>
+    <li><a href="#" onclick="handleSidebarNav(event, '#')"><i class="fa-solid fa-cog"></i> Setting</a></li>
+    <li><a href="dashboard.html?view=profile" onclick="handleSidebarNav(event, 'dashboard.html?view=profile')"><i class="fa-solid fa-user"></i> Profile</a></li>
+    <li><a href="#" onclick="handleSidebarNav(event, '#')"><i class="fa-solid fa-circle-question"></i> Help Centre</a></li>
+  </ul>
+</aside>
+
+<div id="evil-eye-background" aria-hidden="true"></div>
+<div class="grid-bg"></div>
+<div class="glow-bg"></div>
+
+<div class="relative z-10">
+
+  <!-- Header -->
+  <header class="border-b border-white/5 backdrop-blur-xl bg-black/40 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center">
+        <span aria-hidden="true" class="text-white text-3xl leading-none mr-6 select-none inline-flex items-center h-28 cursor-pointer hover:text-white/80 transition" id="hamburgerMenu" onclick="toggleSidebar()">≡</span>
+        <img src="images/reallogo.png" alt="TemplifyX logo" class="h-28 w-auto object-contain" />
+      </div>
+
+      <nav class="hidden lg:flex items-center gap-8 text-sm text-white/60">
+        <a href="#" class="hover:text-white transition">Products</a>
+        <a href="#" class="hover:text-white transition">Collections</a>
+        <a href="#" class="hover:text-white transition">Pricing</a>
+        <a href="#" class="hover:text-white transition">Support</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <div class="search-box hidden md:flex items-center gap-3 px-4 py-2.5 rounded-full w-72">
+          <i class="fa-solid fa-magnifying-glass text-white/40 text-sm"></i>
+          <input type="text" placeholder="Search products..." class="bg-transparent outline-none text-sm text-white placeholder:text-white/40 w-full"/>
+          <kbd class="hidden md:inline text-[10px] text-white/40 border border-white/10 rounded px-1.5 py-0.5">⌘K</kbd>
+        </div>
+
+        <button class="btn-ghost relative px-4 py-2.5 rounded-full text-sm font-medium flex items-center gap-2" onclick="showCart()">
+          <i class="fa-solid fa-cart-shopping text-sm"></i>
+          <span class="hidden sm:inline">Cart</span>
+          <span class="badge-cart text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center" id="cartCount">0</span>
+        </button>
+
+        <button class="btn-white px-4 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="handleLogout()">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+          <span class="hidden sm:inline">Log Out</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero / Section Header -->
+  <section class="max-w-7xl mx-auto px-6 pt-20 pb-10">
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
+      <div class="max-w-3xl">
+        <div class="pill-products inline-block mb-6">
+          <i class="fa-solid fa-bolt text-[10px] mr-1"></i> Products
+        </div>
+        <h1 class="headline">Latest From<br/>The Team.</h1>
+        <p class="text-white/50 mt-6 text-lg max-w-xl leading-relaxed">
+          Hand-crafted design systems, web templates, and mobile UI kits built for modern teams who ship fast.
+        </p>
+        <p class="text-white/60 mt-3 text-sm max-w-xl leading-relaxed" id="adminProductNote">
+          Admin note: You can review and update product pricing and details directly from each product card before customers check out.
+        </p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 max-w-sm">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-info text-white/80 text-sm"></i>
+          </div>
+          <div>
+            <p class="text-white font-semibold text-sm mb-1">How it works</p>
+            <p class="text-white/50 text-sm leading-relaxed">
+              Open any product card to view details, then add it to cart and proceed to checkout.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
+      <div class="glass rounded-2xl p-5">
+        <div class="stat-num">120+</div>
+        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Products</div>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <div class="stat-num">24k</div>
+        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Customers</div>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <div class="stat-num">4.9<span class="text-white/30">/5</span></div>
+        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Rating</div>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <div class="stat-num">Soon</div>
+        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Updates</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider max-w-7xl mx-auto"></div>
+
+  <!-- Filters -->
+  <section class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="filter-btn active" data-filter="all">
+          <i class="fa-solid fa-layer-group text-xs"></i> All
+        </button>
+        <button class="filter-btn" data-filter="dashboard">Dashboard</button>
+        <button class="filter-btn" data-filter="ui">UI Kits</button>
+        <button class="filter-btn" data-filter="web">Web Templates</button>
+        <button class="filter-btn" data-filter="sign-ui">Sign UI</button>
+        <button class="filter-btn" data-filter="icons">Icons</button>
+      </div>
+      <div class="flex items-center gap-3 text-sm text-white/50">
+        <span>Sort:</span>
+        <button class="filter-btn">
+          <i class="fa-solid fa-arrow-down-wide-short text-xs"></i> Latest
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Grid -->
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="productsGrid">
+
+      <!-- Card 1 -->
+      <article class="card" data-filter="web" data-product-id="G7H8I9" data-product-name="Digital Product Web Template" data-product-price="0" data-product-old-price="99" data-product-category="HTML" data-product-tech="Figma" data-product-rating="4.9" data-product-sales="320" data-product-image="video/web2.mp4">
+        <div class="card-img-wrap">
+          <video class="w-full h-full object-cover" autoplay muted loop playsinline>
+            <source src="video/web2.mp4" type="video/mp4">
+          </video>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Web Templates</div>
+          <h3 class="text-xl font-bold mt-2">Digital Product Web Template</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">A modern and responsive web template for digital products.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.9</span>
+            <span>·</span>
+            <span>320 sales</span>
+            <span>·</span>
+            <span><HTML></HTML></span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$99</span>
+              <span class="price-new">$Free</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails('G7H8I9')">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="card" data-filter="web" data-product-id="2" data-product-name="Growth Marketing Web Kit" data-product-price="39" data-product-old-price="70" data-product-category="Web Templates" data-product-tech="HTML · Tailwind" data-product-rating="4.8" data-product-sales="540" data-product-image="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80" alt="Growth Marketing Web Kit"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Web Templates</div>
+          <h3 class="text-xl font-bold mt-2">Growth Marketing Web Kit</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Landing pages and sections optimized for conversion teams.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.8</span>
+            <span>·</span>
+            <span>540 sales</span>
+            <span>·</span>
+            <span>HTML · Tailwind</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$70</span>
+              <span class="price-new">$39</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(2)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="card" data-filter="ui" data-product-id="3" data-product-name="Mobile Fintech UI" data-product-price="59" data-product-old-price="119" data-product-category="Mobile UI" data-product-tech="iOS · Android" data-product-rating="5.0" data-product-sales="180" data-product-image="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80" alt="Mobile Fintech UI"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Mobile UI</div>
+          <h3 class="text-xl font-bold mt-2">Mobile Fintech UI</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Modern mobile app screens for finance and SaaS startups.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 5.0</span>
+            <span>·</span>
+            <span>180 sales</span>
+            <span>·</span>
+            <span>iOS · Android</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$119</span>
+              <span class="price-new">$59</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(3)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="card" data-filter="icons" data-product-id="4" data-product-name="Glyph Icon Pack — 3k+" data-product-price="29" data-product-old-price="59" data-product-category="Icons" data-product-tech="SVG · Figma" data-product-rating="4.9" data-product-sales="820" data-product-image="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80" alt="Icon Pack"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Icons</div>
+          <h3 class="text-xl font-bold mt-2">Glyph Icon Pack — 3k+</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">3000+ pixel-perfect icons across 12 categories and weights.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.9</span>
+            <span>·</span>
+            <span>820 sales</span>
+            <span>·</span>
+            <span>SVG · Figma</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$59</span>
+              <span class="price-new">$29</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(4)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 -->
+      <article class="card" data-filter="web" data-product-id="5" data-product-name="SaaS Launch Template" data-product-price="69" data-product-old-price="129" data-product-category="Web Templates" data-product-tech="Next.js" data-product-rating="4.7" data-product-sales="410" data-product-image="https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=800&q=80" alt="SaaS Landing"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Web Templates</div>
+          <h3 class="text-xl font-bold mt-2">SaaS Launch Template</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Full SaaS site — hero, pricing, docs, changelog and blog.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.7</span>
+            <span>·</span>
+            <span>410 sales</span>
+            <span>·</span>
+            <span>Next.js</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$129</span>
+              <span class="price-new">$69</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(5)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 7 -->
+      <article class="card" data-filter="ui" data-product-id="7" data-product-name="Commerce Mobile Kit" data-product-price="45" data-product-old-price="89" data-product-category="Mobile UI" data-product-tech="Figma · Sketch" data-product-rating="4.8" data-product-sales="260" data-product-image="https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80" alt="Commerce Mobile"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Mobile UI</div>
+          <h3 class="text-xl font-bold mt-2">Commerce Mobile Kit</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">60+ mobile screens for modern e-commerce apps and stores.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.8</span>
+            <span>·</span>
+            <span>260 sales</span>
+            <span>·</span>
+            <span>Figma · Sketch</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$89</span>
+              <span class="price-new">$45</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(7)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 7 -->
+      <article class="card" data-filter="ui" data-product-id="7" data-product-name="Commerce Mobile Kit" data-product-price="45" data-product-old-price="89" data-product-category="Mobile UI" data-product-tech="Figma · Sketch" data-product-rating="4.8" data-product-sales="260" data-product-image="https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80" alt="Commerce Mobile"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Mobile UI</div>
+          <h3 class="text-xl font-bold mt-2">Commerce Mobile Kit</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">60+ mobile screens for modern e-commerce apps and stores.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.8</span>
+            <span>·</span>
+            <span>260 sales</span>
+            <span>·</span>
+            <span>Figma · Sketch</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$89</span>
+              <span class="price-new">$45</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(7)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+
+      <!-- Card 8 -->
+      <article class="card" data-filter="dashboard" data-product-id="8" data-product-name="Admin Panel Template" data-product-price="79" data-product-old-price="149" data-product-category="Dashboard" data-product-tech="React · Tailwind" data-product-rating="4.9" data-product-sales="450" data-product-image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80" alt="Admin Panel Template"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Dashboard</div>
+          <h3 class="text-xl font-bold mt-2">Admin Panel Template</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Complete admin dashboard with analytics and real-time data visualization.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.9</span>
+            <span>·</span>
+            <span>450 sales</span>
+            <span>·</span>
+            <span>React · Tailwind</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$149</span>
+              <span class="price-new">$79</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(8)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!--  Card 9 -->
+      <article class="card" data-filter="dashboard" data-product-id="9" data-product-name="Analytics Dashboard UI" data-product-price="69" data-product-old-price="129" data-product-category="Dashboard" data-product-tech="Vue · Bootstrap" data-product-rating="4.8" data-product-sales="380" data-product-image="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80" alt="Analytics Dashboard"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Dashboard</div>
+          <h3 class="text-xl font-bold mt-2">Analytics Dashboard UI</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Beautiful analytics dashboard with charts, graphs, and KPI tracking.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.8</span>
+            <span>·</span>
+            <span>380 sales</span>
+            <span>·</span>
+            <span>Vue · Bootstrap</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$129</span>
+              <span class="price-new">$69</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(9)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!--  Card 10 -->
+      <article class="card" data-filter="dashboard" data-product-id="10" data-product-name="SaaS Dashboard System" data-product-price="99" data-product-old-price="199" data-product-category="Dashboard" data-product-tech="Next.js · Prisma" data-product-rating="5.0" data-product-sales="520" data-product-image="https://images.unsplash.com/photo-1460925895917-adf4e565c472?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1460925895917-adf4e565c472?w=800&q=80" alt="SaaS Dashboard"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Dashboard</div>
+          <h3 class="text-xl font-bold mt-2">SaaS Dashboard System</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Complete SaaS dashboard with user management and metrics tracking.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 5.0</span>
+            <span>·</span>
+            <span>520 sales</span>
+            <span>·</span>
+            <span>Next.js · Prisma</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$199</span>
+              <span class="price-new">$99</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(10)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!--  Card 11 -->
+      <article class="card" data-filter="dashboard" data-product-id="11" data-product-name="CRM Dashboard Kit" data-product-price="79" data-product-old-price="159" data-product-category="Dashboard" data-product-tech="Angular · Material" data-product-rating="4.9" data-product-sales="290" data-product-image="https://images.unsplash.com/photo-1555066931-4365d440a117?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1555066931-4365d440a117?w=800&q=80" alt="CRM Dashboard"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Dashboard</div>
+          <h3 class="text-xl font-bold mt-2">CRM Dashboard Kit</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Customer relationship management dashboard with sales pipeline views.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.9</span>
+            <span>·</span>
+            <span>290 sales</span>
+            <span>·</span>
+            <span>Angular · Material</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$159</span>
+              <span class="price-new">$79</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(11)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 13 -->
+      <article class="card" data-filter="dashboard" data-product-id="13" data-product-name="Analytics Pro Suite" data-product-price="129" data-product-old-price="249" data-product-category="Dashboard" data-product-tech="Svelte · D3.js" data-product-rating="4.95" data-product-sales="680" data-product-image="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80" alt="Analytics Pro"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Dashboard</div>
+          <h3 class="text-xl font-bold mt-2">Analytics Pro Suite</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Enterprise analytics dashboard with advanced reporting and export features.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.95</span>
+            <span>·</span>
+            <span>680 sales</span>
+            <span>·</span>
+            <span>Svelte · D3.js</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$249</span>
+              <span class="price-new">$129</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(13)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      
+      <!-- Card 14 -->
+      <article class="card" data-filter="dashboard" data-product-id="14" data-product-name="Analytics Pro Suite" data-product-price="129" data-product-old-price="249" data-product-category="Dashboard" data-product-tech="Svelte · D3.js" data-product-rating="4.95" data-product-sales="680" data-product-image="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80">
+        <div class="card-img-wrap">
+          <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80" alt="Analytics Pro"/>
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="chip-cat">Dashboard</div>
+          <h3 class="text-xl font-bold mt-2">Analytics Pro Suite</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">Enterprise analytics dashboard with advanced reporting and export features.</p>
+
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.95</span>
+            <span>·</span>
+            <span>680 sales</span>
+            <span>·</span>
+            <span>Svelte · D3.js</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$249</span>
+              <span class="price-new">$129</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails(14)">
+              View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+
+
+    </div>
+
+    <!-- Load more -->
+    <div class="flex justify-center mt-12">
+      <button class="btn-ghost px-6 py-3 rounded-full text-sm flex items-center gap-2">
+        Load more products <i class="fa-solid fa-chevron-down text-xs"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 bg-black/40 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <i class="fa-solid fa-sparkles sparkle"></i>
+          <span class="text-lg font-bold logo-mark">TemplifyX</span>
+        </div>
+        <p class="text-white/40 text-sm cursor-pointer" onclick="openAdminSecret()" title="Help Centre Code">© 2026 TemplifyX. Crafted for creators.</p>
+      </div>
+      <div class="flex items-center gap-6 text-white/50 text-sm">
+        <a href="#" class="hover:text-white transition">Terms</a>
+        <a href="#" class="hover:text-white transition">Privacy</a>
+        <a href="#" class="hover:text-white transition">Licenses</a>
+        <div class="flex items-center gap-3 ml-4">
+          <a href="https://x.com/TemplifyX_" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition"><i class="fa-brands fa-x-twitter text-xs"></i></a>
+          <a href="https://www.instagram.com/templifyx/" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition"><i class="fa-brands fa-instagram text-xs"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating account -->
+  <button id="floatingAccountButton" class="fab fixed bottom-6 right-6 w-12 h-12 rounded-full flex items-center justify-center text-white/80 z-40 float-anim overflow-hidden" title="Profile">
+    <i id="floatingAccountIcon" class="fa-regular fa-user text-lg"></i>
+  </button>
+
+  <!-- Product Details Modal -->
+  <div id="productDetailsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.8);" onclick="closeProductDetails(event)">
+    <div class="bg-black border border-white/10 rounded-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-start mb-6">
+        <h2 id="detailsProductName" class="text-3xl font-bold"></h2>
+        <button class="text-white/60 hover:text-white text-2xl" onclick="closeProductDetails()">×</button>
+      </div>
+      <div class="flex items-center justify-between gap-4 mb-4 text-sm text-white/60">
+        <span class="flex items-center gap-2">
+          <span id="detailsProductId" class="uppercase tracking-[0.2em] text-xs font-medium"></span>
+          <span id="detailsTier" class="tier-badge-inline"></span>
+        </span>
+      </div>
+      
+      <img id="detailsProductImage" src="" alt="" class="w-full h-96 object-cover rounded-xl mb-6"/>
+      <video id="detailsProductVideo" class="hidden w-full h-96 object-cover rounded-xl mb-6" autoplay muted loop playsinline></video>
+      
+      <div class="space-y-4 mb-8">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-white/50 text-sm uppercase tracking-widest mb-2" id="detailsCategory"></p>
+            <div class="flex items-center gap-3">
+              <span id="detailsRating" class="text-yellow-400"><i class="fa-solid fa-star"></i></span>
+              <span id="detailsSales" class="text-white/60 text-sm"></span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="flex items-baseline gap-3 mb-2">
+              <span id="detailsOldPrice" class="price-old"></span>
+              <span id="detailsNewPrice" class="price-new"></span>
+            </div>
+            <p class="text-white/50 text-sm" id="detailsSavings"></p>
+          </div>
+        </div>
+
+        <div class="border-t border-white/5 pt-4">
+          <h3 class="font-semibold mb-2">Description</h3>
+          <p id="detailsDescription" class="text-white/70 leading-relaxed"></p>
+        </div>
+
+        <div class="border-t border-white/5 pt-4">
+          <h3 class="font-semibold mb-2">Tech Stack</h3>
+          <p id="detailsTech" class="text-white/70"></p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button class="flex-1 bg-white text-black font-bold py-3 rounded-full hover:bg-white/90 transition" onclick="addToCart()">
+          <i class="fa-solid fa-cart-plus mr-2"></i> Add to Cart
+        </button>
+        <button class="flex-1 border border-white/20 text-white font-bold py-3 rounded-full hover:bg-white/5 transition" onclick="closeProductDetails()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan Upgrade Modal -->
+  <div id="upgradePlanModal" class="upgrade-modal-overlay hidden" onclick="closeUpgradeRequiredModal()">
+    <div class="upgrade-modal-card" onclick="event.stopPropagation()">
+      <div class="upgrade-modal-badge"><i class="fa-solid fa-crown"></i> Upgrade required</div>
+      <div class="w-12 h-12 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center mb-4">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 id="upgradeModalTitle" class="upgrade-modal-title">Template locked</h3>
+      <p id="upgradeModalMessage" class="upgrade-modal-copy"></p>
+      <div class="upgrade-modal-actions">
+        <button id="upgradeModalPrimary" class="upgrade-modal-primary">
+          View Pricing
+        </button>
+        <button class="upgrade-modal-secondary" onclick="closeUpgradeRequiredModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Page Modal -->
+  <div id="cartModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.8);" onclick="closeCart(event)">
+    <div class="bg-black border border-white/10 rounded-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold">Shopping Cart</h2>
+        <button class="text-white/60 hover:text-white text-2xl" onclick="closeCart()">×</button>
+      </div>
+
+      <div id="cartItems" class="space-y-4 mb-8">
+        <!-- Cart items will be added here dynamically -->
+      </div>
+
+      <div id="emptyCartMsg" class="text-center py-12">
+        <i class="fa-solid fa-shopping-cart text-4xl text-white/30 mb-4 block"></i>
+        <p class="text-white/60">Your cart is empty</p>
+      </div>
+
+      <div id="cartSummary" class="hidden border-t border-white/5 pt-6 space-y-3 mb-6">
+        <div class="flex justify-between">
+          <span class="text-white/60">Subtotal</span>
+          <span id="subtotal">$0.00</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-white/60">Tax (10%)</span>
+          <span id="tax">$0.00</span>
+        </div>
+        <div class="flex justify-between text-lg font-bold border-t border-white/5 pt-3">
+          <span>Total</span>
+          <span id="total">$0.00</span>
+        </div>
+      </div>
+
+      <div id="cartActions" class="hidden flex gap-3">
+        <button class="flex-1 bg-white text-black font-bold py-3 rounded-full hover:bg-white/90 transition" onclick="goToCheckout()">
+          Proceed to Checkout
+        </button>
+        <button class="flex-1 border border-white/20 text-white font-bold py-3 rounded-full hover:bg-white/5 transition" onclick="closeCart()">
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Page Modal -->
+  <div id="purchaseSuccessToast" class="hidden fixed bottom-5 right-5 z-[70] max-w-sm w-[min(92vw,360px)] rounded-2xl border border-emerald-500/25 bg-black/90 p-4 shadow-2xl backdrop-blur">
+    <div class="flex items-start gap-3">
+      <div class="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div class="flex-1">
+        <p class="font-semibold text-white">Purchase completed</p>
+        <p class="mt-1 text-sm text-white/70">Your product is now available in your dashboard.</p>
+        <a href="dashboard.html" class="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/10 transition">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          See your product in dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="checkoutModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.8);" onclick="closeCheckout(event)">
+    <div class="bg-black border border-white/10 rounded-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold">Checkout</h2>
+        <button class="text-white/60 hover:text-white text-2xl" onclick="closeCheckout()">×</button>
+      </div>
+
+      <form id="checkoutForm" class="space-y-6" onsubmit="processCheckout(event)">
+        <div class="border-b border-white/5 pb-6">
+          <h3 class="font-semibold text-lg mb-4">Order Summary</h3>
+          <div id="checkoutItems" class="space-y-2 mb-4 max-h-48 overflow-y-auto">
+            <!-- Items will be added here -->
+          </div>
+          <div class="border-t border-white/10 pt-4 space-y-2">
+            <div class="flex justify-between text-white/60 text-sm">
+              <span>Subtotal</span>
+              <span id="checkoutSubtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between text-white/60 text-sm">
+              <span>Tax</span>
+              <span id="checkoutTax">$0.00</span>
+            </div>
+            <div class="flex justify-between font-bold text-lg border-t border-white/10 pt-2">
+              <span>Total</span>
+              <span id="checkoutTotal">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-b border-white/5 pb-6">
+          <h3 class="font-semibold text-lg mb-4">Payment</h3>
+          <div id="checkoutFreeNotice" class="hidden rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-200">
+            This cart contains free templates. Your purchase will be added instantly to your dashboard.
+          </div>
+          <div id="checkoutPaidNotice" class="hidden rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/60">
+            Secure checkout is available for paid templates. Complete the payment below to finish your purchase.
+          </div>
+          <div id="checkoutRazorpayWrap" class="hidden mt-4">
+            <div class="rounded-xl border border-white/10 bg-black/40 p-3 text-center">
+              <a
+                href="https://razorpay.com/payment-button/pl_T9NfOGbAdOZtA5/view/?utm_source=payment_button&utm_medium=button&utm_campaign=payment_button"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                <i class="fa-solid fa-credit-card"></i>
+                Pay Now 
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <div id="checkoutPrimarySlot" class="flex-1">
+            <button type="button" id="checkoutPrimaryBtn" class="w-full bg-white text-black font-bold py-3 rounded-full hover:bg-white/90 transition" onclick="processCheckout(event)">
+              <i class="fa-solid fa-lock mr-2"></i> Complete Purchase
+            </button>
+          </div>
+          <button type="button" class="flex-1 border border-white/20 text-white font-bold py-3 rounded-full hover:bg-white/5 transition" onclick="closeCheckout()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function openAdminSecret() {
+    const enteredCode = prompt('Help Centre Code:');
+    if (enteredCode === '#686507') {
+      window.location.href = 'src/src/src/file.html';
+    } else if (enteredCode !== null) {
+      alert('Invalid code');
+    }
+  }
+
+  function getUserAvatarStorageKey(user) {
+    const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || '';
+    const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    return normalizedIdentity ? `templifyx_profile_avatar_${normalizedIdentity}` : 'templifyx_profile_avatar_default';
+  }
+
+  function getStoredProfileAvatar() {
+    try {
+      const sessionRaw = localStorage.getItem('templifyx_local_session');
+      if (!sessionRaw) return '';
+      const session = JSON.parse(sessionRaw);
+      const directAvatar = session?.avatar || session?.user_metadata?.avatar || '';
+      if (directAvatar) return directAvatar;
+      return localStorage.getItem(getUserAvatarStorageKey(session)) || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function renderFloatingAccountButton() {
+    const button = document.getElementById('floatingAccountButton');
+    const icon = document.getElementById('floatingAccountIcon');
+    if (!button) return;
+
+    const avatar = getStoredProfileAvatar();
+    if (avatar) {
+      button.innerHTML = `<img src="${avatar}" alt="Profile avatar" class="w-full h-full object-cover" />`;
+      button.classList.remove('text-white/80');
+      button.classList.add('p-0');
+      return;
+    }
+
+    button.innerHTML = '<i id="floatingAccountIcon" class="fa-regular fa-user text-lg"></i>';
+    button.classList.add('text-white/80');
+    button.classList.remove('p-0');
+  }
+
+  // Sidebar Toggle Function
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  }
+
+  // Handle sidebar navigation
+  function handleSidebarNav(event, href) {
+    if (href !== '#') {
+      event.preventDefault();
+      window.location.href = href;
+    } else {
+      event.preventDefault();
+      toggleSidebar();
+    }
+  }
+
+  // Close sidebar when overlay is clicked
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load and render products from storage
+    renderProductsOnPage();
+    loadCart();
+    updateCartCount();
+    
+    const overlay = document.getElementById('sidebarOverlay');
+    if (overlay) {
+      overlay.addEventListener('click', toggleSidebar);
+    }
+    
+    // Reattach event listeners for rendered cards
+    attachCardEventListeners();
+    renderFloatingAccountButton();
+  });
+
+  window.addEventListener('storage', event => {
+    if (event.key === 'templifyx_profile_avatar' || event.key === 'templifyx_local_session') {
+      renderFloatingAccountButton();
+    }
+  });
+
+  // Filter by category function (triggered when clicking on a product card)
+  function filterByCategory(category) {
+    // Find the filter button for this category
+    const filterBtn = document.querySelector(`.filter-btn[data-filter="${category}"]`);
+    if (filterBtn) {
+      filterBtn.click();
+    }
+    // Scroll to products section
+    setTimeout(() => {
+      const productsSection = document.getElementById('productsGrid');
+      if (productsSection) {
+        productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  }
+
+  // NOTE: Filter listeners are now attached dynamically in attachCardEventListeners()
+  // This ensures they work with dynamically rendered product cards
+
+  // Initialize Supabase
+  const SUPABASE_URL = 'https://vrhtmoovtnslxvqxvmmi.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHRtb292dG5zbHh2cXh2bW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NTEwODcsImV4cCI6MjA4NzIyNzA4N30.mqV74VmW4O4pqX8c4fOtpZX6AoemcVvPsbh9zHEE74w';
+  
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ===== PRODUCT SYNC SYSTEM =====
+  // Same encryption/decryption as file.html for data consistency
+  const STORE_KEY = 'templifyx_v1';
+  
+  function b64(str){return btoa(unescape(encodeURIComponent(str)))}
+  function b64d(str){return decodeURIComponent(escape(atob(str)))}
+  function encrypt(str){
+    const salt = 'TX-'+(localStorage.getItem('templifyx_salt')||'default');
+    let out = '';
+    for (let i=0;i<str.length;i++) out += String.fromCharCode(str.charCodeAt(i) ^ salt.charCodeAt(i%salt.length));
+    return b64(out);
+  }
+  function decrypt(str){
+    try{
+      const salt = 'TX-'+(localStorage.getItem('templifyx_salt')||'default');
+      const raw = b64d(str);
+      let out = '';
+      for (let i=0;i<raw.length;i++) out += String.fromCharCode(raw.charCodeAt(i) ^ salt.charCodeAt(i%salt.length));
+      return out;
+    }catch(e){return null}
+  }
+  
+  // Load products from file.html's storage
+  function loadProductsFromStorage(){
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return [];
+    const json = decrypt(raw);
+    if(!json) return [];
+    try{
+      const items = JSON.parse(json);
+      return Array.isArray(items) ? items : [];
+    }catch(e){return []}
+  }
+  
+  function getCurrentPlanTier() {
+    return normalizePlanName(localStorage.getItem('selectedPlan') || 'free');
+  }
+
+  function getPlanAccessLevel(planName) {
+    const plan = normalizePlanName(planName);
+    const levels = { free: 0, basic: 1, pro: 2, premium: 3 };
+    return levels[plan] ?? 0;
+  }
+
+  function getTierAccessLevel(productTier) {
+    const tier = normalizePlanName(productTier);
+    const levels = { free: 0, basic: 1, pro: 2, premium: 3 };
+    return levels[tier] ?? 0;
+  }
+
+  function canAccessProductTier(productTier, currentPlan = getCurrentPlanTier()) {
+    return getPlanAccessLevel(currentPlan) >= getTierAccessLevel(productTier);
+  }
+
+  function getPlanLabel(planName) {
+    const plan = normalizePlanName(planName);
+    const labels = { free: 'Free', basic: 'Basic', pro: 'Pro', premium: 'Premium' };
+    return labels[plan] || 'Free';
+  }
+
+  function getUnlockPlanForTier(productTier) {
+    const tier = normalizePlanName(productTier);
+    const upgradeMap = {
+      free: 'free',
+      basic: 'basic',
+      pro: 'pro',
+      premium: 'premium'
+    };
+    return upgradeMap[tier] || 'free';
+  }
+
+  function showUpgradeRequiredModal(productName, productTier) {
+    const currentPlan = getCurrentPlanTier();
+    const requiredPlan = getUnlockPlanForTier(productTier);
+    const requiredLabel = getPlanLabel(requiredPlan);
+    const currentLabel = getPlanLabel(currentPlan);
+    const modal = document.getElementById('upgradePlanModal');
+
+    document.getElementById('upgradeModalTitle').textContent = `${productName} is locked`;
+    document.getElementById('upgradeModalMessage').textContent = `${currentLabel} plan does not include ${productTier.charAt(0).toUpperCase() + productTier.slice(1)} templates. Upgrade to ${requiredLabel} to unlock this item.`;
+    document.getElementById('upgradeModalPrimary').textContent = `View ${requiredLabel} Pricing`;
+    document.getElementById('upgradeModalPrimary').onclick = () => {
+      window.location.href = 'index.html#pricing';
+    };
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('show'));
+  }
+
+  function closeUpgradeRequiredModal() {
+    const modal = document.getElementById('upgradePlanModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    setTimeout(() => modal.classList.add('hidden'), 220);
+  }
+
+  // Render products dynamically from storage
+  function renderProductsOnPage(){
+    const products = loadProductsFromStorage();
+    const grid = document.getElementById('productsGrid');
+    if(!grid) return;
+    
+    if(products.length === 0){
+      grid.innerHTML = '<p class="col-span-full text-center text-white/50 py-12">No products available</p>';
+      return;
+    }
+    
+    // Clear existing hardcoded cards but keep their HTML structure for reference
+    grid.innerHTML = products.map(p => {
+      const cat = p.category || p.code || 'Web Templates';
+      const normalizedCat = String(cat).toLowerCase();
+      const filter = normalizedCat.includes('dashboard') ? 'dashboard' :
+                     normalizedCat.includes('sign') ? 'sign-ui' :
+                     normalizedCat.includes('icon') ? 'icons' :
+                     normalizedCat.includes('ui') || normalizedCat.includes('mobile') ? 'ui' :
+                     'web';
+      const tag = products.indexOf(p) === 0 ? 'New' : products.indexOf(p) < 3 ? 'Popular' : 'Premium';
+      const tier = normalizePlanName(p.tier || 'free');
+      const tierStyles = {
+        free: { label:'Free', color:'#cbd5e1', bg:'rgba(203,213,225,0.16)' },
+        basic: { label:'Basic', color:'#cbd5e1', bg:'rgba(203,213,225,0.16)' },
+        pro: { label:'Pro', color:'#facc15', bg:'rgba(250,204,21,0.18)' },
+        premium: { label:'Premium', color:'#f87171', bg:'rgba(248,113,113,0.18)' }
+      };
+      const tierData = tierStyles[tier] || tierStyles.free;
+      const tierBadge = `<span class="tier-badge-card" style="color:${tierData.color};background:${tierData.bg};"><i class="fa-solid fa-crown"></i>${tierData.label}</span>`;
+      const isVideo = /\.(mp4|webm|ogg)$/i.test(p.previewImage || '');
+      const canAccess = canAccessProductTier(tier);
+      const accessText = canAccess ? 'View Details' : `Unlock ${getPlanLabel(tier)}`;
+      const accessAction = canAccess ? `showProductDetails('${escapeHtml(p.product_id)}')` : `showUpgradeRequiredModal('${escapeHtml(p.name)}', '${escapeHtml(tier)}')`;
+      const lockOverlay = canAccess ? '' : `<div class="absolute inset-x-4 bottom-4 z-10"><div class="rounded-xl border border-amber-400/30 bg-black/80 px-3 py-2 text-[11px] text-amber-200 backdrop-blur"><div class="font-semibold">Locked for ${getPlanLabel(getCurrentPlanTier())} plan</div><div class="mt-1 text-white/70">Upgrade to unlock this template</div></div></div>`;
+      
+      return `
+      <article class="card" data-filter="${filter}" data-product-id="${escapeHtml(p.product_id)}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price||0}" data-product-old-price="${p.price ? p.price * 1.5 : 99}" data-product-category="${escapeHtml(cat)}" data-product-tech="${escapeHtml(p.code)}" data-product-rating="4.9" data-product-sales="${Math.floor(Math.random()*1000)}" data-product-image="${escapeHtml(p.previewImage||'')}" data-product-tier="${escapeHtml(tier)}">
+        <div class="card-img-wrap">
+          ${isVideo ? `<video class="w-full h-full object-cover" autoplay muted loop playsinline><source src="${escapeHtml(p.previewImage)}" type="video/mp4"></video>` : `<img src="${escapeHtml(p.previewImage)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'"/>`}
+          <div class="img-overlay"></div>
+          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm" onclick="event.stopPropagation()">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+          ${lockOverlay}
+        </div>
+        <div class="p-5">
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <div class="chip-cat">${escapeHtml(cat)}</div>
+            ${tierBadge}
+          </div>
+          <h3 class="text-xl font-bold mt-2">${escapeHtml(p.name)}</h3>
+          <p class="text-white/50 text-sm mt-2 leading-relaxed">${escapeHtml(p.description||'Premium product from TemplifyX')}</p>
+          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
+            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.9</span>
+            <span>·</span>
+            <span>${Math.floor(Math.random()*1000)} sales</span>
+            <span>·</span>
+            <span>${escapeHtml(p.code)}</span>
+          </div>
+          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div class="flex items-baseline gap-2">
+              <span class="price-old">$${(p.price ? Math.round(p.price * 1.5) : 99)}</span>
+              <span class="price-new">$${p.price || 'Free'}</span>
+            </div>
+            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2 ${canAccess ? '' : 'opacity-70'}" onclick="${accessAction}">
+              ${accessText} <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+    
+    // Reattach event listeners for new cards
+    attachCardEventListeners();
+  }
+  
+  function escapeHtml(s){
+    if(!s) return '';
+    return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  
+  function attachCardEventListeners(){
+    // Prevent filter trigger on button clicks
+    document.querySelectorAll('.card button, .card a').forEach(element => {
+      element.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    });
+    
+    // Reattach heart toggle for new cards
+    document.querySelectorAll('.card button i.fa-heart').forEach(icon => {
+      icon.parentElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+        icon.classList.toggle('fa-regular');
+        icon.classList.toggle('fa-solid');
+        icon.classList.toggle('text-red-500');
+      });
+    });
+    
+    // Reattach filter listeners
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filterValue = btn.getAttribute('data-filter');
+        document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const cards = document.querySelectorAll('.card[data-filter]');
+        cards.forEach(card => {
+          if (filterValue === 'all') {
+            card.style.display = 'block';
+          } else if (card.getAttribute('data-filter') === filterValue) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  }
+  
+  // Listen for storage changes (when file.html updates products)
+  window.addEventListener('storage', (e) => {
+    if(e.key === STORE_KEY){
+      renderProductsOnPage();
+      console.log('Products updated from file.html');
+    }
+  });
+
+  // Product data storage
+  let currentProduct = null;
+  let cart = [];
+
+  // Load cart from localStorage on page load
+  function loadCart() {
+    const savedCart = localStorage.getItem('templifyxCart');
+    if (savedCart) {
+      cart = JSON.parse(savedCart);
+      updateCartCount();
+    }
+  }
+
+  // Save cart to localStorage
+  function saveCart() {
+    localStorage.setItem('templifyxCart', JSON.stringify(cart));
+    updateCartCount();
+  }
+
+  // Update cart count badge
+  function updateCartCount() {
+    const cartCount = document.getElementById('cartCount');
+    cartCount.textContent = cart.length;
+    cartCount.style.display = cart.length > 0 ? 'flex' : 'none';
+  }
+
+  // Show Product Details Modal
+  function showProductDetails(productId) {
+    const card = document.querySelector(`[data-product-id="${productId}"]`);
+    if (!card) return;
+
+    const productTier = normalizePlanName(card.dataset.productTier || 'free');
+    if (!canAccessProductTier(productTier)) {
+      showUpgradeRequiredModal(card.dataset.productName || 'This template', productTier);
+      return;
+    }
+
+    const storeProducts = loadProductsFromStorage();
+    const storeProduct = storeProducts.find(p => String(p.id) === String(productId) || String(p.product_id) === String(productId));
+
+    currentProduct = {
+      id: productId,
+      name: card.dataset.productName,
+      price: parseFloat(card.dataset.productPrice),
+      oldPrice: parseFloat(card.dataset.productOldPrice),
+      category: card.dataset.productCategory,
+      tech: card.dataset.productTech,
+      rating: card.dataset.productRating,
+      sales: card.dataset.productSales,
+      image: card.dataset.productImage,
+      tier: card.dataset.productTier || 'free',
+      previewUrl: storeProduct?.previewUrl || '',
+      templateHtml: storeProduct?.templateHtml || storeProduct?.template_html || ''
+    };
+
+    const detailsImage = document.getElementById('detailsProductImage');
+    const detailsVideo = document.getElementById('detailsProductVideo');
+    const isVideoAsset = /\.(mp4|webm|ogg)$/i.test(currentProduct.image || '');
+
+    // Populate modal
+    document.getElementById('detailsProductName').textContent = currentProduct.name;
+    if (isVideoAsset) {
+      detailsImage.classList.add('hidden');
+      detailsImage.src = '';
+      detailsVideo.classList.remove('hidden');
+      detailsVideo.src = currentProduct.image;
+      detailsVideo.load();
+      detailsVideo.play().catch(() => {});
+    } else {
+      detailsVideo.pause();
+      detailsVideo.removeAttribute('src');
+      detailsVideo.classList.add('hidden');
+      detailsImage.classList.remove('hidden');
+      detailsImage.src = currentProduct.image;
+    }
+    document.getElementById('detailsProductId').textContent = currentProduct.id ? `ID: ${currentProduct.id}` : '';
+    document.getElementById('detailsCategory').textContent = currentProduct.category;
+    document.getElementById('detailsRating').innerHTML = `<i class="fa-solid fa-star text-yellow-400"></i> ${currentProduct.rating} (${currentProduct.sales} sales)`;
+    document.getElementById('detailsSales').textContent = `${currentProduct.sales} customers`;
+    document.getElementById('detailsOldPrice').textContent = `$${currentProduct.oldPrice}`;
+    document.getElementById('detailsNewPrice').textContent = currentProduct.price === 0 ? 'Free' : `$${currentProduct.price}`;
+    if (currentProduct.oldPrice > 0 && currentProduct.price > 0 && currentProduct.price < currentProduct.oldPrice) {
+      const savings = Math.round((1 - currentProduct.price / currentProduct.oldPrice) * 100);
+      document.getElementById('detailsSavings').textContent = `Save ${savings}%`;
+    } else {
+      document.getElementById('detailsSavings').textContent = '';
+    }
+    document.getElementById('detailsTech').textContent = currentProduct.tech;
+    document.getElementById('detailsTier').innerHTML = currentProduct.tier ? `<i class="fa-solid fa-crown"></i> ${currentProduct.tier.charAt(0).toUpperCase() + currentProduct.tier.slice(1)}` : '';
+    
+    // Set description based on product
+    const descriptions = {
+      1: 'Complete admin dashboard pack with dark and light variants. Includes 50+ pre-built components, responsive design, and full customization support.',
+      2: 'Landing pages and sections optimized for conversion teams. Perfect for marketing campaigns with A/B testing ready layouts.',
+      3: 'Modern mobile app screens for finance and SaaS startups. 100+ high-fidelity screens covering all user flows.',
+      4: '3000+ pixel-perfect icons across 12 categories and weights. Perfect for any project type.',
+      5: 'Full SaaS site including hero, pricing, docs, changelog and blog. Production-ready code included.',
+      6: '60+ mobile screens for modern e-commerce apps and stores. Fully customizable components.',
+      7: 'Complete admin dashboard with analytics and real-time data visualization. Includes 40+ pages.',
+      8: 'Beautiful analytics dashboard with charts, graphs, and KPI tracking.',
+      9: 'Complete SaaS dashboard with user management and metrics tracking.',
+      10: 'Customer relationship management dashboard with sales pipeline views.',
+      11: 'Enterprise analytics dashboard with advanced reporting and export features.'
+    };
+    document.getElementById('detailsDescription').textContent = descriptions[productId] || 'Premium digital product for your project.';
+
+    // Show modal
+    document.getElementById('productDetailsModal').classList.remove('hidden');
+  }
+
+  // Close Product Details Modal
+  function closeProductDetails(event) {
+    if (event && event.target.id !== 'productDetailsModal') return;
+    const detailsVideo = document.getElementById('detailsProductVideo');
+    detailsVideo.pause();
+    detailsVideo.removeAttribute('src');
+    detailsVideo.classList.add('hidden');
+    document.getElementById('detailsProductImage').classList.remove('hidden');
+    document.getElementById('productDetailsModal').classList.add('hidden');
+  }
+
+  // Add to Cart
+  function addToCart() {
+    if (!currentProduct) return;
+
+    console.log('Adding to cart:', {
+      name: currentProduct.name,
+      previewUrl: currentProduct.previewUrl,
+      image: currentProduct.image
+    });
+
+    const existingItem = cart.find(item => item.id === currentProduct.id);
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({
+        id: currentProduct.id,
+        name: currentProduct.name,
+        price: currentProduct.price,
+        image: currentProduct.image,
+        category: currentProduct.category,
+        previewUrl: currentProduct.previewUrl || '',
+        templateHtml: currentProduct.templateHtml || '',
+        quantity: 1
+      });
+    }
+
+    saveCart();
+    updateCartBadge();
+    closeProductDetails();
+  }
+
+  // Show Cart
+  function showCart() {
+    const cartItemsContainer = document.getElementById('cartItems');
+    const emptyMsg = document.getElementById('emptyCartMsg');
+    const cartSummary = document.getElementById('cartSummary');
+    const cartActions = document.getElementById('cartActions');
+
+    cartItemsContainer.innerHTML = '';
+
+    if (cart.length === 0) {
+      emptyMsg.classList.remove('hidden');
+      cartSummary.classList.add('hidden');
+      cartActions.classList.add('hidden');
+    } else {
+      emptyMsg.classList.add('hidden');
+      cartSummary.classList.remove('hidden');
+      cartActions.classList.remove('hidden');
+
+      cart.forEach((item, index) => {
+        const isVideoAsset = /\.(mp4|webm|ogg)$/i.test(item.image || '');
+        const mediaHTML = isVideoAsset
+          ? `<video class="w-16 h-16 rounded object-cover" autoplay muted loop playsinline><source src="${item.image}" type="video/mp4"></video>`
+          : `<img src="${item.image}" alt="${item.name}" class="w-16 h-16 rounded object-cover"/>`;
+
+        const itemHTML = `
+          <div class="flex items-center justify-between border border-white/10 rounded-lg p-4">
+            <div class="flex items-center gap-4 flex-1">
+              ${mediaHTML}
+              <div>
+                <h4 class="font-semibold">${item.name}</h4>
+                <p class="text-white/60 text-sm">$${item.price} × ${item.quantity}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-bold">$${(item.price * item.quantity).toFixed(2)}</span>
+              <button class="text-red-500 hover:text-red-400" onclick="removeFromCart(${index})">
+                <i class="fa-solid fa-trash text-sm"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        cartItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+      });
+
+      updateCartTotals();
+    }
+
+    document.getElementById('cartModal').classList.remove('hidden');
+  }
+
+  // Remove from Cart
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    saveCart();
+    showCart();
+  }
+
+  // Update Cart Totals
+  function updateCartTotals() {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = subtotal * 0.10;
+    const total = subtotal + tax;
+
+    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+  }
+
+  // Close Cart
+  function closeCart(event) {
+    if (event && event.target.id !== 'cartModal') return;
+    document.getElementById('cartModal').classList.add('hidden');
+  }
+
+  function normalizePlanName(planName) {
+    const normalized = String(planName || '').trim().toLowerCase();
+    return ['free', 'basic', 'pro', 'premium'].includes(normalized) ? normalized : 'free';
+  }
+
+  function hasPaidItems() {
+    return cart.some(item => Number(item.price || 0) > 0);
+  }
+
+  function getCartSubtotal() {
+    return cart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+  }
+
+  function finalizePurchase() {
+    if (!cart || cart.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+
+    const savedPurchases = JSON.parse(localStorage.getItem('templifyxPurchased') || '[]');
+
+    cart.forEach(item => {
+      const existing = savedPurchases.find(p => p.id === item.id);
+      if (existing) {
+        existing.quantity = (existing.quantity || 0) + (item.quantity || 1);
+      } else {
+        savedPurchases.push({
+          id: item.id,
+          name: item.name,
+          price: Number(item.price || 0),
+          image: item.image,
+          category: item.category || '',
+          previewUrl: item.previewUrl || '',
+          templateHtml: item.templateHtml || item.template_html || '',
+          quantity: item.quantity || 1,
+          purchasedAt: new Date().toISOString()
+        });
+      }
+    });
+
+    localStorage.setItem('templifyxPurchased', JSON.stringify(savedPurchases));
+    localStorage.setItem('templifyxPurchasedLastUpdated', new Date().toISOString());
+    syncPurchasedItemsAcrossPages(savedPurchases);
+
+    const activePlan = activateSelectedPlan();
+    const planLabel = activePlan.charAt(0).toUpperCase() + activePlan.slice(1);
+    const total = getCartSubtotal();
+    const totalText = total > 0 ? `$${total.toFixed(2)}` : 'Free';
+
+    const successToast = document.getElementById('purchaseSuccessToast');
+    if (successToast) {
+      const message = successToast.querySelector('p');
+      if (message) {
+        message.textContent = `Purchase completed for ${cart.length > 1 ? 'your items' : cart[0]?.name || 'your item'}.`;
+      }
+      successToast.classList.remove('hidden');
+      clearTimeout(window.purchaseToastTimer);
+      window.purchaseToastTimer = setTimeout(() => {
+        successToast.classList.add('hidden');
+      }, 5000);
+    }
+
+    cart = [];
+    saveCart();
+    document.getElementById('checkoutModal').classList.add('hidden');
+    document.getElementById('cartModal').classList.add('hidden');
+  }
+
+  function activateSelectedPlan() {
+    const planName = normalizePlanName(localStorage.getItem('selectedPlan') || 'free');
+    localStorage.setItem('selectedPlan', planName);
+    localStorage.setItem('planStatus', 'active');
+    localStorage.setItem('planActivatedAt', new Date().toISOString());
+    window.dispatchEvent(new Event('planChanged'));
+    return planName;
+  }
+
+  // Go to Checkout
+  function goToCheckout() {
+    closeCart();
+    if (!hasPaidItems()) {
+      finalizePurchase();
+      return;
+    }
+    showCheckout();
+  }
+
+  // Show Checkout
+  function showCheckout() {
+    const checkoutItems = document.getElementById('checkoutItems');
+    checkoutItems.innerHTML = '';
+
+    cart.forEach(item => {
+      const itemHTML = `
+        <div class="flex justify-between text-sm">
+          <span>${item.name} × ${item.quantity}</span>
+          <span>$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `;
+      checkoutItems.insertAdjacentHTML('beforeend', itemHTML);
+    });
+
+    const subtotal = getCartSubtotal();
+    const tax = subtotal * 0.10;
+    const total = subtotal + tax;
+
+    document.getElementById('checkoutSubtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('checkoutTax').textContent = `$${tax.toFixed(2)}`;
+    document.getElementById('checkoutTotal').textContent = `$${total.toFixed(2)}`;
+
+    const freeNotice = document.getElementById('checkoutFreeNotice');
+    const paidNotice = document.getElementById('checkoutPaidNotice');
+    const razorpayWrap = document.getElementById('checkoutRazorpayWrap');
+    const primaryBtn = document.getElementById('checkoutPrimaryBtn');
+    const hasPaid = hasPaidItems();
+
+    freeNotice.classList.toggle('hidden', hasPaid);
+    paidNotice.classList.toggle('hidden', !hasPaid);
+    razorpayWrap.classList.toggle('hidden', !hasPaid);
+    primaryBtn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> Complete Purchase';
+
+    document.getElementById('checkoutModal').classList.remove('hidden');
+  }
+
+  // Process Checkout
+  async function processCheckout(event) {
+    if (event) event.preventDefault();
+
+    if (!cart || cart.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+
+    if (hasPaidItems()) {
+      return;
+    }
+
+    finalizePurchase();
+  }
+
+  // Close Checkout
+  function closeCheckout(event) {
+    if (event && event.target.id !== 'checkoutModal') return;
+    document.getElementById('checkoutModal').classList.add('hidden');
+  }
+
+  function syncPurchasedItemsAcrossPages(purchasedItems) {
+    try {
+      let sharedState = {};
+      if (window.name) {
+        try {
+          sharedState = JSON.parse(window.name) || {};
+        } catch (err) {
+          sharedState = {};
+        }
+      }
+      sharedState.templifyxPurchased = purchasedItems;
+      sharedState.templifyxPurchasedLastUpdated = new Date().toISOString();
+      window.name = JSON.stringify(sharedState);
+    } catch (error) {
+      console.warn('Unable to sync purchased items across pages', error);
+    }
+  }
+
+  // Initialize cart on page load
+  loadCart();
+
+  // Handle Logout
+  async function handleLogout() {
+    try {
+      // Sign out from Supabase
+      await supabaseClient.auth.signOut();
+    } catch (error) {
+      console.log('Supabase sign out:', error);
+    }
+    
+    // Clear local session storage
+    localStorage.removeItem('templifyx_local_session');
+    
+    // Redirect to auth page
+    window.location.href = 'auth.html';
+  }
+</script>
+<script src="evil-eye-background.js"></script>
+</body>
+</html>

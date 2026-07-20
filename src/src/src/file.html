@@ -1,0 +1,1220 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TemplifyX — Product Manager</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b1e;
+    --bg-2:#0f1029;
+    --brand:#7c5cff;
+    --brand-2:#22d3ee;
+    --accent:#f472b6;
+    --text:#e8eaf6;
+    --muted:#9ca3c7;
+    --card:rgba(255,255,255,0.04);
+    --border:rgba(255,255,255,0.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.25), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(34,211,238,.18), transparent 60%),
+      radial-gradient(800px 500px at 50% 120%, rgba(244,114,182,.15), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .mono{font-family:'JetBrains Mono',monospace}
+  .glass{background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border)}
+  .gradient-text{background:linear-gradient(135deg,#a78bfa 0%,#22d3ee 50%,#f472b6 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand-grad{background:linear-gradient(135deg,#7c5cff 0%,#22d3ee 100%)}
+  .btn-primary{background:linear-gradient(135deg,#7c5cff 0%,#22d3ee 100%);color:white;transition:all .25s ease}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px -10px rgba(124,92,255,.6)}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);transition:all .25s ease}
+  .btn-ghost:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18)}
+  .btn-danger{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
+  .btn-danger:hover{background:rgba(239,68,68,.2)}
+  .input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:11px 14px;font-size:14px;outline:none;transition:all .2s}
+  .input:focus{border-color:rgba(124,92,255,.6);box-shadow:0 0 0 3px rgba(124,92,255,.15)}
+  .sidebar-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:var(--muted);cursor:pointer;font-weight:500;transition:all .2s;font-size:14px}
+  .sidebar-item:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+  .sidebar-item.active{background:linear-gradient(135deg,rgba(124,92,255,.2),rgba(34,211,238,.12));color:white;border:1px solid rgba(124,92,255,.3)}
+  .card{background:linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025));border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .3s ease}
+  .card:hover{transform:translateY(-4px);border-color:rgba(124,92,255,.35);box-shadow:0 20px 40px -20px rgba(124,92,255,.3)}
+  .preview-frame{position:relative;aspect-ratio:16/10;background:linear-gradient(135deg,#1a1b3e 0%,#0d0e24 100%);overflow:hidden}
+  .preview-frame img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+  .tier-badge{position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:600;color:var(--tier-color,#d1d5db);background:var(--tier-bg,rgba(255,255,255,0.12));backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);}
+  .tier-badge i{width:14px;height:14px;}
+  .card:hover .preview-frame img{transform:scale(1.05)}
+  .preview-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)}
+  .preview-close{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:12px;background:rgba(15,23,42,.85);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;transition:background .2s}
+  .preview-close:hover{background:rgba(15,23,42,.95)}
+  .preview-modal-img{width:100%;height:auto;max-height:80vh;display:block}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(5,6,20,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+  .modal-backdrop.show{opacity:1;pointer-events:auto}
+  .modal{background:linear-gradient(145deg,#14162e,#0e1028);border:1px solid var(--border);border-radius:18px;max-width:520px;width:100%;max-height:90vh;overflow:auto;transform:scale(.96);transition:transform .25s}
+  .modal-backdrop.show .modal{transform:scale(1)}
+  .toast-wrap{position:fixed;top:22px;right:22px;z-index:100;display:flex;flex-direction:column;gap:10px}
+  .toast{padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(20,22,46,.95);backdrop-filter:blur(10px);display:flex;align-items:center;gap:10px;min-width:250px;animation:slideIn .3s ease;font-size:14px}
+  .toast.success{border-color:rgba(34,197,94,.3)}
+  .toast.error{border-color:rgba(239,68,68,.3)}
+  .toast.info{border-color:rgba(124,92,255,.3)}
+  @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+  .stat-card{position:relative;overflow:hidden}
+  .stat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,92,255,.08),transparent 60%);pointer-events:none}
+  .tag-pill{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;background:rgba(124,92,255,.15);color:#c4b5fd;border:1px solid rgba(124,92,255,.25);font-weight:500}
+  .code-block{background:#07081a;border:1px solid var(--border);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.65;color:#c4c9ee;overflow-x:auto;position:relative;white-space:pre-wrap;word-break:break-all}
+  .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .scrollbar::-webkit-scrollbar{width:8px;height:8px}
+  .scrollbar::-webkit-scrollbar-track{background:transparent}
+  .scrollbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px}
+  .scrollbar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.15)}
+  .mobile-sidebar{transform:translateX(-100%);transition:transform .3s}
+  .mobile-sidebar.open{transform:translateX(0)}
+  @media(max-width:1024px){
+    .sidebar{display:none}
+    .mobile-sidebar{display:block}
+  }
+  @media(min-width:1024px){
+    .mobile-overlay{display:none!important}
+  }
+  .view{display:none;animation:fadeIn .3s}
+  .view.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .lock-screen{position:fixed;inset:0;z-index:200;background:
+      radial-gradient(1000px 500px at 50% 10%, rgba(124,92,255,.3), transparent 60%),
+      radial-gradient(800px 500px at 80% 80%, rgba(34,211,238,.2), transparent 60%),
+      #050616;
+    display:flex;align-items:center;justify-content:center;padding:20px}
+  .lock-card{max-width:420px;width:100%}
+  .toggle{position:relative;width:42px;height:24px;background:rgba(255,255,255,.08);border-radius:999px;cursor:pointer;transition:all .2s}
+  .toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:all .2s}
+  .toggle.on{background:linear-gradient(135deg,#7c5cff,#22d3ee)}
+  .toggle.on::after{left:21px}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--muted)}
+  .view-switch{display:none}                                                                                                                          
+</style>
+</head>
+<body class="scrollbar">
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-card glass rounded-2xl p-8 text-center">
+    <div class="w-16 h-16 mx-auto rounded-2xl brand-grad flex items-center justify-center text-white text-2xl mb-5 shadow-lg shadow-purple-500/30">
+      <i class="fa-solid fa-cube"></i>
+    </div>
+    <h1 class="text-3xl font-bold gradient-text mb-1">TemplifyX</h1>
+    <p class="text-sm text-slate-400 mb-8">Product Manager · Secure Access</p>
+    <div id="lockForm">
+      <label class="text-left block text-xs text-slate-400 mb-2 font-medium" id="pinLabel">ENTER ACCESS PIN</label>
+      <input id="pinInput" type="password" class="input text-center text-lg tracking-widest mb-3" placeholder="••••••" maxlength="32" />
+      <button id="pinSubmit" class="btn-primary w-full py-3 rounded-xl font-semibold">Unlock Dashboard</button>
+      <p class="text-xs text-slate-500 mt-5">Default PIN: <span class="mono text-slate-400">4!</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE SIDEBAR OVERLAY -->
+<div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-black/60 z-30 hidden" onclick="toggleMobileSidebar(false)"></div>
+
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside id="desktopSidebar" class="sidebar w-64 shrink-0 glass border-r p-5 sticky top-0 h-screen flex flex-col">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-10 h-10 rounded-xl brand-grad flex items-center justify-center text-white"><i class="fa-solid fa-cube"></i></div>
+      <div>
+        <h1 class="font-bold text-lg leading-none">TemplifyX</h1>
+        <p class="text-[11px] text-slate-400 mt-1">Product Manager</p>
+      </div>
+    </div>
+    <nav class="flex flex-col gap-1 flex-1">
+      <div class="sidebar-item active" data-view="dashboard"><i class="fa-solid fa-gauge w-5 text-center"></i>Dashboard</div>
+      <div class="sidebar-item" data-view="products"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i>Products</div>
+      <div class="sidebar-item" data-view="api"><i class="fa-solid fa-plug w-5 text-center"></i>API Integration</div>
+      <div class="sidebar-item" data-view="settings"><i class="fa-solid fa-shield-halved w-5 text-center"></i>Security</div>
+      <div class="sidebar-item" data-view="upgrade-details"><i class="fa-solid fa-plug w-5 text-center"></i>Upgrade Details</div>
+    </nav>
+    <div class="glass rounded-xl p-3 mt-4">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="dot"></span>
+        <span class="text-slate-300">Secure Vault</span>
+      </div>
+      <p class="text-[10px] text-slate-500 mt-1">Data encrypted locally · AES-256</p>
+    </div>
+    <button onclick="lockApp()" class="mt-3 sidebar-item justify-center"><i class="fa-solid fa-right-from-bracket w-5"></i>Lock workspace</button>
+  </aside>
+
+  <!-- MOBILE SIDEBAR -->
+  <aside id="mobileSidebar" class="mobile-sidebar fixed w-64 h-screen top-0 left-0 z-40 glass border-r p-5 flex flex-col">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl brand-grad flex items-center justify-center text-white"><i class="fa-solid fa-cube"></i></div>
+      <div>
+        <h1 class="font-bold text-lg leading-none">TemplifyX</h1>
+        <p class="text-xs text-slate-400 mt-1">Product Manager</p>
+      </div>
+    </div>
+    <nav class="flex flex-col gap-1">
+      <div class="sidebar-item active" data-view="dashboard"><i class="fa-solid fa-gauge w-5 text-center"></i>Dashboard</div>
+      <div class="sidebar-item" data-view="products"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i>Products</div>
+      <div class="sidebar-item" data-view="api"><i class="fa-solid fa-plug w-5 text-center"></i>API Integration</div>
+      <div class="sidebar-item" data-view="settings"><i class="fa-solid fa-shield-halved w-5 text-center"></i>Security</div>
+      <div class="sidebar-item" data-view="upgrade-details"><i class="fa-solid fa-plug w-5 text-center"></i>Upgrade Details</div>
+    </nav>
+    <button onclick="lockApp()" class="mt-auto sidebar-item justify-center"><i class="fa-solid fa-right-from-bracket w-5"></i>Lock</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 p-5 lg:p-8 max-w-full overflow-hidden">
+
+    <!-- TOP BAR -->
+    <div class="flex items-center justify-between mb-7 gap-4">
+      <div class="flex items-center gap-3">
+        <button class="lg:hidden w-10 h-10 glass rounded-xl flex items-center justify-center" onclick="toggleMobileSidebar(true)"><i class="fa-solid fa-bars"></i></button>
+        <div>
+          <h2 class="text-2xl lg:text-3xl font-bold" id="pageTitle">Dashboard</h2>
+          <p class="text-sm text-slate-400" id="pageSubtitle">Welcome back · here's your product overview</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/productpage/" class="btn-ghost px-4 py-2.5 rounded-xl font-medium text-sm inline-flex items-center gap-2" title="View Products Page">
+          <i class="fa-solid fa-eye"></i>
+          <span class="hidden sm:inline">View Products</span>
+        </a>
+        <button onclick="openModal()" class="btn-primary px-4 py-2.5 rounded-xl font-medium text-sm inline-flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i>
+          <span class="hidden sm:inline">Add Product</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <section id="view-dashboard" class="view active">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg bg-purple-500/15 text-purple-300 flex items-center justify-center"><i class="fa-solid fa-box"></i></div>
+            <span class="text-[10px] text-green-400 font-medium"><i class="fa-solid fa-arrow-trend-up"></i> Active</span>
+          </div>
+          <p class="text-2xl font-bold" id="statTotal">0</p>
+          <p class="text-xs text-slate-400 mt-1">Total Products</p>
+        </div>
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg bg-cyan-500/15 text-cyan-300 flex items-center justify-center"><i class="fa-solid fa-eye"></i></div>
+            <span class="text-[10px] text-slate-400 font-medium">Preview</span>
+          </div>
+          <p class="text-2xl font-bold" id="statWithPreview">0</p>
+          <p class="text-xs text-slate-400 mt-1">With Previews</p>
+        </div>
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg bg-pink-500/15 text-pink-300 flex items-center justify-center"><i class="fa-solid fa-code"></i></div>
+            <span class="text-[10px] text-slate-400 font-medium">Unique</span>
+          </div>
+          <p class="text-2xl font-bold" id="statCodes">0</p>
+          <p class="text-xs text-slate-400 mt-1">Product Codes</p>
+        </div>
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-300 flex items-center justify-center"><i class="fa-solid fa-shield-halved"></i></div>
+            <span class="text-[10px] text-emerald-400 font-medium"><i class="fa-solid fa-lock"></i> Encrypted</span>
+          </div>
+          <p class="text-2xl font-bold">AES-256</p>
+          <p class="text-xs text-slate-400 mt-1">Storage Security</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 mb-7">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <h3 class="font-semibold text-lg">Recent Products</h3>
+          <button onclick="switchView('products')" class="text-sm text-slate-400 hover:text-white">View all <i class="fa-solid fa-arrow-right text-xs ml-1"></i></button>
+        </div>
+        <div id="recentProducts" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-3"><i class="fa-solid fa-bolt text-yellow-400 mr-2"></i>Quick Actions</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="openModal()" class="btn-ghost rounded-xl p-4 text-left"><i class="fa-solid fa-plus text-purple-400 mb-2"></i><div class="text-sm font-medium">New Product</div><div class="text-[11px] text-slate-400">Add a product card</div></button>
+            <button onclick="exportData()" class="btn-ghost rounded-xl p-4 text-left"><i class="fa-solid fa-download text-cyan-400 mb-2"></i><div class="text-sm font-medium">Export JSON</div><div class="text-[11px] text-slate-400">Backup your data</div></button>
+            <button onclick="document.getElementById('importFile').click()" class="btn-ghost rounded-xl p-4 text-left"><i class="fa-solid fa-upload text-pink-400 mb-2"></i><div class="text-sm font-medium">Import</div><div class="text-[11px] text-slate-400">Restore from JSON</div></button>
+            <button onclick="switchView('api')" class="btn-ghost rounded-xl p-4 text-left"><i class="fa-solid fa-plug text-emerald-400 mb-2"></i><div class="text-sm font-medium">Get API URL</div><div class="text-[11px] text-slate-400">Connect your site</div></button>
+          </div>
+          <input type="file" id="importFile" accept="application/json" class="hidden" onchange="importData(event)"/>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-3"><i class="fa-solid fa-circle-info text-cyan-400 mr-2"></i>Connection Status</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5"><span class="text-slate-300">Vault</span><span class="flex items-center gap-2 text-emerald-400"><span class="dot" style="width:6px;height:6px"></span> Online</span></div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5"><span class="text-slate-300">API Key</span><span class="font-mono text-xs text-slate-300" id="dashApiStatus">Not generated</span></div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5"><span class="text-slate-300">Last Sync</span><span class="text-slate-300 text-xs" id="lastSync">Never</span></div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5"><span class="text-slate-300">Encryption</span><span class="text-emerald-400 text-xs"><i class="fa-solid fa-lock mr-1"></i>AES-256-CBC</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTS VIEW -->
+    <section id="view-products" class="view">
+      <div class="glass rounded-2xl p-4 mb-5 flex flex-wrap items-center gap-3">
+        <div class="flex-1 min-w-[200px] relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input id="searchInput" class="input pl-11" placeholder="Search by name, code or ID..." oninput="renderProducts()"/>
+        </div>
+        <select id="sortSelect" class="input" style="max-width:200px" onchange="renderProducts()">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="name">By name (A-Z)</option>
+          <option value="code">By code (A-Z)</option>
+        </select>
+        <div class="flex glass rounded-xl overflow-hidden">
+          <button id="gridBtn" onclick="setLayout('grid')" class="px-3 py-2 text-sm bg-white/5"><i class="fa-solid fa-grip"></i></button>
+          <button id="listBtn" onclick="setLayout('list')" class="px-3 py-2 text-sm"><i class="fa-solid fa-list"></i></button>
+        </div>
+        <span class="text-xs text-slate-400"><span id="countLabel">0</span> products</span>
+      </div>
+      <div id="productsContainer"></div>
+    </section>
+
+    <!-- API VIEW -->
+    <section id="view-api" class="view">
+      <div class="glass rounded-2xl p-6 mb-5">
+        <div class="flex items-start gap-4 mb-4 flex-wrap">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center text-white text-xl"><i class="fa-solid fa-plug"></i></div>
+          <div class="flex-1 min-w-[200px]">
+            <h3 class="font-bold text-xl mb-1">Connect TemplifyX to Your Website</h3>
+            <p class="text-sm text-slate-400">Use the auto-generated API endpoint to dynamically load your products on any webpage.</p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mt-5">
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-2 block">API ENDPOINT</label>
+            <div class="flex gap-2">
+              <input id="apiEndpoint" class="input mono text-sm" readonly />
+              <button class="btn-ghost px-4 rounded-xl" onclick="copyText(document.getElementById('apiEndpoint').value)"><i class="fa-solid fa-copy"></i></button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-2 block">API KEY</label>
+            <div class="flex gap-2">
+              <input id="apiKey" type="password" class="input mono text-sm" readonly />
+              <button class="btn-ghost px-3 rounded-xl" onclick="toggleApiKeyVisibility()"><i class="fa-solid fa-eye" id="eyeIcon"></i></button>
+              <button class="btn-primary px-4 rounded-xl text-sm" onclick="regenerateApiKey()"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-5">
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-3"><i class="fa-solid fa-code text-purple-400 mr-2"></i>Embed Code (HTML)</h3>
+          <p class="text-xs text-slate-400 mb-3">Paste this snippet into your website to render the product grid automatically.</p>
+          <div class="code-block" id="embedCode"></div>
+          <button class="btn-ghost mt-3 px-4 py-2 rounded-lg text-sm" onclick="copyText(document.getElementById('embedCode').innerText)"><i class="fa-solid fa-copy mr-2"></i>Copy snippet</button>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-3"><i class="fa-solid fa-bolt text-cyan-400 mr-2"></i>JavaScript Fetch</h3>
+          <p class="text-xs text-slate-400 mb-3">Or use fetch() to consume products as JSON in any framework (React, Vue, Svelte…).</p>
+          <div class="code-block" id="fetchCode"></div>
+          <button class="btn-ghost mt-3 px-4 py-2 rounded-lg text-sm" onclick="copyText(document.getElementById('fetchCode').innerText)"><i class="fa-solid fa-copy mr-2"></i>Copy code</button>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 mt-5">
+        <h3 class="font-semibold mb-3"><i class="fa-solid fa-database text-emerald-400 mr-2"></i>Live JSON Preview</h3>
+        <p class="text-xs text-slate-400 mb-3">This is the exact structure your website will receive.</p>
+        <div class="code-block" id="jsonPreview"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+      <div class="grid lg:grid-cols-2 gap-5">
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-4"><i class="fa-solid fa-key text-yellow-400 mr-2"></i>Access Security</h3>
+          <label class="text-xs text-slate-400 font-medium mb-2 block">CHANGE ACCESS PIN</label>
+          <input id="currentPin" type="password" class="input mb-3" placeholder="Current PIN" />
+          <input id="newPin" type="password" class="input mb-3" placeholder="New PIN (4+ chars)" />
+          <input id="confirmPin" type="password" class="input mb-3" placeholder="Confirm new PIN" />
+          <button class="btn-primary w-full py-2.5 rounded-xl font-medium" onclick="changePin()">Update PIN</button>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-4"><i class="fa-solid fa-shield text-emerald-400 mr-2"></i>Privacy & Data</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <div><p class="text-sm font-medium">Encrypt stored data</p><p class="text-xs text-slate-400">Protects products in browser storage</p></div>
+              <div class="toggle on" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <div><p class="text-sm font-medium">Auto-lock on inactivity</p><p class="text-xs text-slate-400">Locks after 15 min of idle</p></div>
+              <div class="toggle on" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <div><p class="text-sm font-medium">Require key for API</p><p class="text-xs text-slate-400">API key needed for requests</p></div>
+              <div class="toggle on" onclick="toggleSetting(this)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-4"><i class="fa-solid fa-floppy-disk text-cyan-400 mr-2"></i>Data Management</h3>
+          <div class="space-y-3">
+            <button class="btn-ghost w-full py-2.5 rounded-xl text-left px-4 flex items-center gap-3" onclick="exportData()"><i class="fa-solid fa-download text-cyan-400"></i>Export data as JSON</button>
+            <button class="btn-ghost w-full py-2.5 rounded-xl text-left px-4 flex items-center gap-3" onclick="document.getElementById('importFile2').click()"><i class="fa-solid fa-upload text-pink-400"></i>Import from JSON backup</button>
+            <input type="file" id="importFile2" accept="application/json" class="hidden" onchange="importData(event)"/>
+            <button class="btn-danger w-full py-2.5 rounded-xl text-left px-4 flex items-center gap-3" onclick="confirmClearAll()"><i class="fa-solid fa-trash"></i>Delete all products</button>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-4"><i class="fa-solid fa-circle-info text-purple-400 mr-2"></i>About TemplifyX</h3>
+          <p class="text-sm text-slate-300 leading-relaxed mb-4">TemplifyX is a secure, zero-backend product management dashboard. Your product catalog lives encrypted in your browser and is exposed via an API endpoint you own.</p>
+          <div class="text-xs text-slate-400 space-y-1 mono">
+            <p>Version · 1.0.0</p>
+            <p>Engine · Client Vault + Edge API</p>
+            <p>License · Personal / Commercial</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UPGRADE DETAILS VIEW -->
+    <section id="view-upgrade-details" class="view">
+      <div class="glass rounded-2xl p-6 mb-6">
+        <div class="flex items-start gap-4 flex-wrap">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center text-white text-xl"><i class="fa-solid fa-plug"></i></div>
+          <div class="flex-1 min-w-[200px]">
+            <h3 class="font-bold text-2xl">Upgrade Details</h3>
+            <p class="text-sm text-slate-400 mt-2">Assign default plan templates for Basic, Pro, and Premium users. Each plan can be linked to a product template for quick onboarding.</p>
+          </div>
+        </div>
+      </div>
+      <div id="upgradePlanCards" class="grid lg:grid-cols-3 gap-4"></div>
+    </section>
+
+  </main>
+</div>
+
+  
+
+<!-- MODAL -->
+<div id="modalBackdrop" class="modal-backdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="p-6 border-b border-white/5 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-bold" id="modalTitle">Add Product</h3>
+        <p class="text-xs text-slate-400" id="modalSubtitle">Fill in the product details below</p>
+      </div>
+      <button class="w-9 h-9 rounded-lg hover:bg-white/5 flex items-center justify-center" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <input id="f_id" type="hidden" />
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PRODUCT NAME *</label>
+        <input id="f_name" class="input" placeholder="e.g. Premium Template Pack" />
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PRODUCT CODE *</label>
+        <input id="f_code" class="input mono" placeholder="e.g. TPL-001" />
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">TEMPLATE HTML</label>
+        <textarea id="f_template_html" class="input mono" placeholder="&lt;section&gt;Your template HTML&lt;/section&gt;" rows="4"></textarea>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">DESCRIPTION</label>
+        <textarea id="f_description" class="input" placeholder="Short summary of this product" rows="3"></textarea>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PRICE</label>
+        <input id="f_price" type="number" step="0.01" min="0" class="input" placeholder="e.g. 29.99" />
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">CATEGORY</label>
+        <select id="f_category" class="input">
+          <option value="Dashboard">Dashboard</option>
+          <option value="UI Kits">UI Kits</option>
+          <option value="Web Templates">Web Templates</option>
+          <option value="Icons">Icons</option>
+          <option value="Sign UI">Sign UI</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PRODUCT VALUE</label>
+        <select id="f_tier" class="input">
+          <option value="free">Free</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PREVIEW IMAGE</label>
+        <input id="f_preview_image_file" type="file" accept="image/*" class="input" onchange="handlePreviewImageUpload(event)" />
+        <input id="f_preview_image" type="hidden" />
+        <div id="f_preview_image_name" class="text-xs text-slate-500 mt-2">No image selected</div>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PREVIEW LINK URL</label>
+        <input id="f_preview_url" class="input" placeholder="https://example.com" />
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 font-medium mb-1.5 block">PRODUCT ID (auto-generated)</label>
+        <input id="f_product_id" class="input mono" placeholder="Will be generated" readonly />
+      </div>
+    </div>
+    <div class="p-6 border-t border-white/5 flex gap-2 justify-end">
+      <button class="btn-ghost px-5 py-2.5 rounded-xl" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary px-5 py-2.5 rounded-xl font-medium" onclick="saveProduct()"><i class="fa-solid fa-check mr-1"></i> Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE PREVIEW MODAL -->
+<div id="imagePreviewBackdrop" class="modal-backdrop" onclick="if(event.target===this)closeImagePreview()">
+  <div class="modal" style="max-width:900px;padding:0;overflow:hidden">
+    <button class="preview-close" onclick="closeImagePreview()" title="Close preview"><i class="fa-solid fa-xmark"></i></button>
+    <img id="imagePreviewImg" class="preview-modal-img" src="" alt="Image preview" />
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmBackdrop" class="modal-backdrop" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal" style="max-width:400px">
+    <div class="p-6 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-red-500/15 text-red-400 flex items-center justify-center text-xl mx-auto mb-4"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h3 class="text-lg font-bold mb-1" id="confirmTitle">Are you sure?</h3>
+      <p class="text-sm text-slate-400" id="confirmMsg">This action cannot be undone.</p>
+    </div>
+    <div class="p-6 border-t border-white/5 flex gap-2 justify-end">
+      <button class="btn-ghost px-5 py-2.5 rounded-xl" onclick="closeConfirm()">Cancel</button>
+      <button id="confirmOk" class="btn-danger px-5 py-2.5 rounded-xl"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastWrap" class="toast-wrap"></div>
+
+<script>
+/* =========================
+   STORAGE & CRYPTO (simple client-side)
+   ========================= */
+const STORE_KEY = 'templifyx_v1';
+const PIN_KEY   = 'templifyx_pin';
+const API_KEY   = 'templifyx_api_key';
+const PLAN_TEMPLATES_KEY = 'templifyx_plan_templates';
+const PLAN_SWITCH_KEY = 'selectedPlan';
+
+function b64(str){return btoa(unescape(encodeURIComponent(str)))}
+function b64d(str){return decodeURIComponent(escape(atob(str)))}
+// Light obfuscation (not real AES, but decent for local storage)
+function encrypt(str){
+  const salt = 'TX-'+(localStorage.getItem('templifyx_salt')||'default');
+  let out = '';
+  for (let i=0;i<str.length;i++) out += String.fromCharCode(str.charCodeAt(i) ^ salt.charCodeAt(i%salt.length));
+  return b64(out);
+}
+function decrypt(str){
+  try{
+    const salt = 'TX-'+(localStorage.getItem('templifyx_salt')||'default');
+    const raw = b64d(str);
+    let out = '';
+    for (let i=0;i<raw.length;i++) out += String.fromCharCode(raw.charCodeAt(i) ^ salt.charCodeAt(i%salt.length));
+    return out;
+  }catch(e){return null}
+}
+function ensureSalt(){if(!localStorage.getItem('templifyx_salt')) localStorage.setItem('templifyx_salt', Math.random().toString(36).slice(2,18))}
+ensureSalt();
+
+function loadProducts(){
+  const raw = localStorage.getItem(STORE_KEY);
+  if(!raw) return [];
+  const json = decrypt(raw);
+  if(!json) return [];
+  try{
+    const items = JSON.parse(json);
+    return Array.isArray(items) ? items.map(p => ({
+      id:p.id||genId(),
+      name:p.name||'Unnamed',
+      code:p.code||'N/A',
+      templateHtml:p.templateHtml||p.template_html||'',
+      description:p.description||'',
+      previewImage:p.previewImage||p.preview||'',
+      previewUrl:p.previewUrl||'',
+      category:p.category||'',
+      tier:p.tier||'free',
+      product_id:p.product_id||genProductId()
+    })) : [];
+  }catch(e){return []}
+}
+function estimateDataSize(value){
+  if(!value || typeof value !== 'string') return 0;
+  return Math.round((value.length * 3) / 4);
+}
+function saveProducts(arr){
+  const safeProducts = arr.map(p => {
+    const product = { ...p };
+    if (typeof product.previewImage === 'string' && product.previewImage.startsWith('data:image/')) {
+      const size = estimateDataSize(product.previewImage);
+      if (size > 250 * 1024) {
+        product.previewImage = '';
+      }
+    }
+    return product;
+  });
+  try{
+    localStorage.setItem(STORE_KEY, encrypt(JSON.stringify(safeProducts)));
+    const lastSync = document.getElementById('lastSync');
+    if(lastSync) lastSync.textContent = new Date().toLocaleString();
+    return true;
+  }catch(err){
+    console.error('Failed to save products to storage', err);
+    toast('Your product image is too large to save. Please use a smaller image or leave the preview blank.','error');
+    return false;
+  }
+}
+function getPin(){
+  const raw = localStorage.getItem(PIN_KEY);
+  if(!raw){const d=encrypt('1234');localStorage.setItem(PIN_KEY,d);return '1234'}
+  return decrypt(raw)||'1234';
+}
+function setPin(p){localStorage.setItem(PIN_KEY,encrypt(p))}
+function getApiKey(){
+  let k = localStorage.getItem(API_KEY);
+  if(!k){k='txv_'+Math.random().toString(36).slice(2,10)+'_'+Math.random().toString(36).slice(2,14);localStorage.setItem(API_KEY,k)}
+  return k;
+}
+function loadPlanTemplates(){
+  try{const raw = localStorage.getItem(PLAN_TEMPLATES_KEY); return raw?JSON.parse(raw):{}}catch(e){return{}}}
+function savePlanTemplates(data){localStorage.setItem(PLAN_TEMPLATES_KEY,JSON.stringify(data));planTemplates=data;}
+function loadSelectedPlan(){
+  const plan = localStorage.getItem(PLAN_SWITCH_KEY);
+  return ['free','basic','pro','premium'].includes(plan?.toLowerCase()) ? plan.toLowerCase() : 'free';
+}
+function saveSelectedPlan(plan){
+  localStorage.setItem(PLAN_SWITCH_KEY, plan);
+}
+function setAdminPlan(){
+  const select = document.getElementById('admin-plan-select');
+  if(!select) return;
+  const plan = select.value;
+  saveSelectedPlan(plan);
+  renderUpgradeDetails();
+  toast(`Current plan set to ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,'success');
+}
+function renderUpgradeDetails(){
+  const container = document.getElementById('upgradePlanCards');
+  if(!container) return;
+  const currentPlan = loadSelectedPlan();
+  const plans = [
+    {id:'basic', label:'Basic', desc:'Set the template for Basic users.', note:'Best for individuals who need more room to grow.'},
+    {id:'pro', label:'Pro', desc:'Set the template for Pro users.', note:'For power users who want the full suite.'},
+    {id:'premium', label:'Premium', desc:'Set the template for Premium users.', note:'For teams that need collaboration and control.'}
+  ];
+  const adminPlanCard = `
+      <article class="glass rounded-2xl p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-semibold text-xl">Current Plan</h3>
+            <p class="text-xs text-slate-400 mt-1">Choose the active plan tier for admin preview and template assignment.</p>
+          </div>
+          <span class="tag-pill">${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}</span>
+        </div>
+        <div class="mb-4">
+          <label class="text-xs text-slate-400 font-medium mb-2 block">Plan tier</label>
+          <select id="admin-plan-select" class="input">
+            <option value="free" ${currentPlan==='free'?'selected':''}>Free</option>
+            <option value="basic" ${currentPlan==='basic'?'selected':''}>Basic</option>
+            <option value="pro" ${currentPlan==='pro'?'selected':''}>Pro</option>
+            <option value="premium" ${currentPlan==='premium'?'selected':''}>Premium</option>
+          </select>
+        </div>
+        <button class="btn-primary w-full py-2.5 rounded-xl font-medium" onclick="setAdminPlan()">Save current plan</button>
+      </article>
+    `;
+  container.innerHTML = adminPlanCard + plans.map(plan => {
+    const assigned = planTemplates[plan.id] ? getProductNameById(planTemplates[plan.id]) : null;
+    return `
+      <article class="glass rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-semibold text-xl">${plan.label}</h3>
+            <p class="text-xs text-slate-400 mt-1">${plan.note}</p>
+          </div>
+          <span class="tag-pill">${plan.label}</span>
+        </div>
+        <p class="text-sm text-slate-400 mb-4">${plan.desc}</p>
+        <div class="mb-4">
+          <label class="text-xs text-slate-400 font-medium mb-2 block">Assigned template</label>
+          <div class="text-sm text-slate-200">${assigned?escapeHtml(assigned):'<span class="text-slate-500">No template assigned yet</span>'}</div>
+        </div>
+        <div class="mb-4">
+          <label class="text-xs text-slate-400 font-medium mb-2 block">Choose product template</label>
+          <select id="plan-select-${plan.id}" class="input">
+            <option value="">Select a product</option>
+            ${products.map(p=>`<option value="${escapeHtml(p.id)}" ${planTemplates[plan.id]===p.id?'selected':''}>${escapeHtml(p.name)} (${escapeHtml(p.code)})</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn-primary w-full py-2.5 rounded-xl font-medium" onclick="assignPlanTemplate('${plan.id}')">Save ${plan.label} template</button>
+      </article>
+    `;
+  }).join('');
+}
+function assignPlanTemplate(planId){
+  const select = document.getElementById(`plan-select-${planId}`);
+  if(!select) return;
+  const value = select.value;
+  if(!value){toast('Select a product first','error');return}
+  planTemplates[planId] = value;
+  savePlanTemplates(planTemplates);
+  renderUpgradeDetails();
+  toast(`${planId.charAt(0).toUpperCase()+planId.slice(1)} template assigned`,`success`);
+}
+function getProductNameById(id){
+  const p = products.find(item=>item.id===id);
+  return p ? p.name : 'Template not found';
+}
+
+/* =========================
+   STATE
+   ========================= */
+let products = loadProducts();
+let currentLayout = localStorage.getItem('tx_layout') || 'grid';
+let planTemplates = loadPlanTemplates();
+let confirmCallback = null;
+
+/* =========================
+   INIT
+   ========================= */
+window.addEventListener('DOMContentLoaded', ()=>{
+  // seed demo data if empty
+  if(products.length===0){
+    products = [
+      {id:genId(), name:'Digital Product Web Template', code:'G7H8I9', description:'A modern and responsive web template for digital products.', previewImage:'video/web2.mp4', previewUrl:'https://templifyx.com/templates/digital-product', product_id:'PID-001'},
+      {id:genId(), name:'Growth Marketing Web Kit', code:'TPL-002', description:'Landing pages and sections optimized for conversion teams.', previewImage:'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', previewUrl:'https://templifyx.com/templates/growth', product_id:'PID-002'},
+      {id:genId(), name:'Mobile Fintech UI', code:'TPL-003', description:'Modern mobile app screens for finance and SaaS startups.', previewImage:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', previewUrl:'https://templifyx.com/templates/fintech', product_id:'PID-003'},
+      {id:genId(), name:'Glyph Icon Pack — 3k+', code:'TPL-004', description:'3000+ pixel-perfect icons across 12 categories and weights.', previewImage:'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80', previewUrl:'https://templifyx.com/templates/icons', product_id:'PID-004'},
+      {id:genId(), name:'SaaS Launch Template', code:'TPL-005', description:'Full SaaS site — hero, pricing, docs, changelog and blog.', previewImage:'https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=800&q=80', previewUrl:'https://templifyx.com/templates/saas', product_id:'PID-005'},
+      {id:genId(), name:'Commerce Mobile Kit', code:'TPL-006', description:'60+ mobile screens for modern e-commerce apps and stores.', previewImage:'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80', previewUrl:'https://templifyx.com/templates/commerce', product_id:'PID-006'},
+      {id:genId(), name:'Admin Panel Template', code:'TPL-007', description:'Complete admin dashboard with analytics and real-time data visualization.', previewImage:'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80', previewUrl:'https://templifyx.com/templates/admin', product_id:'PID-007'},
+      {id:genId(), name:'Analytics Dashboard UI', code:'TPL-008', description:'Beautiful analytics dashboard with charts, graphs, and KPI tracking.', previewImage:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80', previewUrl:'https://templifyx.com/templates/analytics', product_id:'PID-008'},
+      {id:genId(), name:'SaaS Dashboard System', code:'TPL-009', description:'Complete SaaS dashboard with user management and metrics tracking.', previewImage:'https://images.unsplash.com/photo-1460925895917-adf4e565c472?w=800&q=80', previewUrl:'https://templifyx.com/templates/dashboard-system', product_id:'PID-009'}
+    ];
+    saveProducts(products);
+  }
+
+  attachNav();
+  refresh();
+  updateApiView();
+});
+
+function genId(){return 'p_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
+function genProductId(){return 'PID-'+Math.random().toString(36).slice(2,8).toUpperCase()}
+
+/* =========================
+   LOCK / AUTH
+   ========================= */
+const lockScreen = document.getElementById('lockScreen');
+document.getElementById('pinSubmit').addEventListener('click', unlock);
+document.getElementById('pinInput').addEventListener('keydown', e => {if(e.key==='Enter') unlock()});
+function unlock(){
+  const v = document.getElementById('pinInput').value;
+  if(v === getPin()){
+    lockScreen.style.display='none';
+    toast('Welcome back!','success');
+  } else {
+    toast('Incorrect PIN','error');
+    document.getElementById('pinInput').value='';
+  }
+}
+function lockApp(){
+  lockScreen.style.display='flex';
+  document.getElementById('pinInput').value='';
+  toggleMobileSidebar(false);
+}
+
+/* =========================
+   NAV
+   ========================= */
+function attachNav(){
+  document.querySelectorAll('.sidebar-item[data-view]').forEach(el=>{
+    el.addEventListener('click', ()=>switchView(el.dataset.view));
+  });
+}
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const v = document.getElementById('view-'+name); if(v) v.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll(`.sidebar-item[data-view="${name}"]`).forEach(i=>i.classList.add('active'));
+  const titles = {
+    dashboard:['Dashboard',"Welcome back · here's your product overview"],
+    products:['Products','Manage your entire product catalog'],
+    api:['API Integration','Connect TemplifyX to your website in seconds'],
+    settings:['Security','Control access and privacy settings'],
+    'upgrade-details':['Upgrade Details','Assign templates for each pricing tier']
+  };
+  const title = titles[name] || ['TemplifyX','Manage your product dashboard'];
+  document.getElementById('pageTitle').textContent = title[0];
+  document.getElementById('pageSubtitle').textContent = title[1];
+  toggleMobileSidebar(false);
+  if(name==='api') updateApiView();
+  if(name==='dashboard') refresh();
+  if(name==='products') renderProducts();
+  if(name==='upgrade-details') renderUpgradeDetails();
+}
+function toggleMobileSidebar(open){
+  document.getElementById('mobileSidebar').classList.toggle('open', open);
+  document.getElementById('mobileOverlay').classList.toggle('hidden', !open);
+}
+
+/* =========================
+   RENDER
+   ========================= */
+function refresh(){
+  document.getElementById('statTotal').textContent = products.length;
+  document.getElementById('statWithPreview').textContent = products.filter(p=>p.previewImage||p.previewUrl).length;
+  document.getElementById('statCodes').textContent = new Set(products.map(p=>p.code).filter(Boolean)).size;
+  document.getElementById('dashApiStatus').textContent = localStorage.getItem(API_KEY) ? 'Generated' : 'Not generated';
+  renderRecent();
+  renderProducts();
+  updateCounts();
+}
+function updateCounts(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.code.toLowerCase().includes(q) ||
+    (p.templateHtml||'').toLowerCase().includes(q) ||
+    p.product_id.toLowerCase().includes(q)
+  );
+  document.getElementById('countLabel').textContent = filtered.length;
+}
+function renderRecent(){
+  const recent = [...products].slice(-3).reverse();
+  document.getElementById('recentProducts').innerHTML = recent.length ? recent.map(cardHTML).join('') : emptyHTML('No products yet','Click "Add Product" to create your first item.');
+}
+function renderProducts(){
+  const q = (document.getElementById('searchInput').value||'').toLowerCase();
+  const sortBy = document.getElementById('sortSelect').value;
+  let list = [...products];
+  if(q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || (p.templateHtml||'').toLowerCase().includes(q) || p.product_id.toLowerCase().includes(q));
+  if(sortBy==='newest') list.sort((a,b)=>b.id.localeCompare(a.id));
+  if(sortBy==='oldest') list.sort((a,b)=>a.id.localeCompare(b.id));
+  if(sortBy==='name') list.sort((a,b)=>a.name.localeCompare(b.name));
+  if(sortBy==='code') list.sort((a,b)=>a.code.localeCompare(b.code));
+  const container = document.getElementById('productsContainer');
+  if(!list.length){ container.innerHTML = emptyHTML('No products found','Try a different search or add a new product.'); updateCounts(); return; }
+  container.className = currentLayout==='grid'
+    ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4'
+    : 'flex flex-col gap-3';
+  container.innerHTML = list.map(p => currentLayout==='grid' ? cardHTML(p) : listHTML(p)).join('');
+  // active layout btn
+  document.getElementById('gridBtn').classList.toggle('bg-white/5', currentLayout==='grid');
+  document.getElementById('listBtn').classList.toggle('bg-white/5', currentLayout==='list');
+  updateCounts();
+}
+function setLayout(l){currentLayout=l;localStorage.setItem('tx_layout',l);renderProducts()}
+function tierBadgeHTML(tier){
+  const tiers = {
+    free:{label:'Free',color:'#cbd5e1',bg:'rgba(148,163,184,.15)',icon:'text-slate-300'},
+    basic:{label:'Basic',color:'#93c5fd',bg:'rgba(59,130,246,.15)',icon:'text-slate-300'},
+    pro:{label:'Pro',color:'#facc15',bg:'rgba(250,204,21,.15)',icon:'text-yellow-300'},
+    premium:{label:'Premium',color:'#f87171',bg:'rgba(248,113,113,.18)',icon:'text-red-300'}
+  };
+  const info = tiers[tier]||tiers.free;
+  return `<span class="tier-badge" style="--tier-color:${info.color};--tier-bg:${info.bg};"><i class="fa-solid fa-crown ${info.icon}"></i>${info.label}</span>`;
+}
+function cardHTML(p){
+  const preview = imgOrPlaceholder(p.previewImage, p.previewUrl, p.name);
+  const hasUrl = p.previewUrl && isHttp(p.previewUrl);
+  const hasImage = p.previewImage && isImageURL(p.previewImage);
+  const urlButton = hasUrl ? `<a href="${escapeHtml(p.previewUrl)}" target="_blank" rel="noopener" class="btn-ghost flex-1 text-center py-2 rounded-lg text-sm"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Open URL</a>` : `<button class="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-50" disabled>No URL</button>`;
+  const imageButton = hasImage ? `<button class="btn-ghost flex-1 text-center py-2 rounded-lg text-sm" onclick="openImagePreview('${escapeHtml(p.previewImage)}','${escapeHtml(p.name)}')"><i class="fa-solid fa-image mr-1"></i>View Image</button>` : '';
+  return `
+    <div class="card">
+      <div class="preview-frame">${preview}${tierBadgeHTML(p.tier)}</div>
+      <div class="p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="min-w-0">
+            <h3 class="font-semibold text-base leading-tight">${escapeHtml(p.name)}</h3>
+            ${p.templateHtml ? `<div class="text-[11px] text-slate-400 mt-1">Template HTML saved</div>` : ''}
+          </div>
+          <span class="tag-pill shrink-0">${escapeHtml(p.code||'—')}</span>
+        </div>
+        ${p.category ? `<div class="text-[11px] text-slate-400 mb-3">Category: ${escapeHtml(p.category)}</div>` : ''}
+        ${p.description ? `<p class="text-sm text-slate-400 mb-4">${escapeHtml(p.description)}</p>` : ''}
+        <div class="flex items-center gap-2 text-[11px] text-slate-400 mono mb-4">
+          <i class="fa-solid fa-fingerprint text-purple-400"></i>${escapeHtml(p.product_id)}
+        </div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          ${urlButton}
+          ${imageButton}
+        </div>
+        <div class="flex gap-2">
+          <button class="btn-ghost px-3 rounded-lg text-sm" onclick="editProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn-danger px-3 rounded-lg text-sm" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+}
+function listHTML(p){
+  const hasUrl = p.previewUrl && isHttp(p.previewUrl);
+  const hasImage = p.previewImage && isImageURL(p.previewImage);
+  return `
+    <div class="glass rounded-2xl p-4 flex flex-wrap items-center gap-4 relative">
+      <div class="absolute top-4 right-4">${tierBadgeHTML(p.tier)}</div>
+      <div class="w-14 h-14 rounded-xl overflow-hidden bg-white/5 shrink-0">
+        ${(p.previewImage||p.previewUrl) ? imgOrPlaceholder(p.previewImage, p.previewUrl, p.name, true) : `<div class="w-full h-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-box"></i></div>`}
+      </div>
+      <div class="flex-1 min-w-[180px]">
+        <h3 class="font-semibold">${escapeHtml(p.name)}</h3>
+        ${p.description ? `<p class="text-xs text-slate-400 mt-2">${escapeHtml(p.description)}</p>` : ''}
+        <div class="flex items-center gap-3 mt-1 text-xs text-slate-400 flex-wrap">
+          <span class="tag-pill">${escapeHtml(p.code||'—')}</span>
+          ${p.templateHtml ? `<span class="tag-pill">HTML template</span>` : ''}
+          ${p.category ? `<span class="tag-pill">${escapeHtml(p.category)}</span>` : ''}
+          <span class="mono">${escapeHtml(p.product_id)}</span>
+        </div>
+      <div class="flex flex-wrap gap-2">
+        ${hasUrl ? `<a href="${escapeHtml(p.previewUrl)}" target="_blank" rel="noopener" class="btn-ghost px-3 py-2 rounded-lg text-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+        ${hasImage ? `<button class="btn-ghost px-3 py-2 rounded-lg text-sm" onclick="openImagePreview('${escapeHtml(p.previewImage)}','${escapeHtml(p.name)}')"><i class="fa-solid fa-image"></i></button>` : ''}
+        <button class="btn-ghost px-3 py-2 rounded-lg text-sm" onclick="editProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-danger px-3 py-2 rounded-lg text-sm" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`;
+}
+function emptyHTML(title,msg){
+  return `<div class="empty-state glass rounded-2xl">
+    <i class="fa-solid fa-box-open text-4xl text-slate-600 mb-3"></i>
+    <h3 class="font-semibold text-slate-300 mb-1">${title}</h3>
+    <p class="text-xs text-slate-500">${msg}</p>
+  </div>`;
+}
+function isHttp(u){return /^https?:\/\//i.test(u)}
+function imgOrPlaceholder(imageUrl, linkUrl, alt, small){
+  if(isImageURL(imageUrl)){
+    return `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(alt||'')}" onerror="this.parentElement.innerHTML='<div class=\\'preview-placeholder\\'><i class=\\'fa-solid fa-image-broken text-2xl\\'></i><span class=\\'text-xs\\'>Preview unavailable</span></div>'"/>`;
+  }
+  if(linkUrl && isHttp(linkUrl)){
+    return `<div class="preview-placeholder"><i class="fa-solid fa-arrow-up-right-from-square text-2xl"></i><span class="text-xs">Open preview link</span></div>`;
+  }
+  return `<div class="preview-placeholder"><i class="fa-solid fa-image text-3xl"></i><span class="text-xs">No preview</span></div>`;
+}
+function isImageURL(url){
+  return !!url && (
+    /^data:image\//i.test(url) ||
+    /\.(jpe?g|png|gif|webp|svg|avif)($|\?|#)/i.test(url) ||
+    /unsplash|picsum/i.test(url)
+  );
+}
+function openImagePreview(url, title){
+  const backdrop = document.getElementById('imagePreviewBackdrop');
+  const img = document.getElementById('imagePreviewImg');
+  if(!backdrop || !img) return;
+  img.src = url;
+  img.alt = title||'Image preview';
+  backdrop.classList.add('show');
+}
+function closeImagePreview(){
+  const backdrop = document.getElementById('imagePreviewBackdrop');
+  const img = document.getElementById('imagePreviewImg');
+  if(!backdrop || !img) return;
+  backdrop.classList.remove('show');
+  img.src = '';
+}
+function escapeHtml(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* =========================
+   CRUD
+   ========================= */
+function compressImageToDataUrl(file, maxWidth = 1400, quality = 0.8){
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, maxWidth / Math.max(img.width, img.height));
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      try {
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch (err) {
+        resolve(canvas.toDataURL('image/png'));
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to read image'));
+    };
+    img.src = objectUrl;
+  });
+}
+function handlePreviewImageUpload(e){
+  const file = e.target.files[0];
+  const hidden = document.getElementById('f_preview_image');
+  const nameLabel = document.getElementById('f_preview_image_name');
+  if(!file || !hidden) return;
+  const isLarge = file.size > 800 * 1024;
+  if(isLarge){
+    toast('Compressing image for storage. Large files may take a moment.','info');
+  }
+  compressImageToDataUrl(file, 1400, isLarge ? 0.7 : 0.85)
+    .then(dataUrl => {
+      hidden.value = dataUrl;
+      if(nameLabel) nameLabel.textContent = `${file.name} (${Math.round(dataUrl.length / 1024)} KB)`;
+    })
+    .catch(() => {
+      toast('Unable to process image. Please try a smaller file.','error');
+    });
+}
+
+function openModal(id){
+  const modal = document.getElementById('modalBackdrop');
+  if(id){
+    const p = products.find(x=>x.id===id); if(!p) return;
+    document.getElementById('modalTitle').textContent = 'Edit Product';
+    document.getElementById('modalSubtitle').textContent = 'Update the product details';
+    document.getElementById('f_id').value = p.id;
+    document.getElementById('f_name').value = p.name;
+    document.getElementById('f_code').value = p.code;
+    document.getElementById('f_template_html').value = p.templateHtml||'';
+    document.getElementById('f_description').value = p.description||'';
+    document.getElementById('f_preview_image').value = p.previewImage||'';
+    document.getElementById('f_preview_image_file').value = '';
+    document.getElementById('f_preview_image_name').textContent = p.previewImage ? 'Current image loaded' : 'No image selected';
+    document.getElementById('f_preview_url').value = p.previewUrl||'';
+    document.getElementById('f_price').value = p.price || '';
+    document.getElementById('f_category').value = p.category || 'Dashboard';
+    document.getElementById('f_tier').value = p.tier || 'free';
+    document.getElementById('f_product_id').value = p.product_id;
+  } else {
+    document.getElementById('modalTitle').textContent = 'Add Product';
+    document.getElementById('modalSubtitle').textContent = 'Fill in the product details below';
+    document.getElementById('f_id').value = '';
+    document.getElementById('f_name').value = '';
+    document.getElementById('f_code').value = '';
+    document.getElementById('f_template_html').value = '';
+    document.getElementById('f_description').value = '';
+    document.getElementById('f_preview_image').value = '';
+    document.getElementById('f_price').value = '';
+    document.getElementById('f_tier').value = 'free';
+    document.getElementById('f_preview_image_file').value = '';
+    document.getElementById('f_preview_image_name').textContent = 'No image selected';
+    document.getElementById('f_preview_url').value = '';
+    document.getElementById('f_category').value = 'Dashboard';
+    document.getElementById('f_product_id').value = genProductId();
+  }
+  modal.classList.add('show');
+}
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('show')}
+function editProduct(id){openModal(id)}
+function saveProduct(){
+  const id = document.getElementById('f_id').value;
+  const name = document.getElementById('f_name').value.trim();
+  const code = document.getElementById('f_code').value.trim();
+  const templateHtml = document.getElementById('f_template_html').value.trim();
+  const description = document.getElementById('f_description').value.trim();
+  const previewImage = document.getElementById('f_preview_image').value.trim();
+  const previewUrl = document.getElementById('f_preview_url').value.trim();
+  const price = document.getElementById('f_price').value.trim();
+  const category = document.getElementById('f_category').value;
+  const tier = document.getElementById('f_tier').value;
+  const product_id = document.getElementById('f_product_id').value.trim();
+  if(!name){toast('Product name is required','error');return}
+  if(!code){toast('Product code is required','error');return}
+  if(id){
+    const idx = products.findIndex(p=>p.id===id);
+    products[idx] = {...products[idx], name, code, templateHtml, description, previewImage, previewUrl, price, category, tier, product_id};
+    toast('Product updated','success');
+  } else {
+    products.push({id:genId(), name, code, templateHtml, description, previewImage, previewUrl, price, category, tier, product_id});
+    toast('Product created','success');
+  }
+  if(!saveProducts(products)) return;
+  closeModal();
+  refresh();
+}
+function deleteProduct(id){
+  const p = products.find(x=>x.id===id);
+  showConfirm('Delete this product?','"'+(p?.name||'')+'" will be permanently removed from your vault.',()=>{
+    products = products.filter(x=>x.id!==id);
+    saveProducts(products);
+    toast('Product deleted','success');
+    refresh();
+  });
+}
+function confirmClearAll(){
+  showConfirm('Delete ALL products?','This will erase your entire catalog. This cannot be undone.',()=>{
+    products = []; saveProducts(products); refresh();
+    toast('All products deleted','success');
+  });
+}
+
+/* =========================
+   CONFIRM / TOAST
+   ========================= */
+function showConfirm(title,msg,cb){
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmBackdrop').classList.add('show');
+  const btn = document.getElementById('confirmOk');
+  const newBtn = btn.cloneNode(true); btn.replaceWith(newBtn);
+  newBtn.addEventListener('click', ()=>{closeConfirm();cb&&cb()});
+}
+function closeConfirm(){document.getElementById('confirmBackdrop').classList.remove('show')}
+function toast(msg,type='info'){
+  const wrap = document.getElementById('toastWrap');
+  const icons = {success:'check-circle',error:'circle-exclamation',info:'circle-info'};
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = `<i class="fa-solid fa-${icons[type]} ${type==='success'?'text-emerald-400':type==='error'?'text-red-400':'text-purple-400'}"></i><span>${escapeHtml(msg)}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300)},3000);
+}
+
+/* =========================
+   API VIEW
+   ========================= */
+function updateApiView(){
+  const key = getApiKey();
+  const endpoint = `${location.origin}${location.pathname}?api=products&key=${key}`;
+  document.getElementById('apiEndpoint').value = endpoint;
+  document.getElementById('apiKey').value = key;
+  document.getElementById('embedCode').textContent =
+`<!-- TemplifyX Product Embed -->
+<div id="templifyx-grid"></div>
+<script src="${location.origin}${location.pathname}"></`+`script>
+<script>
+  TemplifyX.render({
+    target: '#templifyx-grid',
+    apiKey: '${key}',
+    columns: 3
+  });
+</`+`script>`;
+  document.getElementById('fetchCode').textContent =
+`async function loadProducts() {
+  const res = await fetch('${endpoint}');
+  const { products } = await res.json();
+  products.forEach(p => {
+    console.log(p.name, p.code, p.templateHtml, p.description, p.previewImage, p.previewUrl, p.product_id);
+  });
+}
+loadProducts();`;
+  document.getElementById('jsonPreview').textContent = JSON.stringify({
+    success: true,
+    total: products.length,
+    products: products.map(p=>({name:p.name, code:p.code, templateHtml:p.templateHtml, description:p.description, previewImage:p.previewImage, previewUrl:p.previewUrl, category:p.category, product_id:p.product_id}))
+  }, null, 2);
+}
+function toggleApiKeyVisibility(){
+  const inp = document.getElementById('apiKey');
+  const ic = document.getElementById('eyeIcon');
+  if(inp.type==='password'){inp.type='text';ic.className='fa-solid fa-eye-slash'}
+  else{inp.type='password';ic.className='fa-solid fa-eye'}
+}
+function regenerateApiKey(){
+  showConfirm('Regenerate API key?','Your website integrations using the old key will stop working.',()=>{
+    const k = 'txv_'+Math.random().toString(36).slice(2,10)+'_'+Math.random().toString(36).slice(2,14);
+    localStorage.setItem(API_KEY, k);
+    updateApiView();
+    toast('New API key generated','success');
+  });
+}
+
+/* =========================
+   SETTINGS
+   ========================= */
+function toggleSetting(el){el.classList.toggle('on')}
+function changePin(){
+  const cur = document.getElementById('currentPin').value;
+  const n = document.getElementById('newPin').value;
+  const c = document.getElementById('confirmPin').value;
+  if(cur !== getPin()){toast('Current PIN is incorrect','error');return}
+  if(n.length<4){toast('New PIN must be 4+ characters','error');return}
+  if(n!==c){toast('PINs do not match','error');return}
+  setPin(n);
+  document.getElementById('currentPin').value='';
+  document.getElementById('newPin').value='';
+  document.getElementById('confirmPin').value='';
+  toast('PIN updated successfully','success');
+}
+function exportData(){
+  const data = {version:1, exportedAt:new Date().toISOString(), total:products.length, products};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'templifyx-products-'+Date.now()+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Products exported','success');
+}
+function importData(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data.products)) throw new Error('invalid');
+      products = data.products.map(p=>({
+        id:p.id||genId(),
+        name:p.name||'Unnamed',
+        code:p.code||'N/A',
+        templateHtml:p.templateHtml||p.template_html||'',
+        description:p.description||'',
+        previewImage:p.previewImage||p.preview||'',
+        previewUrl:p.previewUrl||'',
+        category:p.category||'',
+        product_id:p.product_id||genProductId()
+      }));
+      saveProducts(products); refresh();
+      toast('Imported '+products.length+' products','success');
+    }catch(err){toast('Invalid backup file','error')}
+  };
+  r.readAsText(f);
+  e.target.value='';
+}
+function copyText(t){
+  navigator.clipboard.writeText(t).then(()=>toast('Copied to clipboard','success')).catch(()=>toast('Copy failed','error'));
+}
+
+/* =========================
+   PUBLIC API (for embed script)
+   This allows the fetch code shown in API view to actually work
+   by intercepting fetch on the same origin (demo).
+   ========================= */
+window.TemplifyX = {
+  getProducts(){return [...products]},
+  render(opts){
+    const target = document.querySelector(opts.target);
+    if(!target){console.warn('TemplifyX: target not found');return}
+    if(opts.apiKey && opts.apiKey !== getApiKey()){target.innerHTML='<p style="color:#f87171">Invalid API key</p>';return}
+    const cols = opts.columns||3;
+    target.style.display='grid';
+    target.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    target.style.gap='16px';
+    target.innerHTML = products.map(p=>`
+      <div style="border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:#10122a;font-family:system-ui;color:#fff">
+        <div style="aspect-ratio:16/10;background:#0a0b1e;overflow:hidden">
+          ${p.previewImage?`<img src="${p.previewImage}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>`:''}
+        </div>
+        <div style="padding:14px">
+          <h4 style="margin:0 0 6px;font-size:15px">${p.name}</h4>
+          <p style="margin:0;font-size:12px;opacity:.6">${p.code} · ${p.product_id}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TemplifyX — Drag & Drop Template Customizer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #000; color: #fff; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+  .glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+  .animate-fade { animation: fadeIn 0.45s ease forwards; }
+  .browser-frame {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .browser-bar { background: linear-gradient(90deg, #141414, #1c1c1c); }
+  textarea:focus, input:focus { outline: none; }
+  .customizer-input {
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    color: #e5e5e5;
+  }
+  .customizer-input:focus { border-color: #fcffff; box-shadow: 0 0 0 2px rgb(252, 255, 255); }
+  input[type="color"] {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+  input[type="color"]::-webkit-color-swatch { border: 1px solid #333; border-radius: 6px; }
+  input[type="range"] { accent-color: #eceeee; }
+  .btn-primary {
+    background: linear-gradient(135deg, #e6ebec, #fafafa);
+    color: #000;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.901);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active { transform: scale(0.98); }
+  #previewFrame { background: #fff; }
+  .preview-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 80 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    padding: 1rem !important;
+    background: rgba(2, 6, 23, 0.98) !important;
+  }
+  .preview-fullscreen .browser-frame {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+  .upgrade-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .upgrade-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .upgrade-modal-card {
+    width: min(460px, 100%);
+    border-radius: 24px;
+    padding: 24px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    transform: translateY(10px) scale(0.97);
+    transition: transform 0.25s ease;
+  }
+  .upgrade-modal-overlay.show .upgrade-modal-card {
+    transform: translateY(0) scale(1);
+  }
+  .upgrade-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .upgrade-modal-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .upgrade-modal-copy {
+    color: rgba(255,255,255,0.72);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .upgrade-modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .upgrade-modal-actions button {
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .upgrade-modal-actions button:hover {
+    transform: translateY(-1px);
+  }
+  .upgrade-primary-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+  }
+  .upgrade-secondary-btn {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+</style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const fromIntro = params.get('fromIntro') === '1';
+      if (!fromIntro) {
+        window.location.replace('intro.html?next=customize.html');
+      }
+    })();
+  </script>
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+         <img src="images/reallogo.png" alt="TemplifyX logo" class="h-20 w-auto object-contain" />
+        </div>
+        <div class="hidden md:flex items-center gap-6 text-sm text-gray-300">
+          <a href="#how" class="hover:text-cyan-400 transition">How it works</a>
+          <a href="#features" class="hover:text-cyan-400 transition">Features</a>
+          <button onclick="exportHTML()" class="btn-primary px-4 py-2 rounded-lg text-sm">Export HTML</button>
+        </div>
+        <button id="menuBtn" class="md:hidden p-2 rounded-lg hover:bg-white/10" aria-label="Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobileMenu" class="hidden md:hidden border-t border-white/10 px-4 py-4 space-y-3 bg-black/90">
+      <a href="#how" class="block text-gray-300 hover:text-cyan-400">How it works</a>
+      <a href="#features" class="block text-gray-300 hover:text-cyan-400">Features</a>
+      <button onclick="exportHTML()" class="btn-primary w-full py-2.5 rounded-lg">Export HTML</button>
+    </div>
+  </nav>
+
+  <main class="pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <!-- Hero -->
+    <div class="text-center mb-10 animate-fade">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-3 tracking-tight">
+        <span class="bg-gradient-to-r from-white via-cyan-200 to-purple-300 bg-clip-text text-transparent">Customize Any Template Visually</span>
+      </h2>
+      <p class="text-gray-400 max-w-2xl mx-auto text-base sm:text-lg">
+        Paste HTML → Render live preview → Click to edit text · Drag to reorder elements → Export clean code. Works perfectly with VS Code Live Server.
+      </p>
+    </div>
+
+    <!-- App Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- LEFT: Code + Customizer -->
+      <div class="lg:col-span-5 space-y-5">
+        <!-- Code Panel -->
+        <div class="glass rounded-2xl p-5 animate-fade">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h3 class="font-semibold text-lg flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Paste HTML Code
+            </h3>
+            <div class="flex gap-2">
+              <button onclick="loadSample()" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition">Load Sample</button>
+              <button onclick="clearCode()" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition">Clear</button>
+            </div>
+          </div>
+          <textarea id="codeInput" spellcheck="false" class="w-full h-64 sm:h-80 mono text-[13px] leading-relaxed bg-black/60 border border-white/10 rounded-xl p-4 text-white/90 resize-y placeholder:text-gray-600 focus:border-white/60 transition" placeholder="<!-- Paste full HTML document or snippet here -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Site</title>
+  <style>body{font-family:system-ui;padding:2rem;}</style>
+</head>
+<body>
+  <h1>Hello World</h1>
+  <p>Click me to edit. Drag me to move.</p>
+</body>
+</html>"></textarea>
+          <button onclick="renderPreview()" class="btn-primary mt-4 w-full py-3.5 rounded-xl text-base">
+            🚀 Render Preview & Enable Drag/Edit
+          </button>
+        </div>
+
+        <!-- Style Customizer -->
+        <div class="glass rounded-2xl p-5 animate-fade">
+          <h3 class="font-semibold text-lg mb-1 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Text & Style Customizer
+          </h3>
+          <p id="selectedInfo" class="text-sm text-gray-400 mb-4">Click any element in the preview to select it.</p>
+
+          <div id="customControls" class="space-y-4 opacity-40 pointer-events-none transition-opacity">
+            <div>
+              <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Text Color</label>
+              <div class="flex gap-2 mt-1.5">
+                <input type="color" id="textColor" value="#111111" class="w-11 h-11 rounded-lg bg-transparent" onchange="applyStyle('color', this.value)">
+                <input type="text" id="textColorHex" value="#111111" class="flex-1 customizer-input rounded-lg px-3 py-2 text-sm mono" onchange="applyStyle('color', this.value)">
+              </div>
+            </div>
+            <div>
+              <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Background</label>
+              <div class="flex gap-2 mt-1.5">
+                <input type="color" id="bgColor" value="#ffffff" class="w-11 h-11 rounded-lg bg-transparent" onchange="applyStyle('backgroundColor', this.value)">
+                <input type="text" id="bgColorHex" value="#ffffff" class="flex-1 customizer-input rounded-lg px-3 py-2 text-sm mono" onchange="applyStyle('backgroundColor', this.value)">
+              </div>
+            </div>
+            <div>
+              <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Font Size</label>
+              <input type="range" id="fontSize" min="10" max="72" value="16" class="w-full mt-2" oninput="applyStyle('fontSize', this.value + 'px'); document.getElementById('fontSizeVal').textContent = this.value + 'px'">
+              <div class="text-right text-xs text-cyan-400 mt-0.5" id="fontSizeVal">16px</div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="toggleStyle('fontWeight','bold','normal')" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-bold transition">B</button>
+              <button onclick="toggleStyle('fontStyle','italic','normal')" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm italic transition">I</button>
+              <button onclick="toggleStyle('textDecoration','underline','none')" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm underline transition">U</button>
+              <button onclick="applyStyle('textAlign','left')" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">Left</button>
+              <button onclick="applyStyle('textAlign','center')" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">Center</button>
+              <button onclick="applyStyle('textAlign','right')" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">Right</button>
+            </div>
+            <div>
+              <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Direct Text Edit</label>
+              <textarea id="textContent" rows="2" class="w-full mt-1.5 customizer-input rounded-lg px-3 py-2 text-sm resize-none" placeholder="Selected element text appears here..." oninput="if(selected){ selected.textContent = this.value; }"></textarea>
+            </div>
+            <p class="text-[11px] text-gray-500">Tip: You can also click directly inside the preview and type. Press Esc to deselect.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Live Preview -->
+      <div class="lg:col-span-7">
+        <div id="previewPanel" class="glass rounded-2xl p-4 h-full flex flex-col animate-fade">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h3 class="font-semibold text-lg flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+              Live Preview
+            </h3>
+            <div class="flex items-center gap-2 text-[11px] flex-wrap">
+              <button id="previewFullscreenButton" type="button" onclick="togglePreviewFullscreen()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition" aria-pressed="false">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v4m0 0h-4m4 0l-5-5"/></svg>
+                <span id="previewFullscreenLabel">Full screen</span>
+              </button>
+              <button type="button" onclick="openDesigner()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/25 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Open Designer</span>
+              </button>
+              <span class="px-2.5 py-1 rounded-full bg-white/10 text-gray-300">Click = Edit text</span>
+              <span class="px-2.5 py-1 rounded-full bg-white/10 text-gray-300">Drag = Reorder</span>
+            </div>
+          </div>
+
+          <div class="browser-frame flex-1 flex flex-col bg-[#111] min-h-[520px]">
+            <div class="browser-bar flex items-center gap-2 px-4 py-2.5 border-b border-white/5">
+              <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-red-500/90"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-400/90"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500/90"></div>
+              </div>
+              <div class="flex-1 mx-3">
+                <div class="bg-black/50 rounded-md px-3 py-1 text-[11px] text-gray-500 mono truncate">templifyx://preview/your-template</div>
+              </div>
+            </div>
+            <div class="flex-1 relative bg-white" style="min-height:460px;">
+              <iframe id="previewFrame" class="w-full h-full absolute inset-0 border-0" sandbox="allow-same-origin allow-scripts" title="Template Preview"></iframe>
+              <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gradient-to-b from-gray-50 to-gray-100">
+                <svg class="w-14 h-14 mb-4 opacity-25" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <p class="font-medium text-gray-500">No preview loaded</p>
+                <p class="text-sm mt-1 text-gray-400">Paste code → click Render</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <section id="how" class="mt-20 scroll-mt-24">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-10">How TemplifyX Works</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6 text-center border border-transparent hover:border-cyan-500/20 transition">
+          <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/10 text-white flex items-center justify-center text-xl font-bold">01</div>
+          <h3 class="font-semibold mb-2">Paste Your Code</h3>
+          <p class="text-sm text-gray-400">Drop any HTML page or template into the editor. Full documents with &lt;style&gt; and scripts are supported.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center border border-transparent hover:border-purple-500/20 transition">
+          <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/10 text-white flex items-center justify-center text-xl font-bold">02</div>
+          <h3 class="font-semibold mb-2">Drag & Edit Text</h3>
+          <p class="text-sm text-gray-400">Click any heading or paragraph to type new copy. Drag cards, sections or blocks to reorder the layout live.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center border border-transparent hover:border-pink-500/20 transition">
+          <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/10 text-white flex items-center justify-center text-xl font-bold">03</div>
+          <h3 class="font-semibold mb-2">Export Clean HTML</h3>
+          <p class="text-sm text-gray-400">Download a production-ready .html file free of editor attributes — ready for Live Server or deployment.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="mt-16 scroll-mt-24">
+      <div class="glass rounded-2xl p-8">
+        <h2 class="text-2xl font-bold mb-8 text-center">Built for Developers</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+          <div class="flex gap-3">
+            <span class="text-cyan-400 text-lg shrink-0">✦</span>
+            <div><strong class="text-white">Zero backend</strong><br><span class="text-gray-400">Pure HTML/CSS/JS. Open in Live Server and go.</span></div>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-cyan-400 text-lg shrink-0">✦</span>
+            <div><strong class="text-white">Live contenteditable</strong><br><span class="text-gray-400">Type directly in the preview or use the panel.</span></div>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-cyan-400 text-lg shrink-0">✦</span>
+            <div><strong class="text-white">Drag-and-drop reorder</strong><br><span class="text-gray-400">Move any block up or down with HTML5 DnD.</span></div>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-cyan-400 text-lg shrink-0">✦</span>
+            <div><strong class="text-white">Style controls</strong><br><span class="text-gray-400">Color, size, weight, alignment in one click.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-white/10 py-8 text-center text-sm text-gray-500">
+    <p class="font-medium text-gray-400">TemplifyX — Visual HTML Template Customizer</p>
+    <p class="mt-1">Save this file · Open with VS Code Live Server · Paste code · Customize · Export</p>
+  </footer>
+
+<script>
+  let selected = null;
+  let draggedEl = null;
+  const iframe = document.getElementById('previewFrame');
+  const emptyState = document.getElementById('emptyState');
+  const customControls = document.getElementById('customControls');
+  const previewPanel = document.getElementById('previewPanel');
+  const previewFullscreenButton = document.getElementById('previewFullscreenButton');
+  const previewFullscreenLabel = document.getElementById('previewFullscreenLabel');
+
+  function togglePreviewFullscreen() {
+    if (!previewPanel) return;
+
+    const isActive = previewPanel.classList.contains('preview-fullscreen');
+
+    if (isActive) {
+      previewPanel.classList.remove('preview-fullscreen');
+      document.body.classList.remove('overflow-hidden');
+      if (document.fullscreenElement === previewPanel) {
+        document.exitFullscreen?.();
+      }
+      if (previewFullscreenLabel) previewFullscreenLabel.textContent = 'Full screen';
+      if (previewFullscreenButton) previewFullscreenButton.setAttribute('aria-pressed', 'false');
+      return;
+    }
+
+    previewPanel.classList.add('preview-fullscreen');
+    document.body.classList.add('overflow-hidden');
+    if (previewFullscreenLabel) previewFullscreenLabel.textContent = 'Exit full';
+    if (previewFullscreenButton) previewFullscreenButton.setAttribute('aria-pressed', 'true');
+
+    if (previewPanel.requestFullscreen) {
+      previewPanel.requestFullscreen().catch(() => {});
+    }
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!previewPanel) return;
+    const isActive = document.fullscreenElement === previewPanel || previewPanel.classList.contains('preview-fullscreen');
+    if (!isActive) {
+      previewPanel.classList.remove('preview-fullscreen');
+      document.body.classList.remove('overflow-hidden');
+      if (previewFullscreenLabel) previewFullscreenLabel.textContent = 'Full screen';
+      if (previewFullscreenButton) previewFullscreenButton.setAttribute('aria-pressed', 'false');
+    }
+  });
+
+  function showUpgradeNotice(message) {
+    let overlay = document.getElementById('upgradeNoticeOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'upgradeNoticeOverlay';
+      overlay.className = 'upgrade-modal-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    overlay.innerHTML = `
+      <div class="upgrade-modal-card">
+        <div class="upgrade-badge"><i class="fa-solid fa-crown"></i> Upgrade required</div>
+        <div class="upgrade-modal-title">Unlock the full builder</div>
+        <div class="upgrade-modal-copy">${message || 'Upgrade to Basic, Pro, or Premium to continue using this tool.'}</div>
+        <div class="upgrade-modal-actions">
+          <button class="upgrade-primary-btn" onclick="window.location.href='index.html#pricing'">View plans</button>
+          <button class="upgrade-secondary-btn" onclick="closeUpgradeNotice()">Maybe later</button>
+        </div>
+      </div>
+    `;
+
+    requestAnimationFrame(() => overlay.classList.add('show'));
+  }
+
+  function closeUpgradeNotice() {
+    const overlay = document.getElementById('upgradeNoticeOverlay');
+    if (overlay) {
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.remove(), 220);
+    }
+  }
+
+  function normalizePlanName(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['free', 'basic', 'pro', 'premium'].includes(normalized) ? normalized : 'free';
+  }
+
+  function getStoredPlanState() {
+    const plan = normalizePlanName(localStorage.getItem('selectedPlan') || 'free');
+    const status = String(localStorage.getItem('planStatus') || '').trim().toLowerCase();
+    return { plan, isActive: status === 'active' || plan === 'free' };
+  }
+
+  function getAccessUsageKey(feature) {
+    return feature === 'designer' ? 'templifyxDesignerUseCount' : 'templifyxBuilderUseCount';
+  }
+
+  function canAccessFeature(feature) {
+    const state = getStoredPlanState();
+    if (state.plan !== 'free') {
+      return {
+        allowed: state.isActive,
+        message: state.isActive ? '' : 'Your plan has expired. Upgrade to Basic, Pro, or Premium to keep using the Web Builder and Product Designer.'
+      };
+    }
+
+    const key = getAccessUsageKey(feature);
+    const count = Number(localStorage.getItem(key) || '0');
+    if (count >= 1) {
+      return {
+        allowed: false,
+        message: 'Free access has been used up. Upgrade to Basic, Pro, or Premium to keep using this tool.'
+      };
+    }
+
+    localStorage.setItem(key, '1');
+    return { allowed: true, message: '' };
+  }
+
+  function enforceAccess(feature, label) {
+    const result = canAccessFeature(feature);
+    if (!result.allowed) {
+      showUpgradeNotice(result.message || `Upgrade to Basic, Pro, or Premium to use ${label}.`);
+      return false;
+    }
+    return true;
+  }
+
+  // Mobile menu
+  document.getElementById('menuBtn').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('hidden');
+  });
+
+  function loadIncomingTemplate() {
+    const incomingHtml = sessionStorage.getItem('templifyxLoadTemplateHtml')
+      || localStorage.getItem('templifyxLoadTemplateHtml')
+      || sessionStorage.getItem('templifyxDesignerHtml')
+      || localStorage.getItem('templifyxDesignerHtml');
+
+    if (!incomingHtml) return false;
+
+    const codeInput = document.getElementById('codeInput');
+    if (codeInput) {
+      codeInput.value = incomingHtml;
+    }
+
+    sessionStorage.removeItem('templifyxLoadTemplateHtml');
+    sessionStorage.removeItem('templifyxLoadTemplateName');
+    sessionStorage.removeItem('templifyxAutoLoadTemplate');
+    sessionStorage.removeItem('templifyxDesignerHtml');
+    localStorage.removeItem('templifyxLoadTemplateHtml');
+    localStorage.removeItem('templifyxLoadTemplateName');
+    localStorage.removeItem('templifyxAutoLoadTemplate');
+    localStorage.removeItem('templifyxDesignerHtml');
+
+    setTimeout(() => {
+      if (document.getElementById('codeInput').value.trim()) {
+        renderPreview();
+      }
+    }, 150);
+
+    return true;
+  }
+
+  function clearCode() {
+    document.getElementById('codeInput').value = '';
+    iframe.removeAttribute('srcdoc');
+    iframe.src = 'about:blank';
+    emptyState.style.display = 'flex';
+    deselect();
+  }
+
+  function deselect() {
+    if (selected) {
+      try { selected.removeAttribute('data-templifyx-selected'); } catch(e) {}
+    }
+    selected = null;
+    customControls.style.opacity = '0.4';
+    customControls.style.pointerEvents = 'none';
+    document.getElementById('selectedInfo').textContent = 'Click any element in the preview to select it.';
+  }
+
+  function renderPreview() {
+    if (!enforceAccess('builder', 'the Web Builder')) {
+      return;
+    }
+
+    const code = document.getElementById('codeInput').value.trim();
+    if (!code) {
+      alert('Please paste some HTML code first.');
+      return;
+    }
+    emptyState.style.display = 'none';
+    deselect();
+    iframe.srcdoc = code;
+    iframe.onload = () => setTimeout(enhancePreview, 50);
+  }
+
+  function enhancePreview() {
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc || !doc.body) return;
+
+      // Inject helper styles
+      let style = doc.getElementById('templifyx-style');
+      if (!style) {
+        style = doc.createElement('style');
+        style.id = 'templifyx-style';
+        style.textContent = `
+          [data-templifyx-selected] {
+            outline: 3px solid #ffffff !important;
+            outline-offset: 3px !important;
+          }
+          [draggable="true"] { cursor: grab; }
+          [draggable="true"]:active { cursor: grabbing; }
+        `;
+        (doc.head || doc.documentElement).appendChild(style);
+      }
+
+      const selectors = 'h1,h2,h3,h4,h5,h6,p,span,a,button,li,div,section,article,header,footer,nav,main,label,td,th,figcaption,blockquote,img,figure';
+      const nodes = doc.querySelectorAll(selectors);
+
+      nodes.forEach(el => {
+        if (el.dataset.templifyxBound) return;
+        el.dataset.templifyxBound = '1';
+
+        // contenteditable for text-ish elements
+        const tag = el.tagName;
+        if (!['IMG','FIGURE','HR','BR','INPUT','TEXTAREA','SELECT'].includes(tag)) {
+          el.contentEditable = 'true';
+        }
+        el.draggable = true;
+
+        el.addEventListener('click', handleElementClick);
+        el.addEventListener('dragstart', handleDragStart);
+        el.addEventListener('dragend', handleDragEnd);
+        el.addEventListener('dragover', handleDragOver);
+        el.addEventListener('drop', handleDrop);
+        el.addEventListener('dragenter', e => e.preventDefault());
+      });
+
+      // body as drop target
+      doc.body.addEventListener('dragover', e => e.preventDefault());
+      doc.body.addEventListener('drop', handleDrop);
+
+    } catch (err) {
+      console.error('enhancePreview:', err);
+    }
+  }
+
+  function handleElementClick(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    const el = e.currentTarget;
+    if (selected && selected !== el) {
+      selected.removeAttribute('data-templifyx-selected');
+    }
+    selected = el;
+    el.setAttribute('data-templifyx-selected', 'true');
+    updateCustomizer(el);
+  }
+
+  function updateCustomizer(el) {
+    customControls.style.opacity = '1';
+    customControls.style.pointerEvents = 'auto';
+
+    const tag = el.tagName.toLowerCase();
+    let preview = (el.textContent || '').trim().replace(/\s+/g, ' ');
+    if (preview.length > 48) preview = preview.slice(0, 48) + '…';
+    document.getElementById('selectedInfo').innerHTML =
+      `Selected: <code class="text-white bg-white/10 px-1.5 py-0.5 rounded">&lt;${tag}&gt;</code>` +
+      (preview ? ` — “${preview}”` : '');
+
+    const color = el.style.color || '#111111';
+    const bg = el.style.backgroundColor || '#ffffff';
+    let fs = parseInt(el.style.fontSize, 10);
+    if (isNaN(fs)) fs = 16;
+
+    const hexColor = toHex(color) || '#111111';
+    const hexBg = toHex(bg) || '#ffffff';
+
+    document.getElementById('textColor').value = hexColor;
+    document.getElementById('textColorHex').value = hexColor;
+    document.getElementById('bgColor').value = hexBg;
+    document.getElementById('bgColorHex').value = hexBg;
+    document.getElementById('fontSize').value = fs;
+    document.getElementById('fontSizeVal').textContent = fs + 'px';
+    document.getElementById('textContent').value = el.textContent || '';
+  }
+
+  function toHex(val) {
+    if (!val) return null;
+    if (val.startsWith('#')) return val.length === 4
+      ? '#' + val[1]+val[1]+val[2]+val[2]+val[3]+val[3]
+      : val;
+    const m = val.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (!m) return null;
+    return '#' + [1,2,3].map(i => ('0' + parseInt(m[i],10).toString(16)).slice(-2)).join('');
+  }
+
+  function applyStyle(prop, value) {
+    if (!selected) return;
+    selected.style[prop] = value;
+    if (prop === 'color') {
+      document.getElementById('textColorHex').value = value;
+      if (value.startsWith('#')) document.getElementById('textColor').value = value;
+    }
+    if (prop === 'backgroundColor') {
+      document.getElementById('bgColorHex').value = value;
+      if (value.startsWith('#')) document.getElementById('bgColor').value = value;
+    }
+  }
+
+  function toggleStyle(prop, onVal, offVal) {
+    if (!selected) return;
+    const current = (selected.style[prop] || '').toLowerCase();
+    selected.style[prop] = (current === onVal.toLowerCase()) ? offVal : onVal;
+  }
+
+  function handleDragStart(e) {
+    draggedEl = e.currentTarget;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', 'templifyx-move');
+    requestAnimationFrame(() => { if (draggedEl) draggedEl.style.opacity = '0.35'; });
+  }
+
+  function handleDragEnd() {
+    if (draggedEl) draggedEl.style.opacity = '';
+    draggedEl = null;
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!draggedEl) return;
+
+    let target = e.currentTarget;
+    // if dropped on body, append
+    if (target === iframe.contentDocument.body) {
+      target.appendChild(draggedEl);
+      return;
+    }
+    if (target === draggedEl || !target.parentNode) return;
+
+    const rect = target.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    const parent = target.parentNode;
+    if (e.clientY < mid) {
+      parent.insertBefore(draggedEl, target);
+    } else {
+      parent.insertBefore(draggedEl, target.nextSibling);
+    }
+  }
+
+  function openDesigner() {
+    if (!enforceAccess('designer', 'the Product Designer')) {
+      return;
+    }
+
+    try {
+      const doc = iframe.contentDocument;
+      const sourceCode = document.getElementById('codeInput').value.trim();
+
+      let htmlToSend = '';
+
+      if (doc && doc.documentElement && emptyState.style.display === 'none') {
+        const clone = doc.documentElement.cloneNode(true);
+        clone.querySelectorAll('[data-templifyx-bound],[data-templifyx-selected],[contenteditable],[draggable]').forEach(el => {
+          el.removeAttribute('data-templifyx-bound');
+          el.removeAttribute('data-templifyx-selected');
+          el.removeAttribute('contenteditable');
+          el.removeAttribute('draggable');
+          el.style.opacity = '';
+        });
+        const injectedStyle = clone.querySelector('#templifyx-style');
+        if (injectedStyle) injectedStyle.remove();
+        htmlToSend = '<!DOCTYPE html>\n' + clone.outerHTML;
+      } else if (sourceCode) {
+        htmlToSend = sourceCode;
+      } else {
+        alert('Render a preview first or paste HTML code before opening the designer.');
+        return;
+      }
+
+      sessionStorage.setItem('templifyxDesignerHtml', htmlToSend);
+      window.location.href = 'productchanger.html';
+    } catch (err) {
+      console.error(err);
+      alert('Unable to open the designer right now.');
+    }
+  }
+
+  function exportHTML() {
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc || !doc.documentElement || emptyState.style.display !== 'none') {
+        alert('Render a preview first, then export.');
+        return;
+      }
+
+      // Clean editor attributes
+      doc.querySelectorAll('[data-templifyx-bound],[data-templifyx-selected],[contenteditable],[draggable]').forEach(el => {
+        el.removeAttribute('data-templifyx-bound');
+        el.removeAttribute('data-templifyx-selected');
+        el.removeAttribute('contenteditable');
+        el.removeAttribute('draggable');
+        el.style.opacity = '';
+      });
+      const inj = doc.getElementById('templifyx-style');
+      if (inj) inj.remove();
+
+      const html = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+
+      // Re-enable editing for continued work
+      setTimeout(enhancePreview, 80);
+
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'templifyx-customized.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('✅ Exported successfully! Check your downloads folder.');
+    } catch (err) {
+      console.error(err);
+      alert('Export failed. Make sure the preview is loaded.');
+    }
+  }
+
+  loadIncomingTemplate();
+
+  // Esc to deselect
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') deselect();
+  });
+
+  // Optional: auto-load sample for first impression
+  // loadSample();
+</script>
+</body>
+</html>
+  
