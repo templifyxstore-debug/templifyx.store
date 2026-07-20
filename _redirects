@@ -1,0 +1,7 @@
+
+/auth /auth.html 200!
+/dashboard /dashboard.html 200!
+/productpage /productpage.html 200!
+/intro /intro.html 200!
+/productchanger /productchanger.html 200!
+/customize /customize.html 200!
