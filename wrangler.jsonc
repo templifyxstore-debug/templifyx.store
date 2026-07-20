@@ -1,0 +1,7 @@
+{
+  "name": "templifyxstore",
+  "compatibility_date": "2026-07-20",
+  "assets": {
+    "directory": "."
+  }
+}
