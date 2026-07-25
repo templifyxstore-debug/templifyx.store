@@ -20,6 +20,52 @@ const userPurchases = {
 const app = express();
 app.use(express.json());
 
+const PRODUCTS_FILE_PATH = path.join(__dirname, 'data', 'products.json');
+
+function getDefaultProducts() {
+  return [
+    { id: 'p_seed_1', name: 'Digital Product Web Template', code: 'G7H8I9', description: 'A modern and responsive web template for digital products.', previewImage: 'video/web2.mp4', previewUrl: 'https://templifyx.com/templates/digital-product', product_id: 'PID-001', category: 'Dashboard', tier: 'free', price: '0' },
+    { id: 'p_seed_2', name: 'Growth Marketing Web Kit', code: 'TPL-002', description: 'Landing pages and sections optimized for conversion teams.', previewImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', previewUrl: 'https://templifyx.com/templates/growth', product_id: 'PID-002', category: 'Marketing', tier: 'basic', price: '19' },
+    { id: 'p_seed_3', name: 'Mobile Fintech UI', code: 'TPL-003', description: 'Modern mobile app screens for finance and SaaS startups.', previewImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', previewUrl: 'https://templifyx.com/templates/fintech', product_id: 'PID-003', category: 'UI', tier: 'pro', price: '29' }
+  ];
+}
+
+function readProductsStore() {
+  try {
+    if (!fs.existsSync(PRODUCTS_FILE_PATH)) {
+      const defaultProducts = getDefaultProducts();
+      writeProductsStore(defaultProducts);
+      return defaultProducts;
+    }
+
+    const raw = fs.readFileSync(PRODUCTS_FILE_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    if (Array.isArray(parsed.products)) {
+      return parsed.products;
+    }
+    return getDefaultProducts();
+  } catch (error) {
+    console.warn('Unable to read products store, using defaults:', error.message);
+    return getDefaultProducts();
+  }
+}
+
+function writeProductsStore(products) {
+  try {
+    fs.mkdirSync(path.dirname(PRODUCTS_FILE_PATH), { recursive: true });
+    const payload = {
+      updatedAt: new Date().toISOString(),
+      products: Array.isArray(products) ? products : []
+    };
+    fs.writeFileSync(PRODUCTS_FILE_PATH, JSON.stringify(payload, null, 2));
+  } catch (error) {
+    console.error('Unable to write products store:', error.message);
+  }
+}
+
 function serveHtmlPage(req, res, next) {
   const pageName = req.params.page;
   const pagePath = path.join(__dirname, `${pageName}.html`);
@@ -54,6 +100,17 @@ function authMiddleware(req, res, next) {
 function hasPurchasedProduct(userId, productId) {
   return userPurchases[userId] && userPurchases[userId].has(productId);
 }
+
+app.get('/api/products', (req, res) => {
+  const products = readProductsStore();
+  res.json({ success: true, products, updatedAt: new Date().toISOString() });
+});
+
+app.post('/api/products', (req, res) => {
+  const products = Array.isArray(req.body?.products) ? req.body.products : [];
+  writeProductsStore(products);
+  res.json({ success: true, products, updatedAt: new Date().toISOString() });
+});
 
 app.post('/api/generate-preview', authMiddleware, (req, res) => {
   const { productId } = req.body;

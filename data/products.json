@@ -1,0 +1,17 @@
+{
+  "updatedAt": "2026-07-25T11:01:25.872Z",
+  "products": [
+    {
+      "previewImage": "",
+      "id": "test-sync-1",
+      "price": "0",
+      "category": "Test",
+      "description": "Verified cross-device sync",
+      "product_id": "PID-TEST-1",
+      "tier": "free",
+      "name": "Sync Test Product",
+      "code": "TST-001",
+      "previewUrl": ""
+    }
+  ]
+}

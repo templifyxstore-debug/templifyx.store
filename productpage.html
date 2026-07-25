@@ -1370,7 +1370,7 @@
   // Close sidebar when overlay is clicked
   document.addEventListener('DOMContentLoaded', function() {
     // Load and render products from storage
-    renderProductsOnPage();
+    renderProductsOnPage().catch(() => {});
     loadCart();
     updateCartCount();
     refreshPlanTier().catch(() => {});
@@ -1388,12 +1388,12 @@
   window.addEventListener('storage', event => {
     if (event.key === 'templifyx_profile_avatar' || event.key === 'templifyx_local_session' || event.key === 'selectedPlan' || event.key === 'planStatus' || event.key?.startsWith('templifyx_plan_state_')) {
       renderFloatingAccountButton();
-      renderProductsOnPage();
+      renderProductsOnPage().catch(() => {});
     }
   });
 
   window.addEventListener('planChanged', () => {
-    renderProductsOnPage();
+    renderProductsOnPage().catch(() => {});
     renderFloatingAccountButton();
   });
 
@@ -1445,8 +1445,21 @@
     }catch(e){return null}
   }
   
-  // Load products from file.html's storage
-  function loadProductsFromStorage(){
+  // Load products from the shared server catalog first, then fall back to browser storage
+  async function loadProductsFromStorage(){
+    try {
+      const response = await fetch('/api/products', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Unable to load products from server');
+      const data = await response.json();
+      const items = Array.isArray(data?.products) ? data.products : [];
+      if (items.length) {
+        localStorage.setItem(STORE_KEY, b64(JSON.stringify(items)));
+        return items;
+      }
+    } catch (error) {
+      console.warn('Falling back to browser storage for products:', error);
+    }
+
     const raw = localStorage.getItem(STORE_KEY);
     if(!raw) return [];
     const json = decrypt(raw);
@@ -1606,8 +1619,8 @@ async function refreshPlanTier() {
   }
 
   // Render products dynamically from storage
-  function renderProductsOnPage(){
-    const products = loadProductsFromStorage();
+  async function renderProductsOnPage(){
+    const products = await loadProductsFromStorage();
     const grid = document.getElementById('productsGrid');
     if(!grid) return;
     
@@ -1728,8 +1741,8 @@ async function refreshPlanTier() {
   // Listen for storage changes (when file.html updates products)
   window.addEventListener('storage', (e) => {
     if(e.key === STORE_KEY){
-      renderProductsOnPage();
-      console.log('Products updated from file.html');
+      renderProductsOnPage().catch(() => {});
+      console.log('Products updated from shared catalog');
     }
   });
 
@@ -1760,7 +1773,7 @@ async function refreshPlanTier() {
   }
 
   // Show Product Details Modal
-  function showProductDetails(productId) {
+  async function showProductDetails(productId) {
     const card = document.querySelector(`[data-product-id="${productId}"]`);
     if (!card) return;
 
@@ -1770,7 +1783,7 @@ async function refreshPlanTier() {
       return;
     }
 
-    const storeProducts = loadProductsFromStorage();
+    const storeProducts = await loadProductsFromStorage();
     const storeProduct = storeProducts.find(p => String(p.id) === String(productId) || String(p.product_id) === String(productId));
 
     currentProduct = {
