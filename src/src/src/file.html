@@ -4,6 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TemplifyX — Product Manager</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -512,6 +513,9 @@ const PIN_KEY   = 'templifyx_pin';
 const API_KEY   = 'templifyx_api_key';
 const PLAN_TEMPLATES_KEY = 'templifyx_plan_templates';
 const PLAN_SWITCH_KEY = 'selectedPlan';
+const SUPABASE_URL = 'https://vrhtmoovtnslxvqxvmmi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHRtb292dG5zbHh2cXh2bW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NTEwODcsImV4cCI6MjA4NzIyNzA4N30.mqV74VmW4O4pqX8c4fOtpZX6AoemcVvPsbh9zHEE74w';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function b64(str){return btoa(unescape(encodeURIComponent(str)))}
 function b64d(str){return decodeURIComponent(escape(atob(str)))}
@@ -534,50 +538,107 @@ function decrypt(str){
 function ensureSalt(){if(!localStorage.getItem('templifyx_salt')) localStorage.setItem('templifyx_salt', Math.random().toString(36).slice(2,18))}
 ensureSalt();
 
-function loadProducts(){
-  const raw = localStorage.getItem(STORE_KEY);
-  if(!raw) return [];
-  const json = decrypt(raw);
-  if(!json) return [];
+function normalizeProductRecord(p, fallbackId = null){
+  const recordId = p?.id || p?.product_id || fallbackId || genId();
+  const productId = p?.product_id || p?.id || fallbackId || genProductId();
+  return {
+    id: recordId,
+    name:p?.name || 'Unnamed',
+    code:p?.code || 'N/A',
+    templateHtml:p?.templateHtml || p?.template_html || '',
+    description:p?.description || '',
+    previewImage:p?.previewImage || p?.preview_image || p?.preview || '',
+    previewUrl:p?.previewUrl || p?.preview_url || '',
+    category:p?.category || '',
+    tier:p?.tier || 'free',
+    price:p?.price || '',
+    product_id:productId
+  };
+}
+function getDefaultProducts(){
+  return [
+    {id:genId(), name:'Digital Product Web Template', code:'G7H8I9', description:'A modern and responsive web template for digital products.', previewImage:'video/web2.mp4', previewUrl:'https://templifyx.com/templates/digital-product', product_id:'PID-001', category:'Dashboard', tier:'free', price:'0'},
+    {id:genId(), name:'Growth Marketing Web Kit', code:'TPL-002', description:'Landing pages and sections optimized for conversion teams.', previewImage:'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', previewUrl:'https://templifyx.com/templates/growth', product_id:'PID-002', category:'Marketing', tier:'basic', price:'19'},
+    {id:genId(), name:'Mobile Fintech UI', code:'TPL-003', description:'Modern mobile app screens for finance and SaaS startups.', previewImage:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', previewUrl:'https://templifyx.com/templates/fintech', product_id:'PID-003', category:'UI', tier:'pro', price:'29'},
+    {id:genId(), name:'Glyph Icon Pack — 3k+', code:'TPL-004', description:'3000+ pixel-perfect icons across 12 categories and weights.', previewImage:'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80', previewUrl:'https://templifyx.com/templates/icons', product_id:'PID-004', category:'Icons', tier:'free', price:'12'},
+    {id:genId(), name:'SaaS Launch Template', code:'TPL-005', description:'Full SaaS site — hero, pricing, docs, changelog and blog.', previewImage:'https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=800&q=80', previewUrl:'https://templifyx.com/templates/saas', product_id:'PID-005', category:'SaaS', tier:'basic', price:'24'},
+    {id:genId(), name:'Commerce Mobile Kit', code:'TPL-006', description:'60+ mobile screens for modern e-commerce apps and stores.', previewImage:'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80', previewUrl:'https://templifyx.com/templates/commerce', product_id:'PID-006', category:'Mobile', tier:'pro', price:'34'},
+    {id:genId(), name:'Admin Panel Template', code:'TPL-007', description:'Complete admin dashboard with analytics and real-time data visualization.', previewImage:'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80', previewUrl:'https://templifyx.com/templates/admin', product_id:'PID-007', category:'Dashboard', tier:'premium', price:'49'},
+    {id:genId(), name:'Analytics Dashboard UI', code:'TPL-008', description:'Beautiful analytics dashboard with charts, graphs, and KPI tracking.', previewImage:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80', previewUrl:'https://templifyx.com/templates/analytics', product_id:'PID-008', category:'Analytics', tier:'pro', price:'29'},
+    {id:genId(), name:'SaaS Dashboard System', code:'TPL-009', description:'Complete SaaS dashboard with user management and metrics tracking.', previewImage:'https://images.unsplash.com/photo-1460925895917-adf4e565c472?w=800&q=80', previewUrl:'https://templifyx.com/templates/dashboard-system', product_id:'PID-009', category:'Dashboard', tier:'premium', price:'39'}
+  ];
+}
+
+async function loadProducts(){
   try{
-    const items = JSON.parse(json);
-    return Array.isArray(items) ? items.map(p => ({
-      id:p.id||genId(),
-      name:p.name||'Unnamed',
-      code:p.code||'N/A',
-      templateHtml:p.templateHtml||p.template_html||'',
-      description:p.description||'',
-      previewImage:p.previewImage||p.preview||'',
-      previewUrl:p.previewUrl||'',
-      category:p.category||'',
-      tier:p.tier||'free',
-      product_id:p.product_id||genProductId()
-    })) : [];
-  }catch(e){return []}
+    const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    const items = Array.isArray(data) ? data : [];
+    return items.length ? items.map((p, index) => normalizeProductRecord(p, `seed_${index + 1}`)) : getDefaultProducts();
+  }catch(e){
+    console.warn('Failed to load products from Supabase', e);
+    return [];
+  }
 }
 function estimateDataSize(value){
   if(!value || typeof value !== 'string') return 0;
   return Math.round((value.length * 3) / 4);
 }
-function saveProducts(arr){
+async function saveProducts(arr){
   const safeProducts = arr.map(p => {
     const product = { ...p };
     if (typeof product.previewImage === 'string' && product.previewImage.startsWith('data:image/')) {
       const size = estimateDataSize(product.previewImage);
-      if (size > 250 * 1024) {
+      if (size > 2 * 1024 * 1024) {
         product.previewImage = '';
       }
     }
     return product;
   });
   try{
-    localStorage.setItem(STORE_KEY, encrypt(JSON.stringify(safeProducts)));
+    for (const product of safeProducts) {
+      const payload = {
+        name: product.name,
+        code: product.code,
+        template_html: product.templateHtml || '',
+        description: product.description || '',
+        preview_image: product.previewImage || '',
+        preview_url: product.previewUrl || '',
+        category: product.category || '',
+        tier: product.tier || 'free',
+        price: product.price || 0,
+        product_id: product.product_id || product.id || genProductId(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: existingRow, error: lookupError } = await supabaseClient
+        .from('products')
+        .select('id')
+        .eq('product_id', payload.product_id)
+        .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      if (existingRow?.id) {
+        const { error } = await supabaseClient
+          .from('products')
+          .update(payload)
+          .eq('id', existingRow.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient
+          .from('products')
+          .insert({ ...payload, created_at: new Date().toISOString() });
+        if (error) throw error;
+      }
+    }
+
     const lastSync = document.getElementById('lastSync');
     if(lastSync) lastSync.textContent = new Date().toLocaleString();
     return true;
   }catch(err){
-    console.error('Failed to save products to storage', err);
-    toast('Your product image is too large to save. Please use a smaller image or leave the preview blank.','error');
+    console.error('Failed to save products to Supabase', err);
+    toast('Your product update could not be synced. Please try again.','error');
     return false;
   }
 }
@@ -686,7 +747,7 @@ function getProductNameById(id){
 /* =========================
    STATE
    ========================= */
-let products = loadProducts();
+let products = [];
 let currentLayout = localStorage.getItem('tx_layout') || 'grid';
 let planTemplates = loadPlanTemplates();
 let confirmCallback = null;
@@ -694,27 +755,14 @@ let confirmCallback = null;
 /* =========================
    INIT
    ========================= */
-window.addEventListener('DOMContentLoaded', ()=>{
-  // seed demo data if empty
-  if(products.length===0){
-    products = [
-      {id:genId(), name:'Digital Product Web Template', code:'G7H8I9', description:'A modern and responsive web template for digital products.', previewImage:'video/web2.mp4', previewUrl:'https://templifyx.com/templates/digital-product', product_id:'PID-001'},
-      {id:genId(), name:'Growth Marketing Web Kit', code:'TPL-002', description:'Landing pages and sections optimized for conversion teams.', previewImage:'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', previewUrl:'https://templifyx.com/templates/growth', product_id:'PID-002'},
-      {id:genId(), name:'Mobile Fintech UI', code:'TPL-003', description:'Modern mobile app screens for finance and SaaS startups.', previewImage:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', previewUrl:'https://templifyx.com/templates/fintech', product_id:'PID-003'},
-      {id:genId(), name:'Glyph Icon Pack — 3k+', code:'TPL-004', description:'3000+ pixel-perfect icons across 12 categories and weights.', previewImage:'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80', previewUrl:'https://templifyx.com/templates/icons', product_id:'PID-004'},
-      {id:genId(), name:'SaaS Launch Template', code:'TPL-005', description:'Full SaaS site — hero, pricing, docs, changelog and blog.', previewImage:'https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=800&q=80', previewUrl:'https://templifyx.com/templates/saas', product_id:'PID-005'},
-      {id:genId(), name:'Commerce Mobile Kit', code:'TPL-006', description:'60+ mobile screens for modern e-commerce apps and stores.', previewImage:'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800&q=80', previewUrl:'https://templifyx.com/templates/commerce', product_id:'PID-006'},
-      {id:genId(), name:'Admin Panel Template', code:'TPL-007', description:'Complete admin dashboard with analytics and real-time data visualization.', previewImage:'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80', previewUrl:'https://templifyx.com/templates/admin', product_id:'PID-007'},
-      {id:genId(), name:'Analytics Dashboard UI', code:'TPL-008', description:'Beautiful analytics dashboard with charts, graphs, and KPI tracking.', previewImage:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80', previewUrl:'https://templifyx.com/templates/analytics', product_id:'PID-008'},
-      {id:genId(), name:'SaaS Dashboard System', code:'TPL-009', description:'Complete SaaS dashboard with user management and metrics tracking.', previewImage:'https://images.unsplash.com/photo-1460925895917-adf4e565c472?w=800&q=80', previewUrl:'https://templifyx.com/templates/dashboard-system', product_id:'PID-009'}
-    ];
-    saveProducts(products);
-  }
+async function initApp(){
+  products = await loadProducts();
 
   attachNav();
   refresh();
   updateApiView();
-});
+}
+window.addEventListener('DOMContentLoaded', initApp);
 
 function genId(){return 'p_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
 function genProductId(){return 'PID-'+Math.random().toString(36).slice(2,8).toUpperCase()}
@@ -935,7 +983,7 @@ function escapeHtml(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&'
 /* =========================
    CRUD
    ========================= */
-function compressImageToDataUrl(file, maxWidth = 1400, quality = 0.8){
+function compressImageToDataUrl(file, maxWidth = 900, quality = 0.72){
   return new Promise((resolve, reject) => {
     const objectUrl = URL.createObjectURL(file);
     const img = new Image();
@@ -946,9 +994,11 @@ function compressImageToDataUrl(file, maxWidth = 1400, quality = 0.8){
       canvas.width = Math.max(1, Math.round(img.width * scale));
       canvas.height = Math.max(1, Math.round(img.height * scale));
       const ctx = canvas.getContext('2d');
+      if(!ctx){ reject(new Error('Canvas unavailable')); return; }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       try {
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed.length > 600 * 1024 ? canvas.toDataURL('image/jpeg', 0.55) : compressed);
       } catch (err) {
         resolve(canvas.toDataURL('image/png'));
       }
@@ -969,7 +1019,7 @@ function handlePreviewImageUpload(e){
   if(isLarge){
     toast('Compressing image for storage. Large files may take a moment.','info');
   }
-  compressImageToDataUrl(file, 1400, isLarge ? 0.7 : 0.85)
+  compressImageToDataUrl(file, 900, isLarge ? 0.6 : 0.72)
     .then(dataUrl => {
       hidden.value = dataUrl;
       if(nameLabel) nameLabel.textContent = `${file.name} (${Math.round(dataUrl.length / 1024)} KB)`;
@@ -1019,7 +1069,7 @@ function openModal(id){
 }
 function closeModal(){document.getElementById('modalBackdrop').classList.remove('show')}
 function editProduct(id){openModal(id)}
-function saveProduct(){
+async function saveProduct(){
   const id = document.getElementById('f_id').value;
   const name = document.getElementById('f_name').value.trim();
   const code = document.getElementById('f_code').value.trim();
@@ -1041,22 +1091,22 @@ function saveProduct(){
     products.push({id:genId(), name, code, templateHtml, description, previewImage, previewUrl, price, category, tier, product_id});
     toast('Product created','success');
   }
-  if(!saveProducts(products)) return;
+  if(!await saveProducts(products)) return;
   closeModal();
   refresh();
 }
 function deleteProduct(id){
   const p = products.find(x=>x.id===id);
-  showConfirm('Delete this product?','"'+(p?.name||'')+'" will be permanently removed from your vault.',()=>{
+  showConfirm('Delete this product?','"'+(p?.name||'')+'" will be permanently removed from your vault.', async ()=>{
     products = products.filter(x=>x.id!==id);
-    saveProducts(products);
+    await saveProducts(products);
     toast('Product deleted','success');
     refresh();
   });
 }
 function confirmClearAll(){
-  showConfirm('Delete ALL products?','This will erase your entire catalog. This cannot be undone.',()=>{
-    products = []; saveProducts(products); refresh();
+  showConfirm('Delete ALL products?','This will erase your entire catalog. This cannot be undone.', async ()=>{
+    products = []; await saveProducts(products); refresh();
     toast('All products deleted','success');
   });
 }

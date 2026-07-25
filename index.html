@@ -748,8 +748,12 @@ function goToSignup() {
 
       if (resp.ok) {
         const data = await resp.json();
-        // mark plan active locally
-        await persistPlanState(pending.plan, 'active', pending.email);
+        // mark plan active locally and sync it to Supabase
+        await persistPlanState(pending.plan, 'active', pending.email, {
+          paymentId,
+          orderId: pending.orderId || '',
+          amount: getPlanAmount(pending.plan)
+        });
 
         // update UI: make matching card active
         window.dispatchEvent(new Event('planChanged'));
@@ -858,7 +862,65 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  const persistPlanState = async (planName, status = "active", email = "") => {
+  const getPlanAmount = (planName) => {
+    const normalizedPlan = normalizePlan(planName);
+    const amounts = { free: 0, basic: 19, pro: 29, premium: 59 };
+    return amounts[normalizedPlan] ?? 0;
+  };
+
+  const syncSubscriptionToSupabase = async ({ planName, status = "active", email = "", paymentId = "", orderId = "", amount = null, name = "" } = {}) => {
+    const normalizedPlan = normalizePlan(planName);
+    if (normalizedPlan === "free") return null;
+
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return null;
+
+      const payload = {
+        user_id: user.id,
+        name: name || user.user_metadata?.full_name || user.email || email || "",
+        email: email || user.email || "",
+        plan: normalizedPlan,
+        amount: amount ?? getPlanAmount(normalizedPlan),
+        payment_id: paymentId || "",
+        order_id: orderId || "",
+        status: String(status || "active").toLowerCase() || "active",
+        purchase_date: new Date().toISOString(),
+        expiry_date: null
+      };
+
+      const { data: existingRows, error: selectError } = await supabaseClient
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("purchase_date", { ascending: false });
+
+      if (selectError) {
+        throw selectError;
+      }
+
+      if (Array.isArray(existingRows) && existingRows.length > 0) {
+        const latest = existingRows[0];
+        const { error } = await supabaseClient
+          .from("subscriptions")
+          .update(payload)
+          .eq("id", latest.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient
+          .from("subscriptions")
+          .insert(payload);
+        if (error) throw error;
+      }
+
+      return payload;
+    } catch (error) {
+      console.warn("Supabase subscription sync skipped:", error);
+      return null;
+    }
+  };
+
+  const persistPlanState = async (planName, status = "active", email = "", extra = {}) => {
     const normalizedPlan = normalizePlan(planName);
     const planStatus = String(status || "active").toLowerCase() || "active";
     const sessionUser = getSessionUser();
@@ -876,29 +938,15 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("templifyxPurchasedPlans", JSON.stringify([{ plan: normalizedPlan, status: planStatus, purchasedAt: state.updatedAt, email }]));
     window.dispatchEvent(new Event("planChanged"));
 
-    try {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return state;
-
-      const payload = {
-        user_id: user.id,
-        plan: normalizedPlan,
-        status: planStatus,
-        purchase_date: state.updatedAt,
-        expiry_date: null,
-        email: email || user.email || ""
-      };
-
-      const { error } = await supabaseClient
-        .from("subscriptions")
-        .upsert(payload, { onConflict: "user_id" });
-
-      if (error) {
-        console.warn("Unable to persist subscription to Supabase:", error);
-      }
-    } catch (error) {
-      console.warn("Supabase subscription sync skipped:", error);
-    }
+    await syncSubscriptionToSupabase({
+      planName: normalizedPlan,
+      status: planStatus,
+      email,
+      paymentId: extra.paymentId || "",
+      orderId: extra.orderId || "",
+      amount: typeof extra.amount === "number" ? extra.amount : getPlanAmount(normalizedPlan),
+      name: extra.name || sessionUser?.name || sessionUser?.user_metadata?.full_name || ""
+    });
 
     return state;
   };
@@ -1145,9 +1193,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setSelectedPlan(matchingCard, resolvedPlan, { isActive });
   }
 })();
-  if (matchingCard) {
-    setSelectedPlan(matchingCard, resolvedPlan, { isActive: Boolean(activePurchasedPlan && normalizePlan(activePurchasedPlan.plan) === resolvedPlan) });
-  }
 });
 </script>
 

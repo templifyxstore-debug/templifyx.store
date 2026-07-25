@@ -651,7 +651,7 @@
       <!-- Card 2 -->
       <article class="card" data-filter="web" data-product-id="2" data-product-name="Growth Marketing Web Kit" data-product-price="39" data-product-old-price="70" data-product-category="Web Templates" data-product-tech="HTML · Tailwind" data-product-rating="4.8" data-product-sales="540" data-product-image="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80">
         <div class="card-img-wrap">
-          <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80" alt="Growth Marketing Web Kit"/>
+          <img src="images/basic1.jpg" alt="Growth Marketing Web Kit"/>
           <div class="img-overlay"></div>
           <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
             <i class="fa-regular fa-heart"></i>
@@ -1445,13 +1445,32 @@
     }catch(e){return null}
   }
   
-  // Load products from the shared server catalog first, then fall back to browser storage
+  function normalizeSupabaseProduct(item) {
+    return {
+      id: item?.id || item?.product_id || '',
+      name: item?.name || 'Unnamed',
+      code: item?.code || 'N/A',
+      templateHtml: item?.template_html || item?.templateHtml || '',
+      description: item?.description || '',
+      previewImage: item?.preview_image || item?.previewImage || '',
+      previewUrl: item?.preview_url || item?.previewUrl || '',
+      category: item?.category || '',
+      tier: item?.tier || 'free',
+      price: item?.price || '',
+      product_id: item?.product_id || item?.id || ''
+    };
+  }
+
+  // Load products from the Supabase products table, then fall back to browser storage.
   async function loadProductsFromStorage(){
     try {
-      const response = await fetch('/api/products', { cache: 'no-store' });
-      if (!response.ok) throw new Error('Unable to load products from server');
-      const data = await response.json();
-      const items = Array.isArray(data?.products) ? data.products : [];
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      const items = Array.isArray(data) ? data.map(normalizeSupabaseProduct) : [];
       if (items.length) {
         localStorage.setItem(STORE_KEY, b64(JSON.stringify(items)));
         return items;
@@ -2166,6 +2185,19 @@ async function refreshPlanTier() {
       console.warn('Unable to read subscription from Supabase, using local plan state:', error);
       return { plan: storedState.plan, status: storedState.status };
     }
+  }
+
+  // Keep the storefront in sync whenever products change in Supabase.
+  try {
+    supabaseClient.channel('productpage-products').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'products'
+    }, () => {
+      renderProductsOnPage().catch(() => {});
+    }).subscribe();
+  } catch (error) {
+    console.warn('Realtime product sync unavailable:', error);
   }
 
   // Initialize cart on page load
