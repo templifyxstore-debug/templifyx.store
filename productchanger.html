@@ -713,7 +713,7 @@ function canAccessFeature(feature) {
   }
 
   const key = getAccessUsageKey(feature);
-  const count = Number(localStorage.getItem(key) || '0');
+  const count = Number(localStorage.getItem(key) || '1');
   if (count >= 1) {
     return {
       allowed: false,

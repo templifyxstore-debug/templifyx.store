@@ -743,12 +743,23 @@ document.addEventListener("DOMContentLoaded", () => {
       if (resp.ok) {
         const data = await resp.json();
         // mark plan active locally
-        const purchasedPlans = JSON.parse(localStorage.getItem('templifyxPurchasedPlans') || '[]');
-        purchasedPlans.push({ plan: pending.plan, status: 'active', purchasedAt: new Date().toISOString(), email: pending.email, paymentId: paymentId });
-        localStorage.setItem('templifyxPurchasedPlans', JSON.stringify(purchasedPlans));
-        localStorage.setItem('selectedPlan', pending.plan);
-        localStorage.setItem('planStatus', 'active');
-        localStorage.setItem('planActivatedAt', new Date().toISOString());
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
+        await supabase
+          .from("subscriptions")
+          .insert({
+            user_id: user.id,
+            name: user.user_metadata?.full_name || "",
+            email: user.email,
+            plan: pending.plan,
+            payment_id: paymentId,
+            status: "active",
+            purchase_date: new Date().toISOString(),
+            expiry_date: expiryDate.toISOString()
+          });
+          
         // cleanup
         localStorage.removeItem('templifyxPendingPurchase');
 
