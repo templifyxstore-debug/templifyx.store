@@ -720,8 +720,14 @@ function goToSignup() {
     }
   </style>
 
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-document.addEventListener("DOMContentLoaded", () => {
+  const SUPABASE_URL = 'https://vrhtmoovtnslxvqxvmmi.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHRtb292dG5zbHh2cXh2bW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NTEwODcsImV4cCI6MjA4NzIyNzA4N30.mqV74VmW4O4pqX8c4fOtpZX6AoemcVvPsbh9zHEE74w';
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  document.addEventListener("DOMContentLoaded", () => {
   // On page load, check if Razorpay redirected back with a payment id
   (async function handleRazorpayReturn() {
     try {
@@ -743,25 +749,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (resp.ok) {
         const data = await resp.json();
         // mark plan active locally
-        const { data: { user } } = await supabase.auth.getUser();
-
-        const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + 1);
-        await supabase
-          .from("subscriptions")
-          .insert({
-            user_id: user.id,
-            name: user.user_metadata?.full_name || "",
-            email: user.email,
-            plan: pending.plan,
-            payment_id: paymentId,
-            status: "active",
-            purchase_date: new Date().toISOString(),
-            expiry_date: expiryDate.toISOString()
-          });
-          
-        // cleanup
-        localStorage.removeItem('templifyxPendingPurchase');
+        await persistPlanState(pending.plan, 'active', pending.email);
 
         // update UI: make matching card active
         window.dispatchEvent(new Event('planChanged'));
@@ -829,6 +817,123 @@ document.addEventListener("DOMContentLoaded", () => {
   const normalizePlan = (value) => {
     const normalized = String(value || "").trim().toLowerCase();
     return ["free", "basic", "pro", "premium"].includes(normalized) ? normalized : "free";
+  };
+
+  const getSessionUser = () => {
+    try {
+      const raw = localStorage.getItem("templifyx_local_session");
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const getPlanStorageKey = (user) => {
+    const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || "";
+    const normalizedIdentity = String(identity || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+    return normalizedIdentity ? `templifyx_plan_state_${normalizedIdentity}` : "templifyx_plan_state_default";
+  };
+
+  const getStoredPlanState = () => {
+    const sessionUser = getSessionUser();
+    const storageKey = getPlanStorageKey(sessionUser);
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.plan) {
+          return {
+            plan: normalizePlan(parsed.plan),
+            status: String(parsed.status || "active").toLowerCase() || "active",
+            updatedAt: parsed.updatedAt || null
+          };
+        }
+      }
+    } catch (_) {}
+
+    return {
+      plan: "free",
+      status: "inactive",
+      updatedAt: null
+    };
+  };
+
+  const persistPlanState = async (planName, status = "active", email = "") => {
+    const normalizedPlan = normalizePlan(planName);
+    const planStatus = String(status || "active").toLowerCase() || "active";
+    const sessionUser = getSessionUser();
+    const state = {
+      plan: normalizedPlan,
+      status: planStatus,
+      updatedAt: new Date().toISOString()
+    };
+    const storageKey = getPlanStorageKey(sessionUser);
+
+    localStorage.setItem(storageKey, JSON.stringify(state));
+    localStorage.setItem("selectedPlan", normalizedPlan);
+    localStorage.setItem("planStatus", planStatus);
+    localStorage.setItem("planActivatedAt", state.updatedAt);
+    localStorage.setItem("templifyxPurchasedPlans", JSON.stringify([{ plan: normalizedPlan, status: planStatus, purchasedAt: state.updatedAt, email }]));
+    window.dispatchEvent(new Event("planChanged"));
+
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return state;
+
+      const payload = {
+        user_id: user.id,
+        plan: normalizedPlan,
+        status: planStatus,
+        purchase_date: state.updatedAt,
+        expiry_date: null,
+        email: email || user.email || ""
+      };
+
+      const { error } = await supabaseClient
+        .from("subscriptions")
+        .upsert(payload, { onConflict: "user_id" });
+
+      if (error) {
+        console.warn("Unable to persist subscription to Supabase:", error);
+      }
+    } catch (error) {
+      console.warn("Supabase subscription sync skipped:", error);
+    }
+
+    return state;
+  };
+
+  const getActiveSubscription = async () => {
+    const storedState = getStoredPlanState();
+
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        return { plan: storedState.plan, status: storedState.status };
+      }
+
+      const { data, error } = await supabaseClient
+        .from("subscriptions")
+        .select("plan, status, expiry_date")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .order("purchase_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return { plan: storedState.plan, status: storedState.status };
+      }
+
+      if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+        return { plan: "free", status: "expired" };
+      }
+
+      return data;
+    } catch (error) {
+      console.warn("Unable to read subscription from Supabase, using local plan state:", error);
+      return { plan: storedState.plan, status: storedState.status };
+    }
   };
 
   const getPurchasedPlans = () => {
@@ -901,12 +1006,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    localStorage.setItem("selectedPlan", normalizedPlan);
-    localStorage.setItem("planStatus", isActive ? "active" : "checkout");
     if (isActive) {
       localStorage.setItem("planActivatedAt", new Date().toISOString());
     }
-    window.dispatchEvent(new Event("planChanged"));
+    persistPlanState(normalizedPlan, isActive ? "active" : "checkout");
   };
 
   const openPlanCheckout = (card) => {
@@ -956,6 +1059,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedPlan === "basic" || selectedPlan === "pro" || selectedPlan === "premium") {
       const pending = { plan: selectedPlan, email, createdAt: new Date().toISOString() };
       try { localStorage.setItem('templifyxPendingPurchase', JSON.stringify(pending)); } catch (e) {}
+      persistPlanState(selectedPlan, 'checkout', email);
       // choose Razorpay link per plan
       const links = {
         basic: "https://rzp.io/rzp/TemplifyX",
@@ -985,10 +1089,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     savePurchasedPlans(purchasedPlans);
-    localStorage.setItem("selectedPlan", selectedPlan);
-    localStorage.setItem("planStatus", "active");
-    localStorage.setItem("planActivatedAt", new Date().toISOString());
-    window.dispatchEvent(new Event("planChanged"));
+    persistPlanState(selectedPlan, "active", email);
 
     cards.forEach((card) => {
       const planName = normalizePlan(card.dataset.plan || card.querySelector(".plan-type")?.textContent || "free");
@@ -1033,19 +1134,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  const purchasedPlans = getPurchasedPlans();
-  const activePurchasedPlan = purchasedPlans.find((plan) => {
-    const np = normalizePlan(plan.plan);
-    if (!np || plan.status !== 'active') return false;
-    if (np === 'free') return true;
-    return Boolean(plan.paymentId);
-  });
-  const storedPlan = normalizePlan(localStorage.getItem("selectedPlan") || "free");
-  const resolvedPlan = storedPlan === "free"
-    ? "free"
-    : (activePurchasedPlan && normalizePlan(activePurchasedPlan.plan) === storedPlan ? storedPlan : "free");
+ // Before: reads getPurchasedPlans() from localStorage
+// After:
+(async () => {
+  const sub = await getActiveSubscription();
+  const resolvedPlan = normalizePlan(sub.plan);
+  const isActive = sub.status === 'active';
   const matchingCard = Array.from(cards).find((card) => normalizePlan(card.dataset.plan) === resolvedPlan);
-
+  if (matchingCard) {
+    setSelectedPlan(matchingCard, resolvedPlan, { isActive });
+  }
+})();
   if (matchingCard) {
     setSelectedPlan(matchingCard, resolvedPlan, { isActive: Boolean(activePurchasedPlan && normalizePlan(activePurchasedPlan.plan) === resolvedPlan) });
   }

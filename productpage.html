@@ -1373,6 +1373,7 @@
     renderProductsOnPage();
     loadCart();
     updateCartCount();
+    refreshPlanTier().catch(() => {});
     
     const overlay = document.getElementById('sidebarOverlay');
     if (overlay) {
@@ -1385,9 +1386,15 @@
   });
 
   window.addEventListener('storage', event => {
-    if (event.key === 'templifyx_profile_avatar' || event.key === 'templifyx_local_session') {
+    if (event.key === 'templifyx_profile_avatar' || event.key === 'templifyx_local_session' || event.key === 'selectedPlan' || event.key === 'planStatus' || event.key?.startsWith('templifyx_plan_state_')) {
       renderFloatingAccountButton();
+      renderProductsOnPage();
     }
+  });
+
+  window.addEventListener('planChanged', () => {
+    renderProductsOnPage();
+    renderFloatingAccountButton();
   });
 
   // Filter by category function (triggered when clicking on a product card)
@@ -1450,9 +1457,96 @@
     }catch(e){return []}
   }
   
-  function getCurrentPlanTier() {
-    return normalizePlanName(localStorage.getItem('selectedPlan') || 'free');
+function getSessionUser() {
+  try {
+    const raw = localStorage.getItem('templifyx_local_session');
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
   }
+}
+
+function getPlanStorageKey(user) {
+  const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || '';
+  const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return normalizedIdentity ? `templifyx_plan_state_${normalizedIdentity}` : 'templifyx_plan_state_default';
+}
+
+function getStoredPlanState() {
+  const sessionUser = getSessionUser();
+  const storageKey = getPlanStorageKey(sessionUser);
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.plan) {
+        return {
+          plan: normalizePlanName(parsed.plan),
+          status: String(parsed.status || 'active').toLowerCase() || 'active',
+          updatedAt: parsed.updatedAt || null
+        };
+      }
+    }
+  } catch (_) {}
+
+  return {
+    plan: 'free',
+    status: 'inactive',
+    updatedAt: null
+  };
+}
+
+function persistPlanState(planName, status = 'active') {
+  const normalizedPlan = normalizePlanName(planName);
+  const planStatus = String(status || 'active').toLowerCase() || 'active';
+  const sessionUser = getSessionUser();
+  const state = {
+    plan: normalizedPlan,
+    status: planStatus,
+    updatedAt: new Date().toISOString()
+  };
+  const storageKey = getPlanStorageKey(sessionUser);
+
+  localStorage.setItem(storageKey, JSON.stringify(state));
+  localStorage.setItem('selectedPlan', normalizedPlan);
+  localStorage.setItem('planStatus', planStatus);
+  localStorage.setItem('planActivatedAt', state.updatedAt);
+  localStorage.setItem('templifyxPurchasedPlans', JSON.stringify([{ plan: normalizedPlan, status: planStatus, purchasedAt: state.updatedAt }]));
+  window.dispatchEvent(new Event('planChanged'));
+  return state;
+}
+
+let cachedPlanTier = 'free';
+
+function getCurrentPlanTier() {
+  const state = getStoredPlanState();
+  cachedPlanTier = normalizePlanName(state.plan || cachedPlanTier);
+  return cachedPlanTier;
+}
+
+async function refreshPlanTier() {
+  const storedState = getStoredPlanState();
+  let nextPlan = normalizePlanName(storedState.plan || 'free');
+  let nextStatus = storedState.status || 'active';
+
+  try {
+    const sub = await getActiveSubscription();
+    if (sub?.plan) {
+      nextPlan = normalizePlanName(sub.plan);
+      nextStatus = String(sub.status || 'active').toLowerCase() || 'active';
+      if (sub.status === 'expired') {
+        nextPlan = 'free';
+        nextStatus = 'expired';
+      }
+    }
+  } catch (error) {
+    console.warn('Unable to refresh subscription plan from Supabase:', error);
+  }
+
+  const persistedState = persistPlanState(nextPlan, nextStatus);
+  cachedPlanTier = normalizePlanName(persistedState.plan || nextPlan);
+  return cachedPlanTier;
+}
 
   function getPlanAccessLevel(planName) {
     const plan = normalizePlanName(planName);
@@ -1934,12 +2028,10 @@
   }
 
   function activateSelectedPlan() {
-    const planName = normalizePlanName(localStorage.getItem('selectedPlan') || 'free');
-    localStorage.setItem('selectedPlan', planName);
-    localStorage.setItem('planStatus', 'active');
-    localStorage.setItem('planActivatedAt', new Date().toISOString());
-    window.dispatchEvent(new Event('planChanged'));
-    return planName;
+    const currentPlan = localStorage.getItem('selectedPlan') || getCurrentPlanTier() || 'free';
+    const planName = normalizePlanName(currentPlan);
+    const state = persistPlanState(planName, 'active');
+    return state.plan;
   }
 
   // Go to Checkout
@@ -2026,6 +2118,40 @@
       window.name = JSON.stringify(sharedState);
     } catch (error) {
       console.warn('Unable to sync purchased items across pages', error);
+    }
+  }
+
+  async function getActiveSubscription() {
+    const sessionUser = getSessionUser();
+    const storedState = getStoredPlanState();
+
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        return { plan: storedState.plan, status: storedState.status };
+      }
+
+      const { data, error } = await supabaseClient
+        .from('subscriptions')
+        .select('plan, status, expiry_date')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('purchase_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return { plan: storedState.plan, status: storedState.status };
+      }
+
+      if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+        return { plan: 'free', status: 'expired' };
+      }
+
+      return data;
+    } catch (error) {
+      console.warn('Unable to read subscription from Supabase, using local plan state:', error);
+      return { plan: storedState.plan, status: storedState.status };
     }
   }
 

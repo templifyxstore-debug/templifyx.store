@@ -988,14 +988,13 @@
             return localUser;
         }
 
+        function normalizePlanName(planName) {
+            const normalized = String(planName || '').trim().toLowerCase();
+            return ['free', 'basic', 'pro', 'premium'].includes(normalized) ? normalized : 'free';
+        }
+
         function clearAccountState() {
-            localStorage.removeItem('selectedPlan');
-            localStorage.removeItem('planStatus');
-            localStorage.removeItem('templifyxPurchasedPlans');
             localStorage.removeItem('templifyxPendingPurchase');
-            localStorage.removeItem('templifyxPurchased');
-            localStorage.removeItem('templifyxPurchasedLastUpdated');
-            localStorage.removeItem('templifyx_profile_avatar');
         }
 
         function setLocalSession(localUser) {
@@ -1037,8 +1036,66 @@
             }
         }
 
+        function getCurrentSessionIdentity() {
+            const session = getLocalSession();
+            return session?.id || session?.email || '';
+        }
+
+        function getPlanStorageKey(identity) {
+            const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+            return normalizedIdentity ? `templifyx_plan_state_${normalizedIdentity}` : 'templifyx_plan_state_default';
+        }
+
+        function getStoredPlanState() {
+            const identity = getCurrentSessionIdentity();
+            const storageKey = getPlanStorageKey(identity);
+            try {
+                const raw = localStorage.getItem(storageKey);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && parsed.plan) {
+                        return {
+                            plan: normalizePlanName(parsed.plan),
+                            status: String(parsed.status || 'active').toLowerCase() || 'active',
+                            updatedAt: parsed.updatedAt || null
+                        };
+                    }
+                }
+            } catch (_) {}
+
+            return {
+                plan: 'free',
+                status: 'inactive',
+                updatedAt: null
+            };
+        }
+
+        function persistPlanState(planName, status = 'active') {
+            const normalizedPlan = normalizePlanName(planName);
+            const planStatus = String(status || 'active').toLowerCase() || 'active';
+            const identity = getCurrentSessionIdentity();
+            const storageKey = getPlanStorageKey(identity);
+            const state = {
+                plan: normalizedPlan,
+                status: planStatus,
+                updatedAt: new Date().toISOString()
+            };
+
+            localStorage.setItem(storageKey, JSON.stringify(state));
+            localStorage.setItem('selectedPlan', normalizedPlan);
+            localStorage.setItem('planStatus', planStatus);
+            localStorage.setItem('planActivatedAt', state.updatedAt);
+            localStorage.setItem('templifyxPurchasedPlans', JSON.stringify([{ plan: normalizedPlan, status: planStatus, purchasedAt: state.updatedAt }]));
+            window.dispatchEvent(new Event('planChanged'));
+            return state;
+        }
+
         function clearLocalSession() {
             localStorage.removeItem(LOCAL_SESSION_KEY);
+            localStorage.removeItem('selectedPlan');
+            localStorage.removeItem('planStatus');
+            localStorage.removeItem('planActivatedAt');
+            localStorage.removeItem('templifyxPurchasedPlans');
         }
 
         // Check for existing session on load
