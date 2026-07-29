@@ -281,6 +281,23 @@
                 <button id="uploadLogoBtn" type="button" onclick="document.getElementById('logoInput').click()" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition">Upload Logo</button>
                 <input id="logoInput" type="file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
               </div>
+              <div id="logoSizeControls" class="mt-4 space-y-3 hidden">
+                <div>
+                  <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Logo Width</label>
+                  <div class="flex items-center gap-3 mt-1">
+                    <input type="range" id="logoWidth" min="40" max="800" value="220" class="flex-1" oninput="applyLogoSize('width', this.value)">
+                    <span id="logoWidthVal" class="text-xs text-cyan-400">220px</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Logo Height</label>
+                  <div class="flex items-center gap-3 mt-1">
+                    <input type="range" id="logoHeight" min="0" max="600" value="0" class="flex-1" oninput="applyLogoSize('height', this.value)">
+                    <span id="logoHeightVal" class="text-xs text-cyan-400">auto</span>
+                  </div>
+                </div>
+                <p class="text-[11px] text-gray-500">Drag the logo in the preview to place it, or use width/height controls to resize it.</p>
+              </div>
               <p class="text-[11px] text-gray-500 mt-1">Select a target element in the preview, then upload a logo to insert it there.</p>
             </div>
             <div>
@@ -609,22 +626,7 @@
       const nodes = doc.querySelectorAll(selectors);
 
       nodes.forEach(el => {
-        if (el.dataset.templifyxBound) return;
-        el.dataset.templifyxBound = '1';
-
-        // contenteditable for text-ish elements
-        const tag = el.tagName;
-        if (!['IMG','FIGURE','HR','BR','INPUT','TEXTAREA','SELECT'].includes(tag)) {
-          el.contentEditable = 'true';
-        }
-        el.draggable = true;
-
-        el.addEventListener('click', handleElementClick);
-        el.addEventListener('dragstart', handleDragStart);
-        el.addEventListener('dragend', handleDragEnd);
-        el.addEventListener('dragover', handleDragOver);
-        el.addEventListener('drop', handleDrop);
-        el.addEventListener('dragenter', e => e.preventDefault());
+        bindPreviewElement(el);
       });
 
       // body as drop target
@@ -634,6 +636,25 @@
     } catch (err) {
       console.error('enhancePreview:', err);
     }
+  }
+
+  function bindPreviewElement(el) {
+    if (el.dataset.templifyxBound) return;
+    el.dataset.templifyxBound = '1';
+
+    // contenteditable for text-ish elements
+    const tag = el.tagName;
+    if (!['IMG','FIGURE','HR','BR','INPUT','TEXTAREA','SELECT'].includes(tag)) {
+      el.contentEditable = 'true';
+    }
+    el.draggable = true;
+
+    el.addEventListener('click', handleElementClick);
+    el.addEventListener('dragstart', handleDragStart);
+    el.addEventListener('dragend', handleDragEnd);
+    el.addEventListener('dragover', handleDragOver);
+    el.addEventListener('drop', handleDrop);
+    el.addEventListener('dragenter', e => e.preventDefault());
   }
 
   function handleElementClick(e) {
@@ -674,6 +695,27 @@
     document.getElementById('fontSize').value = fs;
     document.getElementById('fontSizeVal').textContent = fs + 'px';
     document.getElementById('textContent').value = el.textContent || '';
+
+    const logoSizeControls = document.getElementById('logoSizeControls');
+    if (tag === 'img') {
+      const widthValue = el.style.width || el.width ? `${parseInt(el.style.width || el.width, 10)}px` : '220px';
+      const heightValue = el.style.height || el.height ? `${parseInt(el.style.height || el.height, 10)}px` : 'auto';
+      const width = parseInt(widthValue, 10) || 220;
+      const height = heightValue === 'auto' ? 'auto' : parseInt(heightValue, 10) || 0;
+
+      logoSizeControls.classList.remove('hidden');
+      document.getElementById('logoWidth').value = width;
+      document.getElementById('logoWidthVal').textContent = `${width}px`;
+      if (height === 'auto') {
+        document.getElementById('logoHeight').value = 0;
+        document.getElementById('logoHeightVal').textContent = 'auto';
+      } else {
+        document.getElementById('logoHeight').value = height;
+        document.getElementById('logoHeightVal').textContent = `${height}px`;
+      }
+    } else {
+      logoSizeControls.classList.add('hidden');
+    }
   }
 
   function toHex(val) {
@@ -696,6 +738,25 @@
     if (prop === 'backgroundColor') {
       document.getElementById('bgColorHex').value = value;
       if (value.startsWith('#')) document.getElementById('bgColor').value = value;
+    }
+  }
+
+  function applyLogoSize(prop, value) {
+    if (!selected || selected.tagName !== 'IMG') return;
+    if (prop === 'width') {
+      selected.style.width = `${value}px`;
+      document.getElementById('logoWidthVal').textContent = `${value}px`;
+      document.getElementById('logoWidth').value = value;
+    }
+    if (prop === 'height') {
+      if (value === '0') {
+        selected.style.height = 'auto';
+        document.getElementById('logoHeightVal').textContent = 'auto';
+      } else {
+        selected.style.height = `${value}px`;
+        document.getElementById('logoHeightVal').textContent = `${value}px`;
+      }
+      document.getElementById('logoHeight').value = value;
     }
   }
 
@@ -736,9 +797,11 @@
 
     if (target.tagName !== 'IMG') {
       target.appendChild(img);
+      bindPreviewElement(img);
       selected = img;
       updateCustomizer(img);
     } else {
+      bindPreviewElement(img);
       updateCustomizer(img);
     }
   }
