@@ -712,16 +712,7 @@ function canAccessFeature(feature) {
     };
   }
 
-  const key = getAccessUsageKey(feature);
-  const count = Number(localStorage.getItem(key) || '1');
-  if (count >= 1) {
-    return {
-      allowed: false,
-      message: 'Free access has been used up. Upgrade to Basic, Pro, or Premium to keep using this tool.'
-    };
-  }
-
-  localStorage.setItem(key, '1');
+  // Free users are allowed to use the Product Designer without a one-time limit.
   return { allowed: true, message: '' };
 }
 

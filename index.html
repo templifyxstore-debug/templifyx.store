@@ -938,7 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("templifyxPurchasedPlans", JSON.stringify([{ plan: normalizedPlan, status: planStatus, purchasedAt: state.updatedAt, email }]));
     window.dispatchEvent(new Event("planChanged"));
 
-    await syncSubscriptionToSupabase({
+    const subscription = await syncSubscriptionToSupabase({
       planName: normalizedPlan,
       status: planStatus,
       email,
@@ -947,6 +947,10 @@ document.addEventListener("DOMContentLoaded", () => {
       amount: typeof extra.amount === "number" ? extra.amount : getPlanAmount(normalizedPlan),
       name: extra.name || sessionUser?.name || sessionUser?.user_metadata?.full_name || ""
     });
+
+    if (subscription) {
+      displaySubscriptionTable(subscription);
+    }
 
     return state;
   };
@@ -962,7 +966,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const { data, error } = await supabaseClient
         .from("subscriptions")
-        .select("plan, status, expiry_date")
+        .select("plan, status, expiry_date, purchase_date, payment_id, order_id, amount")
         .eq("user_id", user.id)
         .eq("status", "active")
         .order("purchase_date", { ascending: false })

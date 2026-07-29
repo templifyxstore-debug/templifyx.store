@@ -515,7 +515,25 @@
       document.getElementById('total').textContent = `$${total.toLocaleString()}`;
     }
 
-    function getSessionUser() {
+    async function getSessionUser() {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (!error && data?.user) {
+          const user = data.user;
+          return {
+            ...user,
+            email: user.email || '',
+            created_at: user.created_at || '',
+            user_metadata: {
+              ...(user.user_metadata || {}),
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+            },
+          };
+        }
+      } catch (_) {
+        // Supabase may not be available; fall back to local session if present.
+      }
+
       try {
         const raw = localStorage.getItem('templifyx_local_session');
         if (!raw) return null;
@@ -598,27 +616,33 @@
       return 'Free Plan';
     }
 
-    function getUserAvatarStorageKey(user) {
-      const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || '';
-      const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
-      return normalizedIdentity ? `templifyx_profile_avatar_${normalizedIdentity}` : 'templifyx_profile_avatar_default';
-    }
-
     function getStoredAvatarData(user) {
       if (!user) return '';
       const avatarFromUser = user.avatar || user.user_metadata?.avatar || '';
-      if (avatarFromUser) return avatarFromUser;
-      return localStorage.getItem(getUserAvatarStorageKey(user)) || '';
+      return avatarFromUser || '';
     }
 
-    function setStoredAvatarData(user, avatarData) {
-      const storageKey = getUserAvatarStorageKey(user);
-      if (avatarData) {
-        localStorage.setItem(storageKey, avatarData);
-      } else {
-        localStorage.removeItem(storageKey);
+    async function updateProfileMetadata(updates) {
+      try {
+        const sanitizedUpdates = Object.entries(updates || {}).reduce((result, [key, value]) => {
+          if (value !== undefined) result[key] = value;
+          return result;
+        }, {});
+
+        if (Object.keys(sanitizedUpdates).length === 0) {
+          return null;
+        }
+
+        const { data, error } = await supabaseClient.auth.updateUser({ data: sanitizedUpdates });
+        if (error) {
+          console.error('Failed to update profile metadata', error);
+          return null;
+        }
+        return data.user || null;
+      } catch (err) {
+        console.error('updateProfileMetadata error', err);
+        return null;
       }
-      localStorage.removeItem('templifyx_profile_avatar');
     }
 
     function renderProfileAvatar(element, initials, avatarData) {
@@ -637,64 +661,51 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const imageData = reader.result;
-        const sessionUser = getSessionUser() || {};
-        const updatedSession = {
-          ...sessionUser,
-          avatar: imageData,
-          user_metadata: {
-            ...(sessionUser.user_metadata || {}),
-            avatar: imageData,
-          },
-        };
-
-        localStorage.setItem('templifyx_local_session', JSON.stringify(updatedSession));
-        setStoredAvatarData(updatedSession, imageData);
-        loadUserProfile();
+        const updatedUser = await updateProfileMetadata({ avatar: imageData });
+        if (updatedUser) {
+          loadUserProfile();
+          showToast('Profile photo updated successfully', 'success');
+        } else {
+          showToast('Failed to update profile photo', 'error');
+        }
       };
       reader.readAsDataURL(file);
       event.target.value = '';
     }
 
-    function removeProfileAvatar() {
-      const sessionUser = getSessionUser() || {};
-      const updatedSession = {
-        ...sessionUser,
-        avatar: '',
-        user_metadata: {
-          ...(sessionUser.user_metadata || {}),
-          avatar: '',
-        },
-      };
-      localStorage.setItem('templifyx_local_session', JSON.stringify(updatedSession));
-      setStoredAvatarData(updatedSession, '');
-      loadUserProfile();
+    async function removeProfileAvatar() {
+      const updatedUser = await updateProfileMetadata({ avatar: '' });
+      if (updatedUser) {
+        loadUserProfile();
+        showToast('Profile photo removed successfully', 'success');
+      } else {
+        showToast('Failed to remove profile photo', 'error');
+      }
     }
 
-    function saveProfileEdits() {
+    async function saveProfileEdits() {
       const fullNameField = document.getElementById('profileFullNameField');
       const usernameField = document.getElementById('profileUsernameField');
-      const sessionUser = getSessionUser() || {};
       const updatedFullName = String(fullNameField?.value || '').trim();
       const updatedUsername = String(usernameField?.value || '').trim().replace(/\s+/g, '-').toLowerCase();
-      const nextUser = {
-        ...sessionUser,
-        name: updatedFullName || sessionUser.name || '',
-        username: updatedUsername || sessionUser.username || '',
-        user_metadata: {
-          ...(sessionUser.user_metadata || {}),
-          full_name: updatedFullName || sessionUser.user_metadata?.full_name || '',
-          username: updatedUsername || sessionUser.user_metadata?.username || '',
-        },
+      const updates = {
+        full_name: updatedFullName || undefined,
+        username: updatedUsername || undefined,
       };
 
-      localStorage.setItem('templifyx_local_session', JSON.stringify(nextUser));
-      loadUserProfile();
+      const updatedUser = await updateProfileMetadata(updates);
+      if (updatedUser) {
+        loadUserProfile();
+        showToast('Profile updated successfully', 'success');
+      } else {
+        showToast('Failed to update profile', 'error');
+      }
     }
 
-    function loadUserProfile() {
-      const user = getSessionUser();
+    async function loadUserProfile() {
+      const user = await getSessionUser();
       const fullNameRaw = user?.user_metadata?.full_name || user?.name || '';
       const emailRaw = user?.email || '';
       const normalizedFullName = String(fullNameRaw || '').trim() || (emailRaw ? emailRaw.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : 'New user');
@@ -1033,7 +1044,7 @@
     }
 
     // Initialize
-    window.addEventListener('storage', event => {
+    window.addEventListener('storage', async event => {
       if (
         event.key === 'templifyxPurchased' ||
         event.key === 'templifyxPurchasedLastUpdated' ||
@@ -1042,20 +1053,20 @@
         event.key === 'templifyxPurchasedPlans'
       ) {
         renderPurchasedItems();
-        loadUserProfile();
+        await loadUserProfile();
       }
     });
 
-    window.addEventListener('planChanged', () => {
-      loadUserProfile();
+    window.addEventListener('planChanged', async () => {
+      await loadUserProfile();
       renderPurchasedItems();
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       console.log('Dashboard loaded');
       const params = new URLSearchParams(window.location.search);
       const initialView = params.get('view');
-      loadUserProfile();
+      await loadUserProfile();
       renderPurchasedItems();
       renderActivities();
       updateCartBadge();
