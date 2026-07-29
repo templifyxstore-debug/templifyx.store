@@ -279,6 +279,8 @@
               <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Logo</label>
               <div class="flex flex-wrap gap-2 mt-2">
                 <button id="uploadLogoBtn" type="button" onclick="document.getElementById('logoInput').click()" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition">Upload Logo</button>
+                <button id="logoMoveBtn" type="button" onclick="toggleLogoMove()" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition hidden">Enable Move</button>
+                <button id="placeLogoBtn" type="button" onclick="placeLogo()" class="px-3.5 py-2 rounded-lg bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/25 text-sm transition hidden">Place Logo Permanently</button>
                 <input id="logoInput" type="file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
               </div>
               <div id="logoSizeControls" class="mt-4 space-y-3 hidden">
@@ -409,6 +411,8 @@
 <script>
   let selected = null;
   let draggedEl = null;
+  let logoMoveEnabled = false;
+  let logoDragState = null;
   const iframe = document.getElementById('previewFrame');
   const emptyState = document.getElementById('emptyState');
   const customControls = document.getElementById('customControls');
@@ -632,6 +636,8 @@
       // body as drop target
       doc.body.addEventListener('dragover', e => e.preventDefault());
       doc.body.addEventListener('drop', handleDrop);
+      doc.addEventListener('mousemove', onLogoDrag);
+      doc.addEventListener('mouseup', stopLogoDrag);
 
     } catch (err) {
       console.error('enhancePreview:', err);
@@ -655,6 +661,35 @@
     el.addEventListener('dragover', handleDragOver);
     el.addEventListener('drop', handleDrop);
     el.addEventListener('dragenter', e => e.preventDefault());
+    el.addEventListener('mousedown', startLogoDrag);
+  }
+
+  function startLogoDrag(e) {
+    const el = e.currentTarget;
+    if (el.tagName !== 'IMG' || el.dataset.templifyxLogo !== 'true') return;
+    if (el.dataset.templifyxLogoPlaced === 'true') return;
+    if (!logoMoveEnabled) return;
+
+    logoDragState = {
+      el,
+      startX: e.clientX,
+      startY: e.clientY,
+      origLeft: parseInt(el.style.left || '0', 10),
+      origTop: parseInt(el.style.top || '0', 10)
+    };
+    e.preventDefault();
+  }
+
+  function onLogoDrag(e) {
+    if (!logoDragState) return;
+    const dx = e.clientX - logoDragState.startX;
+    const dy = e.clientY - logoDragState.startY;
+    logoDragState.el.style.left = `${logoDragState.origLeft + dx}px`;
+    logoDragState.el.style.top = `${logoDragState.origTop + dy}px`;
+  }
+
+  function stopLogoDrag() {
+    logoDragState = null;
   }
 
   function handleElementClick(e) {
@@ -697,6 +732,8 @@
     document.getElementById('textContent').value = el.textContent || '';
 
     const logoSizeControls = document.getElementById('logoSizeControls');
+    const logoMoveBtn = document.getElementById('logoMoveBtn');
+    const placeLogoBtn = document.getElementById('placeLogoBtn');
     if (tag === 'img') {
       const widthValue = el.style.width || el.width ? `${parseInt(el.style.width || el.width, 10)}px` : '220px';
       const heightValue = el.style.height || el.height ? `${parseInt(el.style.height || el.height, 10)}px` : 'auto';
@@ -704,6 +741,12 @@
       const height = heightValue === 'auto' ? 'auto' : parseInt(heightValue, 10) || 0;
 
       logoSizeControls.classList.remove('hidden');
+      logoMoveBtn.classList.remove('hidden');
+      placeLogoBtn.classList.remove('hidden');
+      logoMoveBtn.textContent = el.draggable ? 'Disable Move' : 'Enable Move';
+      placeLogoBtn.disabled = el.dataset.templifyxLogoPlaced === 'true';
+      placeLogoBtn.textContent = el.dataset.templifyxLogoPlaced === 'true' ? 'Logo Placed' : 'Place Logo Permanently';
+
       document.getElementById('logoWidth').value = width;
       document.getElementById('logoWidthVal').textContent = `${width}px`;
       if (height === 'auto') {
@@ -715,6 +758,8 @@
       }
     } else {
       logoSizeControls.classList.add('hidden');
+      logoMoveBtn.classList.add('hidden');
+      placeLogoBtn.classList.add('hidden');
     }
   }
 
@@ -760,6 +805,32 @@
     }
   }
 
+  function toggleLogoMove() {
+    if (!selected || selected.tagName !== 'IMG') return;
+    logoMoveEnabled = !logoMoveEnabled;
+    selected.dataset.templifyxLogoMovable = logoMoveEnabled ? 'true' : 'false';
+    selected.style.cursor = logoMoveEnabled ? 'move' : 'default';
+    const logoMoveBtn = document.getElementById('logoMoveBtn');
+    const placeLogoBtn = document.getElementById('placeLogoBtn');
+    logoMoveBtn.textContent = logoMoveEnabled ? 'Disable Move' : 'Enable Move';
+    placeLogoBtn.disabled = false;
+    updateCustomizer(selected);
+  }
+
+  function placeLogo() {
+    if (!selected || selected.tagName !== 'IMG') return;
+    logoMoveEnabled = false;
+    selected.dataset.templifyxLogoPlaced = 'true';
+    selected.dataset.templifyxLogoMovable = 'false';
+    selected.style.cursor = 'default';
+    const logoMoveBtn = document.getElementById('logoMoveBtn');
+    const placeLogoBtn = document.getElementById('placeLogoBtn');
+    logoMoveBtn.textContent = 'Enable Move';
+    placeLogoBtn.textContent = 'Logo Placed';
+    placeLogoBtn.disabled = true;
+    alert('Logo placement is now locked in place. To move again, select the logo and click Enable Move.');
+  }
+
   function handleLogoUpload(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -783,27 +854,35 @@
     }
 
     let target = selected;
-    if (!target) {
+    if (!target || target.tagName === 'IMG') {
       target = doc.body;
     }
 
-    const img = target.tagName === 'IMG' ? target : doc.createElement('img');
+    const img = doc.createElement('img');
     img.src = dataUrl;
     img.alt = 'Logo';
     img.style.maxWidth = '220px';
     img.style.height = 'auto';
+    img.style.position = 'absolute';
+    img.style.left = '20px';
+    img.style.top = '20px';
     img.style.display = 'block';
-    img.style.marginTop = '0.5rem';
+    img.style.margin = '0';
+    img.style.zIndex = '9999';
+    img.style.cursor = 'move';
+    img.dataset.templifyxLogo = 'true';
+    img.dataset.templifyxLogoPlaced = 'false';
+    img.dataset.templifyxLogoMovable = 'true';
 
-    if (target.tagName !== 'IMG') {
-      target.appendChild(img);
-      bindPreviewElement(img);
-      selected = img;
-      updateCustomizer(img);
-    } else {
-      bindPreviewElement(img);
-      updateCustomizer(img);
+    if (!doc.body.style.position || doc.body.style.position === 'static') {
+      doc.body.style.position = 'relative';
     }
+
+    target.appendChild(img);
+    bindPreviewElement(img);
+    selected = img;
+    updateCustomizer(img);
+    alert('Logo uploaded. Select the logo and click Enable Move to drag it. Then click Place Logo Permanently to lock it in place.');
   }
 
   function toggleStyle(prop, onVal, offVal) {
