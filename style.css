@@ -1453,3 +1453,4 @@ body > *:not(#evil-eye-background):not(.grid-bg):not(.glow-bg):not(script) {
     45%{transform:translateX(-4px) rotate(-3deg);}
     60%{transform:translateX(2px) rotate(2deg);}
 }
+
