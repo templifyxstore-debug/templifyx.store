@@ -276,6 +276,14 @@
               <button onclick="applyStyle('textAlign','right')" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">Right</button>
             </div>
             <div>
+              <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Logo</label>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <button id="uploadLogoBtn" type="button" onclick="document.getElementById('logoInput').click()" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition">Upload Logo</button>
+                <input id="logoInput" type="file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+              </div>
+              <p class="text-[11px] text-gray-500 mt-1">Select a target element in the preview, then upload a logo to insert it there.</p>
+            </div>
+            <div>
               <label class="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Direct Text Edit</label>
               <textarea id="textContent" rows="2" class="w-full mt-1.5 customizer-input rounded-lg px-3 py-2 text-sm resize-none" placeholder="Selected element text appears here..." oninput="if(selected){ selected.textContent = this.value; }"></textarea>
             </div>
@@ -301,8 +309,6 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 <span>Open Designer</span>
               </button>
-              <span class="px-2.5 py-1 rounded-full bg-white/10 text-gray-300">Click = Edit text</span>
-              <span class="px-2.5 py-1 rounded-full bg-white/10 text-gray-300">Drag = Reorder</span>
             </div>
           </div>
 
@@ -690,6 +696,50 @@
     if (prop === 'backgroundColor') {
       document.getElementById('bgColorHex').value = value;
       if (value.startsWith('#')) document.getElementById('bgColor').value = value;
+    }
+  }
+
+  function handleLogoUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => insertLogo(reader.result);
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  }
+
+  function insertLogo(dataUrl) {
+    const doc = iframe.contentDocument;
+    if (!doc) {
+      alert('Render the preview first before uploading a logo.');
+      return;
+    }
+
+    let target = selected;
+    if (!target) {
+      target = doc.body;
+    }
+
+    const img = target.tagName === 'IMG' ? target : doc.createElement('img');
+    img.src = dataUrl;
+    img.alt = 'Logo';
+    img.style.maxWidth = '220px';
+    img.style.height = 'auto';
+    img.style.display = 'block';
+    img.style.marginTop = '0.5rem';
+
+    if (target.tagName !== 'IMG') {
+      target.appendChild(img);
+      selected = img;
+      updateCustomizer(img);
+    } else {
+      updateCustomizer(img);
     }
   }
 
