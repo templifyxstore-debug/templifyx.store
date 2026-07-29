@@ -288,6 +288,15 @@
     background: rgba(255,255,255,0.12);
     transform: scale(1.05);
   }
+  #productsGrid {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    min-height: 240px;
+  }
+  #productsGrid.is-loading {
+    opacity: 0;
+    pointer-events: none;
+  }
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
@@ -609,7 +618,7 @@
 
   <!-- Products Grid -->
   <section class="max-w-7xl mx-auto px-6 pb-24">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="productsGrid">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 is-loading" id="productsGrid" aria-busy="true">
 
       <!-- Card 1 -->
       <article class="card" data-filter="web" data-product-id="G7H8I9" data-product-name="Digital Product Web Template" data-product-price="0" data-product-old-price="99" data-product-category="HTML" data-product-tech="Figma" data-product-rating="4.9" data-product-sales="320" data-product-image="video/web2.mp4">
@@ -1367,8 +1376,16 @@
   }
 
   // Close sidebar when overlay is clicked
+  function setProductsGridLoading(isLoading) {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    grid.classList.toggle('is-loading', isLoading);
+    grid.setAttribute('aria-busy', String(isLoading));
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     // Load and render products from storage
+    setProductsGridLoading(true);
     renderProductsOnPage().catch(() => {});
     loadCart();
     updateCartCount();
@@ -1638,17 +1655,22 @@ async function refreshPlanTier() {
 
   // Render products dynamically from storage
   async function renderProductsOnPage(){
-    const products = await loadProductsFromStorage();
     const grid = document.getElementById('productsGrid');
     if(!grid) return;
-    
-    if(products.length === 0){
-      grid.innerHTML = '<p class="col-span-full text-center text-white/50 py-12">No products available</p>';
-      return;
-    }
-    
-    // Clear existing hardcoded cards but keep their HTML structure for reference
-    grid.innerHTML = products.map(p => {
+
+    setProductsGridLoading(true);
+
+    try {
+      const products = await loadProductsFromStorage();
+      
+      if(products.length === 0){
+        grid.innerHTML = '<p class="col-span-full text-center text-white/50 py-12">No products available</p>';
+        setProductsGridLoading(false);
+        return;
+      }
+      
+      // Clear existing hardcoded cards but keep their HTML structure for reference
+      grid.innerHTML = products.map(p => {
       const cat = p.category || p.code || 'Web Templates';
       const normalizedCat = String(cat).toLowerCase();
       const filter = normalizedCat.includes('dashboard') ? 'dashboard' :
@@ -1711,6 +1733,12 @@ async function refreshPlanTier() {
     
     // Reattach event listeners for new cards
     attachCardEventListeners();
+    setProductsGridLoading(false);
+    } catch (error) {
+      console.warn('Unable to render products on page:', error);
+      grid.innerHTML = '<p class="col-span-full text-center text-white/50 py-12">Unable to load products right now.</p>';
+      setProductsGridLoading(false);
+    }
   }
   
   function escapeHtml(s){
