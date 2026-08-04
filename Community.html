@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -2549,35 +2550,7 @@
     </div>
 
     <div class="messages" id="messages">
-      <span class="message-date">Today</span>
-      <div class="message">
-        <div class="avatar sm">SW</div>
-        <div class="message-bubble">
-          Has anyone tried the new variable font pack?
-          <span class="message-time">10:42 AM</span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="avatar sm">ML</div>
-        <div class="message-bubble">
-          Yes! The serif family is beautiful. I used it in my latest identity project.
-          <span class="message-time">10:45 AM</span>
-        </div>
-      </div>
-      <div class="message mine">
-        <div class="avatar sm">AK</div>
-        <div class="message-bubble">
-          I’ll check it out. Does it include webfont files?
-          <span class="message-time">10:47 AM</span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="avatar sm">NW</div>
-        <div class="message-bubble">
-          It does — WOFF2 plus all the desktop formats. I can share the link.
-          <span class="message-time">10:49 AM</span>
-        </div>
-      </div>
+      <span class="message-date">Live community chat</span>
     </div>
 
     <div class="chat-input-wrap">
@@ -2666,6 +2639,152 @@
     window.addEventListener('storage', event => {
       if (event.key === LOCAL_SESSION_KEY) {
         renderCommunityProfile();
+      }
+    });
+
+    const SUPABASE_URL = 'https://vrhtmoovtnslxvqxvmmi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHRtb292dG5zbHh2cXh2bW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NTEwODcsImV4cCI6MjA4NzIyNzA4N30.mqV74VmW4O4pqX8c4fOtpZX6AoemcVvPsbh9zHEE74w';
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    const CHAT_CHANNEL_NAME = 'templifyx-community-chat';
+    const CHAT_STORAGE_KEY = 'templifyx_community_chat_messages';
+    const messagesContainer = document.getElementById('messages');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendMessage');
+    let chatChannel = null;
+    let chatMessages = [];
+
+    function getCurrentUserId() {
+      const profile = getStoredProfile();
+      return profile?.email || profile?.username || 'guest';
+    }
+
+    function loadChatMessages() {
+      try {
+        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.slice(-40) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function persistChatMessages(items) {
+      try {
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(items.slice(-40)));
+      } catch (_) {
+        // Ignore storage issues so the chat remains usable in the browser.
+      }
+    }
+
+    function formatChatTime(value) {
+      try {
+        return new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      } catch (_) {
+        return 'Now';
+      }
+    }
+
+    function renderChatMessages() {
+      if (!messagesContainer) return;
+
+      messagesContainer.innerHTML = '<span class="message-date">Live community chat</span>';
+
+      if (!chatMessages.length) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'message';
+        emptyState.innerHTML = `
+          <div class="avatar sm">✦</div>
+          <div class="message-bubble">
+            Be the first to say hello in the community chat.
+            <span class="message-time">Now</span>
+          </div>`;
+        messagesContainer.appendChild(emptyState);
+        return;
+      }
+
+      chatMessages.forEach(message => {
+        const wrapper = document.createElement('div');
+        wrapper.className = message.userId === getCurrentUserId() ? 'message mine' : 'message';
+        wrapper.innerHTML = `
+          <div class="avatar sm">${formatUserInitials(message.name || message.username || 'U')}</div>
+          <div class="message-bubble">
+            <div style="font-size:11px;opacity:.72;margin-bottom:4px;">${escapeHtml(message.name || message.username || 'Community')}</div>
+            ${escapeHtml(message.text)}
+            <span class="message-time">${formatChatTime(message.createdAt)}</span>
+          </div>`;
+        messagesContainer.appendChild(wrapper);
+      });
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function appendChatMessage(message, shouldPersist = true) {
+      if (!message?.id || chatMessages.some(item => item.id === message.id)) return;
+      chatMessages.push(message);
+      if (chatMessages.length > 40) {
+        chatMessages = chatMessages.slice(-40);
+      }
+      if (shouldPersist) {
+        persistChatMessages(chatMessages);
+      }
+      renderChatMessages();
+    }
+
+    function sendChatMessage() {
+      const text = chatInput?.value?.trim();
+      if (!text) return;
+
+      const profile = getStoredProfile();
+      const message = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        userId: profile?.email || profile?.username || 'guest',
+        name: profile?.fullName || profile?.username || 'You',
+        username: profile?.username || 'you',
+        text,
+        createdAt: new Date().toISOString()
+      };
+
+      appendChatMessage(message, true);
+      if (chatChannel && supabaseClient) {
+        chatChannel.send({ type: 'broadcast', event: 'message', payload: message });
+      }
+
+      if (chatInput) {
+        chatInput.value = '';
+        chatInput.focus();
+      }
+    }
+
+    function subscribeToChat() {
+      if (!supabaseClient || !messagesContainer) return;
+
+      chatChannel = supabaseClient.channel(CHAT_CHANNEL_NAME, {
+        config: { broadcast: { self: false } }
+      });
+
+      chatChannel.on('broadcast', { event: 'message' }, ({ payload }) => {
+        if (payload?.id) {
+          appendChatMessage(payload, true);
+        }
+      });
+
+      chatChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      });
+    }
+
+    chatMessages = loadChatMessages();
+    renderChatMessages();
+    subscribeToChat();
+
+    sendButton?.addEventListener('click', sendChatMessage);
+    chatInput?.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendChatMessage();
       }
     });
 
@@ -2972,31 +3091,6 @@
       searchResults.classList.remove("open");
       toast("Opening community profile.", "users");
     }));
-
-    const chatInput = $("#chatInput");
-    const messages = $("#messages");
-
-    function sendMessage() {
-      const text = chatInput.value.trim();
-      if (!text) return;
-      const message = document.createElement("div");
-      message.className = "message mine";
-      const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-      message.innerHTML = `
-        <div class="avatar sm">AK</div>
-        <div class="message-bubble">${escapeHtml(text)}<span class="message-time">${time}</span></div>`;
-      messages.appendChild(message);
-      chatInput.value = "";
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    $("#sendMessage").addEventListener("click", sendMessage);
-    chatInput.addEventListener("keydown", e => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
 
     $("#notificationBtn").addEventListener("click", () => toast("You have 5 new community updates.", "bell"));
     $("#profileBtn").addEventListener("click", () => toast("Your creator profile is ready.", "user"));
