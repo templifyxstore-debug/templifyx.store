@@ -118,7 +118,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
         </button>
 
-        <button onclick="window.location.href='/productpage/'" class="p-2 hover:bg-[#111] rounded-lg transition-colors flex items-center gap-2 text-[13px] font-[450] text-[#999] hover:text-white">
+        <button onclick="window.location.href='productpage.html'" class="p-2 hover:bg-[#111] rounded-lg transition-colors flex items-center gap-2 text-[13px] font-[450] text-[#999] hover:text-white">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           <span>Back to Products</span>
         </button>
@@ -358,6 +358,7 @@
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const savedCart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
     let cart = savedCart.length ? savedCart : [];
+    let currentUserProfile = null;
 
     function saveCart() {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
@@ -515,8 +516,67 @@
       document.getElementById('total').textContent = `$${total.toLocaleString()}`;
     }
 
+    function getProfileFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const email = String(params.get('userEmail') || params.get('email') || '').trim();
+      const fullName = String(params.get('userName') || params.get('fullName') || params.get('name') || '').trim();
+      const username = String(params.get('userUsername') || params.get('username') || '').trim();
+      return { email, fullName, username };
+    }
+
     async function getSessionUser() {
+      const queryProfile = getProfileFromQuery();
+      if (queryProfile.email || queryProfile.fullName || queryProfile.username) {
+        return {
+          email: queryProfile.email || '',
+          name: queryProfile.fullName || '',
+          username: queryProfile.username || '',
+          created_at: '',
+          user_metadata: {
+            full_name: queryProfile.fullName || '',
+            username: queryProfile.username || '',
+          },
+        };
+      }
+
       try {
+        const storedSessionRaw = localStorage.getItem('templifyx_local_session');
+        if (storedSessionRaw) {
+          const storedSession = JSON.parse(storedSessionRaw);
+          if (storedSession?.email || storedSession?.name || storedSession?.user_metadata?.full_name) {
+            return {
+              email: storedSession.email || '',
+              name: storedSession.name || storedSession.user_metadata?.full_name || '',
+              username: storedSession.user_metadata?.username || '',
+              created_at: storedSession.created_at || '',
+              user_metadata: {
+                ...(storedSession.user_metadata || {}),
+                full_name: storedSession.user_metadata?.full_name || storedSession.name || '',
+                avatar: storedSession.avatar || storedSession.user_metadata?.avatar || '',
+              },
+              avatar: storedSession.avatar || storedSession.user_metadata?.avatar || '',
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('Unable to read stored session', err);
+      }
+
+      try {
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+        if (!sessionError && sessionData?.session?.user) {
+          const user = sessionData.session.user;
+          return {
+            ...user,
+            email: user.email || '',
+            created_at: user.created_at || '',
+            user_metadata: {
+              ...(user.user_metadata || {}),
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '',
+            },
+          };
+        }
+
         const { data, error } = await supabaseClient.auth.getUser();
         if (!error && data?.user) {
           const user = data.user;
@@ -526,7 +586,7 @@
             created_at: user.created_at || '',
             user_metadata: {
               ...(user.user_metadata || {}),
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '',
             },
           };
         }
@@ -549,6 +609,31 @@
     function formatUsernameFromEmail(email) {
       if (!email) return 'user';
       return email.split('@')[0];
+    }
+
+    function persistSessionProfile(profileData) {
+      try {
+        const raw = localStorage.getItem('templifyx_local_session');
+        const existing = raw ? JSON.parse(raw) : {};
+        const next = {
+          ...existing,
+          ...profileData,
+          user_metadata: {
+            ...(existing.user_metadata || {}),
+            ...(profileData?.user_metadata || {}),
+          },
+        };
+        if (profileData?.avatar !== undefined) {
+          next.avatar = profileData.avatar || '';
+          next.user_metadata.avatar = profileData.avatar || '';
+        }
+        if (next.name && !next.user_metadata.full_name) {
+          next.user_metadata.full_name = next.name;
+        }
+        localStorage.setItem('templifyx_local_session', JSON.stringify(next));
+      } catch (err) {
+        console.warn('Unable to persist session profile', err);
+      }
     }
 
     function formatCreatedDate(createdAt) {
@@ -648,6 +733,19 @@
           if (savedAvatar) {
             pendingAvatarData = '';
           }
+          persistSessionProfile({
+            id: user.id || '',
+            email: user.email || '',
+            created_at: user.created_at || '',
+            name: user.user_metadata?.full_name || user.name || '',
+            user_metadata: {
+              ...(user.user_metadata || {}),
+              full_name: user.user_metadata?.full_name || user.name || '',
+              username: user.user_metadata?.username || '',
+              avatar: savedAvatar || '',
+            },
+            avatar: savedAvatar || '',
+          });
           return user;
         }
         console.error('Supabase profile update failed or returned no user', error);
@@ -748,18 +846,34 @@
 
     async function loadUserProfile() {
       const user = await getSessionUser();
-      const fullNameRaw = user?.user_metadata?.full_name || user?.name || '';
+      currentUserProfile = user;
+      const fullNameRaw = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.name || '';
       const emailRaw = user?.email || '';
       const normalizedFullName = String(fullNameRaw || '').trim() || (emailRaw ? emailRaw.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : 'New user');
       const normalizedEmail = String(emailRaw || '').trim();
       const username = (user?.user_metadata?.username || user?.username || (normalizedEmail ? formatUsernameFromEmail(normalizedEmail) : 'new-user')).toString().trim();
+      const displayName = normalizedFullName || (normalizedEmail ? normalizedEmail.split('@')[0] : 'New user');
       const initials = formatUserInitials(normalizedFullName);
       const accountCreated = formatCreatedDate(user?.created_at);
       const planLabel = getDisplayPlanLabel();
       const avatarData = getStoredAvatarData(user) || pendingAvatarData;
 
+      persistSessionProfile({
+        id: user?.id || '',
+        email: normalizedEmail,
+        created_at: user?.created_at || '',
+        name: normalizedFullName,
+        user_metadata: {
+          ...(user?.user_metadata || {}),
+          full_name: normalizedFullName,
+          username,
+          avatar: avatarData || '',
+        },
+        avatar: avatarData || '',
+      });
+
       renderProfileAvatar(document.getElementById('profileAvatarInitials'), initials, avatarData);
-      document.getElementById('profileFullName').textContent = normalizedFullName;
+      document.getElementById('profileFullName').textContent = displayName;
       document.getElementById('profileEmailPlan').textContent = normalizedEmail ? `${normalizedEmail} • ${planLabel}` : planLabel;
       const fullNameField = document.getElementById('profileFullNameField');
       const usernameField = document.getElementById('profileUsernameField');
@@ -772,9 +886,9 @@
       const sidebarPlan = document.getElementById('sidebarProfilePlan');
       const greet = document.getElementById('welcomeGreeting');
       renderProfileAvatar(sidebarInitials, initials, avatarData);
-      if (sidebarUsername) sidebarUsername.textContent = username || 'new-user';
+      if (sidebarUsername) sidebarUsername.textContent = username || displayName || 'new-user';
       if (sidebarPlan) sidebarPlan.textContent = planLabel;
-      if (greet) greet.textContent = `Good evening, ${normalizedFullName.split(' ')[0] || 'there'}`;
+      if (greet) greet.textContent = `Good evening, ${displayName.split(' ')[0] || 'there'}`;
 
       const accountCreatedEl = document.getElementById('userCreated');
       if (accountCreatedEl) {
@@ -1086,6 +1200,11 @@
     }
 
     // Initialize
+    supabaseClient.auth.onAuthStateChange(async () => {
+      await loadUserProfile();
+      renderPurchasedItems();
+    });
+
     window.addEventListener('storage', async event => {
       if (
         event.key === 'templifyxPurchased' ||

@@ -495,7 +495,8 @@
     <li><a href="customize.html" onclick="handleSidebarNav(event, 'customize.html')"><i class="fa-solid fa-paint-brush"></i> Web Builder</a></li>
     <li><a href="#" onclick="handleSidebarNav(event, '#')"><i class="fa-solid fa-cog"></i> Setting</a></li>
     <li><a href="dashboard.html?view=profile" onclick="handleSidebarNav(event, 'dashboard.html?view=profile')"><i class="fa-solid fa-user"></i> Profile</a></li>
-    
+    <li><a href="Community.html" onclick="handleSidebarNav(event, 'Community.html')"><i class="fa-solid fa-users"></i> Go community</a></li>
+  </ul>
 </aside>
 
 <div id="evil-eye-background" aria-hidden="true"></div>
@@ -1319,6 +1320,46 @@
     }
   }
 
+  function getProfileFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const email = String(params.get('userEmail') || params.get('email') || '').trim();
+    const fullName = String(params.get('userName') || params.get('fullName') || params.get('name') || '').trim();
+    const username = String(params.get('userUsername') || params.get('username') || '').trim();
+    return { email, fullName, username };
+  }
+
+  function getCurrentProfileData() {
+    const queryProfile = getProfileFromQuery();
+    if (queryProfile.email || queryProfile.fullName || queryProfile.username) {
+      return {
+        email: queryProfile.email,
+        name: queryProfile.fullName,
+        username: queryProfile.username,
+        user_metadata: {
+          full_name: queryProfile.fullName,
+          username: queryProfile.username,
+        },
+      };
+    }
+
+    try {
+      const sessionRaw = localStorage.getItem('templifyx_local_session');
+      if (!sessionRaw) return null;
+      const session = JSON.parse(sessionRaw);
+      return session || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getDisplayInitials(profile) {
+    const fullName = String(profile?.name || profile?.user_metadata?.full_name || profile?.email || profile?.username || '').trim();
+    if (!fullName) return 'U';
+    const parts = fullName.split(/\s+/).filter(Boolean).slice(0, 2);
+    if (parts.length === 0) return 'U';
+    return parts.map(part => part[0].toUpperCase()).join('');
+  }
+
   function getUserAvatarStorageKey(user) {
     const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || '';
     const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
@@ -1326,34 +1367,68 @@
   }
 
   function getStoredProfileAvatar() {
+    const profile = getCurrentProfileData();
+    const directAvatar = profile?.avatar || profile?.user_metadata?.avatar || '';
+    if (directAvatar) return directAvatar;
     try {
-      const sessionRaw = localStorage.getItem('templifyx_local_session');
-      if (!sessionRaw) return '';
-      const session = JSON.parse(sessionRaw);
-      const directAvatar = session?.avatar || session?.user_metadata?.avatar || '';
-      if (directAvatar) return directAvatar;
-      return localStorage.getItem(getUserAvatarStorageKey(session)) || '';
+      return localStorage.getItem(getUserAvatarStorageKey(profile)) || '';
     } catch (_) {
       return '';
     }
   }
 
+  function buildProfileHref(href) {
+    if (!href || href === '#') return href;
+
+    const currentParams = new URLSearchParams(window.location.search);
+    const nextParams = new URLSearchParams();
+    ['userName', 'userEmail', 'userUsername', 'fromIntro'].forEach(key => {
+      const value = currentParams.get(key);
+      if (value) nextParams.set(key, value);
+    });
+
+    if (!nextParams.toString()) return href;
+
+    const [path, existingQuery = ''] = href.split('?');
+    const mergedParams = new URLSearchParams(existingQuery);
+    for (const [key, value] of nextParams.entries()) {
+      if (!mergedParams.has(key)) {
+        mergedParams.set(key, value);
+      }
+    }
+
+    const query = mergedParams.toString();
+    return query ? `${path}?${query}` : path;
+  }
+
   function renderFloatingAccountButton() {
     const button = document.getElementById('floatingAccountButton');
-    const icon = document.getElementById('floatingAccountIcon');
     if (!button) return;
 
+    const profile = getCurrentProfileData();
     const avatar = getStoredProfileAvatar();
+    const initials = getDisplayInitials(profile);
+
     if (avatar) {
       button.innerHTML = `<img src="${avatar}" alt="Profile avatar" class="w-full h-full object-cover" />`;
       button.classList.remove('text-white/80');
       button.classList.add('p-0');
+      button.setAttribute('title', profile?.name || profile?.email || 'Profile');
+      return;
+    }
+
+    if (profile && (profile.name || profile.email || profile.username)) {
+      button.innerHTML = `<span class="text-sm font-semibold">${initials}</span>`;
+      button.classList.remove('text-white/80');
+      button.classList.add('p-0', 'bg-white/10', 'text-white');
+      button.setAttribute('title', `${profile.name || profile.username || profile.email || 'Profile'}${profile.email ? ` • ${profile.email}` : ''}`);
       return;
     }
 
     button.innerHTML = '<i id="floatingAccountIcon" class="fa-regular fa-user text-lg"></i>';
     button.classList.add('text-white/80');
-    button.classList.remove('p-0');
+    button.classList.remove('p-0', 'bg-white/10', 'text-white');
+    button.removeAttribute('title');
   }
 
   // Sidebar Toggle Function
@@ -1368,7 +1443,7 @@
   function handleSidebarNav(event, href) {
     if (href !== '#') {
       event.preventDefault();
-      window.location.href = href;
+      window.location.href = buildProfileHref(href);
     } else {
       event.preventDefault();
       toggleSidebar();

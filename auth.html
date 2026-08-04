@@ -942,8 +942,26 @@
         const LOCAL_USERS_KEY = 'templifyx_local_users';
         const LOCAL_SESSION_KEY = 'templifyx_local_session';
 
-        function redirectToProductPage() {
-         window.location.href = 'productpage.html';
+        function buildProfileRedirectParams(user, extra = {}) {
+            const params = new URLSearchParams();
+            const fullName = String(user?.user_metadata?.full_name || extra.name || user?.name || '').trim();
+            const email = String(user?.email || extra.email || '').trim();
+            const username = String(user?.user_metadata?.username || extra.username || (email ? email.split('@')[0] : '')).trim();
+            if (fullName) params.set('userName', fullName);
+            if (email) params.set('userEmail', email);
+            if (username) params.set('userUsername', username);
+            params.set('fromIntro', '1');
+            return params.toString();
+        }
+
+        function redirectToProductPage(user = null, extra = {}) {
+            const query = buildProfileRedirectParams(user, extra);
+            window.location.href = `productpage.html${query ? `?${query}` : ''}`;
+        }
+
+        function redirectToDashboard(user = null, extra = {}) {
+            const query = buildProfileRedirectParams(user, extra);
+            window.location.href = `dashboard.html${query ? `?${query}` : ''}`;
         }
 
         function normalizeEmail(email) {
@@ -999,21 +1017,21 @@
 
         function setLocalSession(localUser) {
             clearAccountState();
-            const sessionUser = {
+            const session = {
                 id: localUser.id,
                 email: localUser.email,
                 created_at: localUser.created_at,
                 name: localUser.name || '',
                 user_metadata: { full_name: localUser.name || '' },
             };
-            localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(sessionUser));
-            return sessionUser;
+            localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
+            return session;
         }
 
         function syncAuthSession(user, extra = {}) {
             if (!user) return null;
             clearAccountState();
-            const sessionUser = {
+            const session = {
                 id: user.id || extra.id || `auth-${Date.now()}`,
                 email: user.email || extra.email || '',
                 created_at: user.created_at || extra.created_at || new Date().toISOString(),
@@ -1023,8 +1041,8 @@
                     full_name: user.user_metadata?.full_name || extra.name || user.name || '',
                 },
             };
-            localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(sessionUser));
-            return sessionUser;
+            localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
+            return session;
         }
 
         function getLocalSession() {
@@ -1327,7 +1345,7 @@
                 }
 
                 showToast('Signed in successfully!', 'success');
-                setTimeout(() => redirectToProductPage(), 350);
+                setTimeout(() => redirectToDashboard(data?.user || null), 350);
             } catch (error) {
                 const rawMessage = (error && error.message) ? error.message : '';
 
@@ -1336,7 +1354,11 @@
                     if (localUser && localUser.password === password) {
                         setLocalSession(localUser);
                         showToast('Signed in successfully (offline mode)!', 'success');
-                        setTimeout(() => redirectToProductPage(), 350);
+                        setTimeout(() => redirectToDashboard({
+                            email: localUser.email,
+                            name: localUser.name,
+                            user_metadata: { full_name: localUser.name, username: localUser.email?.split('@')[0] || '' },
+                        }), 350);
                     } else if (localUser) {
                         showToast('Network issue: offline account found, but password is incorrect.', 'error');
                     } else {
@@ -1347,7 +1369,11 @@
                         const newLocalUser = createLocalUser({ name: inferredName, email, password });
                         setLocalSession(newLocalUser);
                         showToast('Network issue: created offline account and signed in.', 'success');
-                        setTimeout(() => redirectToProductPage(), 350);
+                        setTimeout(() => redirectToDashboard({
+                            email: newLocalUser.email,
+                            name: newLocalUser.name,
+                            user_metadata: { full_name: newLocalUser.name, username: newLocalUser.email?.split('@')[0] || '' },
+                        }), 350);
                     }
                 } else if (/Email not confirmed|email not confirmed/i.test(rawMessage)) {
                     showToast('Your email is not verified yet. Please verify from inbox, then sign in.', 'error');
@@ -1428,7 +1454,11 @@
                         const localUser = createLocalUser({ name, email, password });
                         setLocalSession(localUser);
                         showToast('Account created successfully (offline mode)!', 'success');
-                        setTimeout(() => redirectToProductPage(), 350);
+                        setTimeout(() => redirectToDashboard({
+                            email: localUser.email,
+                            name: localUser.name,
+                            user_metadata: { full_name: localUser.name, username: localUser.email?.split('@')[0] || '' },
+                        }), 350);
                     }
                 } else if (/Error sending confirmation email/i.test(rawMessage)) {
                     showToast('Signup failed: Supabase could not send verification email. In Supabase, disable "Confirm email" or configure SMTP.', 'error');
