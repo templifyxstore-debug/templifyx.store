@@ -1224,6 +1224,53 @@
       transform: scale(1) translateY(0);
     }
 
+    /* Updating overlay specific styles */
+    #updatingOverlay .modal {
+      width: min(100%, 560px);
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(15,15,15,0.98), rgba(8,8,8,0.98));
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    #updatingOverlay .modal-header { display: none; }
+
+    #updatingOverlay .update-icon {
+      width: 72px;
+      height: 72px;
+      margin: 6px auto 14px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f1720, #141214);
+      box-shadow: 0 18px 50px rgba(0,0,0,.6), 0 0 0 6px rgba(255,255,255,0.02) inset;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    #updatingOverlay h2 { margin: 8px 0 6px; font-size:18px; }
+
+    #updatingOverlay p { color: #cfcfcf; font-size:14px; margin-bottom:18px; }
+
+    #updatingOverlay .update-actions { display:flex; gap:12px; justify-content:center; }
+
+    #updatingOverlay .primary-btn {
+      height:44px; padding:0 16px; border-radius:12px; cursor:pointer; border:0;
+      background: #fff; color:#050505; font-weight:800; box-shadow: 0 8px 30px rgba(0,0,0,.45);
+    }
+
+    #updatingOverlay .ghost-btn {
+      height:44px; padding:0 14px; border-radius:12px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);
+      background:transparent; color:#d7d7d7; font-weight:700;
+    }
+
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    #updatingOverlay .spinner {
+      width:18px; height:18px; border-radius:50%; border:2px solid rgba(0,0,0,0.06); border-top:2px solid #111; display:inline-block; margin-left:8px; vertical-align:middle;
+      animation: spin 1s linear infinite;
+    }
+
     .modal-header {
       position: sticky;
       z-index: 3;
@@ -2538,7 +2585,22 @@
     </div>
   </div>
 
-  <aside class="chat-panel" id="chatPanel" aria-label="Community chat">
+  <div class="overlay" id="updatingOverlay" aria-hidden="true">
+    <div class="modal updating-modal" role="dialog" aria-modal="true" aria-labelledby="updatingTitle">
+      <div class="modal-body">
+        <div class="update-icon">
+          <i data-lucide="refresh-cw" style="width:34px;height:34px;color:#9fb8ff"></i>
+        </div>
+        <h2 id="updatingTitle">Community updating</h2>
+        <p>We're improving the community experience. It's updating now — thanks for your patience.</p>
+        <div class="update-actions">
+          <button class="primary-btn" id="updatingOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <aside class="chat-panel" id="chatPanel" aria-label="Community chat">
     <div class="chat-header">
       <div class="avatar md">DC</div>
       <div class="chat-header-copy">
@@ -2943,6 +3005,15 @@
         return;
       }
 
+      const profile = getStoredProfile();
+      const displayName = profile?.fullName || 'Your name';
+      const username = profile?.username ? `@${profile.username}` : '@user';
+      const initials = profile?.initials || 'U';
+      const avatar = profile?.avatar || '';
+      const avatarHtml = avatar
+        ? `<div class="avatar md"><img src="${avatar}" alt="Profile avatar" /></div>`
+        : `<div class="avatar md">${escapeHtml(initials)}</div>`;
+
       const post = document.createElement("article");
       post.className = "post card";
 
@@ -2957,10 +3028,10 @@
 
       post.innerHTML = `
         <div class="post-header">
-          <div class="avatar md">AK</div>
+          ${avatarHtml}
           <div class="post-user">
-            <div class="post-user-row"><strong>Alex Kim</strong></div>
-            <p>@alexcreates · Just now · Public</p>
+            <div class="post-user-row"><strong>${escapeHtml(displayName)}</strong></div>
+            <p>${escapeHtml(username)} · Just now · Public</p>
           </div>
           <button class="icon-btn post-menu" aria-label="Post menu"><i data-lucide="more-horizontal"></i></button>
         </div>
@@ -2977,7 +3048,7 @@
           <button class="save-btn"><i data-lucide="bookmark"></i><span>Save</span></button>
         </div>
         <div class="comment-box">
-          <div class="avatar sm">AK</div>
+          ${avatarHtml.replace('class="avatar md"', 'class="avatar sm"')}
           <input type="text" placeholder="Write constructive feedback...">
           <button>Send</button>
         </div>`;
@@ -3193,6 +3264,19 @@
         btn.classList.add("active");
       });
     });
+
+    const updatingOverlay = $("#updatingOverlay");
+    if (updatingOverlay) {
+      openOverlay(updatingOverlay);
+      $("#updatingOkBtn")?.addEventListener("click", () => {
+        const ok = $("#updatingOkBtn");
+        if (ok) {
+          ok.disabled = true;
+          ok.innerHTML = 'Redirecting <span class="spinner" aria-hidden="true"></span>';
+        }
+        setTimeout(() => { window.location.href = "productpage.html"; }, 600);
+      });
+    }
   </script>
 </body>
 </html>
