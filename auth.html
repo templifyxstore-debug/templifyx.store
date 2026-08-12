@@ -1016,8 +1016,16 @@
             try { sessionStorage.removeItem('templifyxPendingSubscriptionId'); } catch (e) {}
         }
 
+        function clearPlanState() {
+            localStorage.removeItem('selectedPlan');
+            localStorage.removeItem('planStatus');
+            localStorage.removeItem('planActivatedAt');
+            localStorage.removeItem('templifyxPurchasedPlans');
+        }
+
         function setLocalSession(localUser) {
             clearAccountState();
+            clearPlanState();
             const session = {
                 id: localUser.id,
                 email: localUser.email,
@@ -1032,6 +1040,7 @@
         function syncAuthSession(user, extra = {}) {
             if (!user) return null;
             clearAccountState();
+            clearPlanState();
             const session = {
                 id: user.id || extra.id || `auth-${Date.now()}`,
                 email: user.email || extra.email || '',

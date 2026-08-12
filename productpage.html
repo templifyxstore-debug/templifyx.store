@@ -2274,8 +2274,12 @@ async function refreshPlanTier() {
         .limit(1)
         .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
         return { plan: storedState.plan, status: storedState.status };
+      }
+
+      if (!data) {
+        return { plan: 'free', status: 'active' };
       }
 
       if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
