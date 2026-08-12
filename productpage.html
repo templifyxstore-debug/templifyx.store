@@ -30,18 +30,16 @@
     min-height: 100vh;
     isolation: isolate;
   }
-  #evil-eye-background {
+  /* background video will be placed in the DOM; keep styles concise */
+  #background-video {
     position: fixed;
     inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     z-index: 0;
     pointer-events: none;
-    overflow: hidden;
-    background: transparent;
-  }
-  #evil-eye-background canvas {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
+    opacity: 0.95;
   }
   .glow-bg {
     position: fixed;
@@ -95,7 +93,7 @@
   .card:hover::before { opacity: 1; }
   .card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 30px 60px -20px #fd2a00 , 0 0 40px -10px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 30px 60px -20px #949292 , 0 0 40px -10px rgba(139, 92, 246, 0.2);
   }
   .card-img-wrap {
     position: relative;
@@ -499,9 +497,11 @@
   </ul>
 </aside>
 
-<div id="evil-eye-background" aria-hidden="true"></div>
-<div class="grid-bg"></div>
-<div class="glow-bg"></div>
+  <video id="background-video" autoplay muted loop playsinline aria-hidden="true">
+    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
+  </video>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="glow-bg" aria-hidden="true"></div>
 
 <div class="relative z-10">
 
@@ -2321,6 +2321,5 @@ async function refreshPlanTier() {
     window.location.href = 'auth.html';
   }
 </script>
-<script src="evil-eye-background.js"></script>
 </body>
 </html>

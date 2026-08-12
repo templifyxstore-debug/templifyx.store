@@ -18,7 +18,9 @@
   </style>
 </head>
 <body>
-  <div id="evil-eye-background" aria-hidden="true"></div>
+  <video id="background-video" autoplay muted loop playsinline aria-hidden="true">
+    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
+  </video>
   <div class="grid-bg" aria-hidden="true"></div>
   <div class="glow-bg" aria-hidden="true"></div>
 
@@ -56,8 +58,8 @@ function goToLogin() {
     cursor: pointer;
 }
 .login-btn:hover {
-    background-color: #fd2a00 ;
-    box-shadow: 0 10px 30px #fd2a00;
+    background-color: #0b0a0a ;
+    box-shadow: 0 10px 30px #f5f1f1;
     transition: 0.3s;
 } 
 
@@ -81,8 +83,8 @@ function goToSignup() {
     cursor: pointer;
 }
 .sign-in-btn:hover {
-    background-color: #fd2a00;
-    box-shadow: 0 10px 30px #fd2a00;
+    background-color: #000000;
+    box-shadow: 0 10px 30px #ffffff;
     transition: 0.3s;
 
 }
@@ -614,7 +616,7 @@ function goToSignup() {
         <input id="checkoutEmail" type="email" required placeholder="you@example.com" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0b0b0b;color:#fff;outline:none;" />
 
         <div style="display:flex;gap:10px;margin-top:16px;">
-          <button type="submit" style="flex:1;padding:12px 14px;border:none;border-radius:999px;background:#ff2b00;color:#fff;font-weight:700;cursor:pointer;">Complete Purchase</button>
+          <button type="submit" style="flex:1;padding:12px 14px;border:none;border-radius:999px;background:#99959553;color:#171717;font-weight:700;cursor:pointer;">Complete Purchase</button>
           <button type="button" onclick="closePlanCheckout()" style="padding:12px 14px;border:1px solid rgba(255,255,255,0.14);border-radius:999px;background:transparent;color:#fff;font-weight:600;cursor:pointer;">Cancel</button>
         </div>
       </form>
@@ -677,7 +679,7 @@ function goToSignup() {
       display: grid;
       place-items: center;
       font-size: 34px;
-      background: linear-gradient(135deg, #ff2b00, #ff7a00);
+      background: linear-gradient(135deg, #f9f7f7, #ff7a00);
       box-shadow: 0 12px 30px rgba(255, 43, 0, 0.35);
       animation: successPulse 0.8s ease-in-out infinite alternate;
     }
@@ -741,25 +743,33 @@ function goToSignup() {
       const paymentId = params.get('razorpay_payment_id') || params.get('payment_id') || params.get('paymentId');
       if (!paymentId) return;
 
-      const pendingRaw = localStorage.getItem('templifyxPendingPurchase');
-      const pending = pendingRaw ? JSON.parse(pendingRaw) : null;
-      if (!pending) return;
+      const pendingSubscriptionId = sessionStorage.getItem('templifyxPendingSubscriptionId');
+      if (!pendingSubscriptionId) return;
 
-      // Call server to verify the payment status
+      // Call server to verify the payment status and link it to the pending subscription
       const resp = await fetch('/api/verify-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_id: paymentId, plan: pending.plan, email: pending.email })
+        body: JSON.stringify({ payment_id: paymentId, subscriptionId: pendingSubscriptionId })
       });
 
       if (resp.ok) {
         const data = await resp.json();
-        // mark plan active locally and sync it to Supabase
-        await persistPlanState(pending.plan, 'active', pending.email, {
-          paymentId,
-          orderId: pending.orderId || '',
-          amount: getPlanAmount(pending.plan)
-        });
+        // server should return the subscription record (plan, email, amount)
+        const plan = data?.plan || data?.subscription?.plan || null;
+        const email = data?.email || data?.subscription?.email || '';
+        const amount = data?.amount || data?.subscription?.amount || null;
+        if (plan) {
+          // mark plan active locally and sync it to Supabase (persistPlanState will also ensure subscription row exists)
+          await persistPlanState(plan, 'active', email, {
+            paymentId,
+            orderId: data?.order_id || data?.subscription?.order_id || '',
+            amount: amount ?? getPlanAmount(plan)
+          });
+        }
+
+        // clear pending subscription id
+        try { sessionStorage.removeItem('templifyxPendingSubscriptionId'); } catch (e) {}
 
         // update UI: make matching card active
         window.dispatchEvent(new Event('planChanged'));
@@ -805,8 +815,6 @@ function goToSignup() {
 
 });
 </script>
-
-  <script src="evil-eye-background.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -1010,29 +1018,52 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlay = document.createElement("div");
     overlay.className = "plan-success-overlay";
     overlay.innerHTML = `
-      <div class="plan-success-card">
-        <div class="plan-success-icon">✓</div>
-        <div class="plan-success-title">${meta.label} plan activated</div>
-        <div class="plan-success-text">Your ${meta.label.toLowerCase()} plan is now active for <strong>${email}</strong>. You can continue exploring and managing your workspace.</div>
+      <div class="plan-success-card" role="dialog" aria-live="polite" aria-label="Purchase successful">
+        <button class="plan-success-close" aria-label="Close notification">×</button>
+        <div class="plan-success-icon" aria-hidden="true"> 
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="12" r="12" fill="#10B981"/>
+            <path d="M7 12.5l2.6 2.6L17 8.7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="plan-success-title">Purchase successful</div>
+        <div class="plan-success-text">Thank you — your <strong>${meta.label}</strong> plan is now active for <strong>${email}</strong>. You can manage your subscription from your dashboard.</div>
+        <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;">
+          <a href="/dashboard.html" class="btn primary" id="planSuccessDashboardBtn" style="border-radius:999px;padding:10px 16px;text-decoration:none;">Go to Dashboard</a>
+          <button id="planSuccessCloseBtn" class="btn outline" style="border-radius:999px;padding:10px 16px;">Close</button>
+        </div>
       </div>
     `;
 
     const card = overlay.querySelector(".plan-success-card");
-    for (let i = 0; i < 16; i += 1) {
+    for (let i = 0; i < 10; i += 1) {
       const particle = document.createElement("div");
       particle.className = "plan-success-particle";
-      const angle = (i / 16) * Math.PI * 2;
-      const distance = 70 + Math.random() * 50;
+      const angle = (i / 10) * Math.PI * 2;
+      const distance = 60 + Math.random() * 40;
       particle.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
       particle.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
-      particle.style.left = `${50 + Math.cos(angle) * 24}%`;
-      particle.style.top = `${50 + Math.sin(angle) * 24}%`;
-      particle.style.animationDelay = `${Math.random() * 0.05}s`;
+      particle.style.left = `${50 + Math.cos(angle) * 18}%`;
+      particle.style.top = `${50 + Math.sin(angle) * 18}%`;
+      particle.style.animationDelay = `${Math.random() * 0.06}s`;
       card.appendChild(particle);
     }
 
+    // Close handlers
+    overlay.querySelector('.plan-success-close')?.addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#planSuccessCloseBtn')?.addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
     document.body.appendChild(overlay);
-    setTimeout(() => overlay.remove(), 1600);
+    // Auto-dismiss after 4 seconds if user doesn't interact
+    const autoDismiss = setTimeout(() => {
+      if (document.body.contains(overlay)) overlay.remove();
+    }, 4000);
+
+    // Clear auto-dismiss when user opens dashboard
+    overlay.querySelector('#planSuccessDashboardBtn')?.addEventListener('click', () => clearTimeout(autoDismiss));
   };
 
   const setSelectedPlan = (card, planName, { isActive = false } = {}) => {
@@ -1064,14 +1095,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    if (isActive) {
-      localStorage.setItem("planActivatedAt", new Date().toISOString());
+    if (isActive || normalizedPlan === 'free') {
+      if (isActive) {
+        localStorage.setItem("planActivatedAt", new Date().toISOString());
+      }
+      // Persist only active plans (or free plan activation). Do not persist "checkout" state locally for paid plans.
+      persistPlanState(normalizedPlan, "active");
     }
-    persistPlanState(normalizedPlan, isActive ? "active" : "checkout");
   };
 
   const openPlanCheckout = (card) => {
     const normalizedPlan = normalizePlan(card?.dataset?.plan || "free");
+    // store current checkout plan in a transient variable (don't persist to localStorage)
+    try { window.currentCheckoutPlan = normalizedPlan; } catch (e) { /* ignore */ }
     if (normalizedPlan === "free") {
       setSelectedPlan(card, normalizedPlan);
       return;
@@ -1101,9 +1137,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const emailField = document.getElementById("checkoutEmail");
     if (emailField) emailField.value = "";
+    try { delete window.currentCheckoutPlan; } catch (e) {}
+    try { localStorage.setItem('templifyxSawPlanPrompt', '1'); } catch (e) {}
   };
 
-  window.handlePlanCheckout = (event) => {
+  window.handlePlanCheckout = async (event) => {
     event.preventDefault();
     const emailField = document.getElementById("checkoutEmail");
     const email = emailField?.value?.trim();
@@ -1112,12 +1150,34 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const selectedPlan = normalizePlan(localStorage.getItem("selectedPlan") || "free");
-    // If user selected BASIC, PRO or PREMIUM plan, mark pending purchase and redirect to Razorpay
+    const selectedPlan = normalizePlan(window.currentCheckoutPlan || localStorage.getItem("selectedPlan") || "free");
+    // If user selected BASIC, PRO or PREMIUM plan, create a pending subscription in Supabase and redirect to Razorpay
     if (selectedPlan === "basic" || selectedPlan === "pro" || selectedPlan === "premium") {
-      const pending = { plan: selectedPlan, email, createdAt: new Date().toISOString() };
-      try { localStorage.setItem('templifyxPendingPurchase', JSON.stringify(pending)); } catch (e) {}
-      persistPlanState(selectedPlan, 'checkout', email);
+      try {
+        // create a pending subscription record in Supabase (do not store plan/user details in localStorage)
+        const sessionUser = getSessionUser();
+        const insertPayload = {
+          user_id: sessionUser?.id || null,
+          name: sessionUser?.user_metadata?.full_name || null,
+          email: email || null,
+          plan: selectedPlan,
+          amount: getPlanAmount(selectedPlan),
+          payment_id: null,
+          order_id: null,
+          status: 'pending',
+          purchase_date: new Date().toISOString()
+        };
+        const { data: created, error: insertError } = await supabaseClient.from('subscriptions').insert(insertPayload).select().single();
+        if (insertError) {
+          console.warn('Failed to create pending subscription:', insertError);
+        } else if (created && created.id) {
+          // store only the pending subscription id in sessionStorage (not user or plan details)
+          try { sessionStorage.setItem('templifyxPendingSubscriptionId', String(created.id)); } catch (e) {}
+        }
+      } catch (e) {
+        console.warn('Error creating pending subscription:', e);
+      }
+
       // choose Razorpay link per plan
       const links = {
         basic: "https://rzp.io/rzp/TemplifyX",
@@ -1125,7 +1185,7 @@ document.addEventListener("DOMContentLoaded", () => {
         premium: "https://rzp.io/rzp/templifyxpremium"
       };
       const redirectLink = links[selectedPlan] || links.basic;
-      // Redirect to Razorpay payment link (ensure the Razorpay link is configured to redirect back to this page)
+      // Redirect to Razorpay payment link
       window.location.href = redirectLink;
       return;
     }
@@ -1147,6 +1207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     savePurchasedPlans(purchasedPlans);
+    // Activate immediately for free plan (no payment required)
     persistPlanState(selectedPlan, "active", email);
 
     cards.forEach((card) => {
