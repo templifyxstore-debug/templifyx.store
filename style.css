@@ -212,6 +212,7 @@ html {
 /* Categories */
 .categories {
   padding: 80px;
+  text-align: center;
 }
 
 .categories h2 {
@@ -257,10 +258,16 @@ html {
 }
 
 .featured-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
+}
+
+.featured-header > div {
+  grid-column: 2;
+  text-align: center;
 }
 
 .section-label {
@@ -276,6 +283,8 @@ html {
 }
 
 .view-all {
+  grid-column: 3;
+  justify-self: end;
   color: #64748b;
   text-decoration: none;
   font-weight: 500;
