@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TemplifyX – Discover Digital Products</title>
+  <meta name="description" content="TemplifyX is a digital marketplace for website templates, digital products, and resources.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://templifyx.store/">
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="/images/templifyblacklogo.png">
@@ -16,18 +19,50 @@
       background-color: #ffffff00;
     }
   </style>
+  <script type="application/ld+json">
+ {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "TemplifyX",
+  "url": "https://templifyx.store/"
+ }
+</script>
 </head>
 <body>
-  <video id="background-video" autoplay muted loop playsinline aria-hidden="true">
-    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
-  </video>
+  <video id="background-video" autoplay muted loop playsinline aria-hidden="true"
+    data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4"></video>
+  <script>
+    (() => {
+      const backgroundVideo = document.getElementById("background-video");
+      const desktopMotion = window.matchMedia("(min-width: 1025px) and (prefers-reduced-motion: no-preference)");
+
+      const updateBackgroundVideo = () => {
+        if (desktopMotion.matches) {
+          if (!backgroundVideo.src) {
+            backgroundVideo.src = backgroundVideo.dataset.src;
+            backgroundVideo.play().catch(() => {});
+          }
+          return;
+        }
+
+        backgroundVideo.pause();
+        backgroundVideo.removeAttribute("src");
+        backgroundVideo.load();
+      };
+
+      updateBackgroundVideo();
+      desktopMotion.addEventListener("change", updateBackgroundVideo);
+    })();
+  </script>
   <div class="grid-bg" aria-hidden="true"></div>
   <div class="glow-bg" aria-hidden="true"></div>
 
   <!-- Navbar -->
   <header class="navbar">
     <div class="logo">
-       <img src="images/reallogo.png" width="190px">
+       <img src="images/reallogo.png" 
+            width="190px"
+            alt="TemplifyX logo">
 
 
     </div>
@@ -474,7 +509,7 @@ function goToSignup() {
       <article class="plan-card plan-basic">
         <div class="plan-type">BASIC</div>
         <div class="plan-price">
-           <span class="amount">$19 </span>
+           <span class="amount">$9 </span>
            <span class="per">/mon</span>
        </div>
         <p class="plan-desc">For individuals who need more room to grow.</p>
@@ -1247,6 +1282,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 })();
 });
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "TemplifyX",
+  "url": "https://templifyx.store/",
+  "logo": "https://templifyx.store/images/TemplifyX.png"
+}
 </script>
 
 
