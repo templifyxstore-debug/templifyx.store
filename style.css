@@ -222,24 +222,37 @@ html {
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
 }
 
 .category-card {
   background: #000000 !important;
   border-radius: 16px;
-  padding: 28px;
+  padding: 24px 18px;
   color: #ffffff !important;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .category-card .icon {
-  font-size: 22px;
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
   margin-bottom: 12px;
+  line-height: 1;
+}
+
+.category-card h4 {
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  margin-bottom: 6px;
 }
 
 .category-card p {
   color: #ffffff !important;
+  font-size: 0.88rem;
 }
 
 .category-card {
@@ -1282,8 +1295,28 @@ body > *:not(#background-video):not(.grid-bg):not(.glow-bg):not(script) {
     gap:25px;
 }
 
-  /* Responsive: make product cards smaller on tablet and mobile */
   @media (max-width: 1024px) {
+    .categories {
+      padding: 60px 24px;
+    }
+
+    .category-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .featured-header {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .featured-header > div,
+    .view-all {
+      grid-column: auto;
+      justify-self: center;
+    }
+
     .product-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 20px;
@@ -1311,6 +1344,28 @@ body > *:not(#background-video):not(.grid-bg):not(.glow-bg):not(script) {
   }
 
   @media (max-width: 600px) {
+    .categories {
+      padding: 52px 18px;
+    }
+
+    .category-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .category-card {
+      min-height: 140px;
+      padding: 16px 12px;
+    }
+
+    .category-card h4 {
+      font-size: 0.95rem;
+    }
+
+    .category-card p {
+      font-size: 0.75rem;
+    }
+
     .product-grid {
       grid-template-columns: 1fr;
       gap: 16px;
