@@ -1,1278 +1,2617 @@
-<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TemplifyX – Discover Digital Products</title>
-  <meta name="description" content="TemplifyX is a digital marketplace for website templates, digital products, and resources.">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://templifyx.store/">
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="/images/templifyblacklogo.png">
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/templifyblacklogo.png">
-  <link rel="apple-touch-icon" href="/images/templifyblacklogo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TemplifyX — Build • Customize • Launch</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              black: '#030305',
+              dark: '#0a0a0f',
+              surface: '#12121a',
+              border: 'rgba(255,255,255,0.08)',
+              silver: '#e2e8f0',
+              accent: '#38bdf8'
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'shimmer': 'shimmer 2.5s infinite linear',
+          },
+          keyframes: {
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            }
+          }
+        }
+      }
+    }
+  </script>
 
   <style>
-    .hero, .stats, .categories, .featured-section, .steps, .testimonials, .why, .footer {
-      background-color: #ffffff00;
+    :root {
+      --theme-rgb: 245, 245, 255;
+      --theme-color: #f5f5ff;
+      --theme-light: #ffffff;
+      --light-page-surface: #e2e4e8;
+      --light-page-soft: #f1f2f4;
+      --light-page-accent: #687080;
     }
-  </style>
-  <script type="application/ld+json">
- {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "TemplifyX",
-  "url": "https://templifyx.store/"
- }
-</script>
+
+    body {
+      background-color: #020204;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    .sign-in-btn,
+    .login-btn {
+      padding: 10px 18px;
+      font-size: 16px;
+      background-color: #0b0b0b;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    #navbar a img { filter: drop-shadow(0 0 18px rgba(var(--theme-rgb),.38)); }
+    .sign-in-btn:hover {
+      background-color: #000;
+      box-shadow: 0 10px 30px rgba(var(--theme-rgb),.55);
+    }
+    .login-btn:hover {
+      background-color: #0b0a0a;
+      box-shadow: 0 10px 30px rgba(var(--theme-rgb),.55);
+    }
+
+    .chrome-gradient {
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 35%, #64748b 55%, #f8fafc 85%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .shine-sweep {
+      display: inline-block;
+      padding-bottom: 0.2em;
+      margin-bottom: -0.2em;
+    }
+
+    .glass-card {
+      background: rgba(18, 18, 26, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      background: rgba(26, 26, 38, 0.7);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #030305;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #272733;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    .builder-section {
+      --builder-bg: #0a0a0b;
+      --builder-text: #fff;
+      --builder-muted: #b9b9bf;
+      --builder-panel: #111113;
+      --builder-line: #26262a;
+      --builder-side: #0d0d0f;
+      --builder-blue: var(--theme-color);
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background: var(--builder-bg);
+      color: var(--builder-text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+    .builder-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(60% 70% at 78% 55%, rgba(var(--theme-rgb),.28), transparent 70%),
+        radial-gradient(35% 45% at 8% 100%, rgba(var(--theme-rgb),.14), transparent 70%);
+    }
+    .builder-content {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 72px 32px;
+      display: grid;
+      grid-template-columns: minmax(0,.9fr) minmax(0,1.3fr);
+      align-items: center;
+      gap: 24px;
+    }
+    .builder-copy h2 {
+      font-size: clamp(36px,5.4vw,68px);
+      line-height: 1.08;
+      font-weight: 600;
+      letter-spacing: -.03em;
+      text-shadow: 0 0 40px rgba(var(--theme-rgb),.35);
+    }
+    .builder-copy h2 > [data-builder-line] {
+      display: block;
+      white-space: nowrap;
+    }
+    .builder-letter {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(.6em);
+      filter: blur(6px);
+    }
+    .builder-section.is-visible .builder-letter {
+      animation: builder-rise .6s cubic-bezier(.2,.7,.2,1) forwards;
+    }
+    @keyframes builder-rise {
+      to { opacity: 1; transform: none; filter: none; }
+    }
+    .builder-subtitle {
+      min-height: 1.4em;
+      margin-top: 22px;
+      color: var(--builder-muted);
+      font-size: clamp(16px,1.8vw,22px);
+      line-height: 1.5;
+    }
+    .builder-caret {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 2px;
+      vertical-align: -.12em;
+      background: currentColor;
+      animation: builder-blink 1s steps(1) infinite;
+    }
+    @keyframes builder-blink { 50% { opacity: 0; } }
+    .builder-stage {
+      position: relative;
+      z-index: 0;
+      display: flex;
+      justify-content: center;
+      perspective: 1600px;
+    }
+    .builder-stage::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      top: 48%;
+      width: 92%;
+      height: 86%;
+      transform: translate(-50%,-50%);
+      background: radial-gradient(closest-side,rgba(var(--theme-rgb),.65),rgba(var(--theme-rgb),.22) 55%,transparent 80%);
+      filter: blur(46px);
+      animation: builder-pulse 5s ease-in-out infinite;
+    }
+    @keyframes builder-pulse {
+      50% { opacity: .6; transform: translate(-50%,-50%) scale(1.07); }
+    }
+    .builder-laptop {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+      transform: rotateY(-14deg) rotateX(4deg) rotateZ(1deg);
+      transform-style: preserve-3d;
+      opacity: 0;
+      translate: 0 28px;
+      transition: opacity .8s ease, translate .8s ease;
+    }
+    .builder-section.is-visible .builder-laptop {
+      opacity: 1;
+      translate: 0 0;
+    }
+    .builder-lid {
+      padding: 10px;
+      border: 2px solid rgba(var(--theme-rgb),.55);
+      border-radius: 14px 14px 4px 4px;
+      background: #050506;
+      box-shadow: 0 0 0 1px rgba(var(--theme-rgb),.16),-18px 10px 60px rgba(var(--theme-rgb),.55),0 30px 80px rgba(0,0,0,.75),inset 0 0 18px rgba(var(--theme-rgb),.25);
+    }
+    .builder-screen {
+      position: relative;
+      display: grid;
+      grid-template-columns: 27% 1fr;
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      border-radius: 6px;
+      background: var(--builder-panel);
+      box-shadow: inset 0 0 40px rgba(var(--theme-rgb),.18);
+      font-size: clamp(8px,1.1vw,12px);
+    }
+    .builder-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(105deg,transparent 40%,rgba(var(--theme-rgb),.16) 50%,transparent 60%);
+      transform: translateX(-120%);
+    }
+    .builder-section.is-visible .builder-screen::after {
+      animation: builder-sweep 6s ease-in-out 2s infinite;
+    }
+    @keyframes builder-sweep { 60%,100% { transform: translateX(120%); } }
+    .builder-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: .5em;
+      padding: 1.6em 1.2em;
+      border-right: 1px solid var(--builder-line);
+      background: linear-gradient(180deg,#0c1019,#0a0c12);
+    }
+    .builder-brand {
+      display: flex;
+      align-items: center;
+      gap: .6em;
+      margin-bottom: 1.6em;
+      font-size: 1.15em;
+      font-weight: 600;
+    }
+    .builder-mark {
+      width: 1.8em;
+      height: 1.8em;
+      object-fit: contain;
+      flex: none;
+    }
+    .builder-nav-item {
+      display: flex;
+      align-items: center;
+      gap: .8em;
+      padding: .8em .9em;
+      border-radius: .6em;
+      color: #a8a8b0;
+    }
+    .builder-nav-item svg {
+      width: 1.3em;
+      height: 1.3em;
+      fill: none;
+      flex: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+    }
+    .builder-nav-item.is-active {
+      background: rgba(var(--theme-rgb),.18);
+      box-shadow: inset 0 0 0 1px rgba(var(--theme-rgb),.35);
+      color: #cfe2ff;
+    }
+    .builder-editor {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      padding: 1.2em;
+    }
+    .builder-canvas {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.4em;
+      padding: 1em;
+      border: 1px solid #1f3157;
+      border-radius: .8em;
+      background: radial-gradient(90% 80% at 50% 0%,rgba(var(--theme-rgb),.28),transparent 70%),radial-gradient(120% 90% at 50% 100%,#0e1626,#090b10);
+      text-align: center;
+    }
+    .builder-canvas h3 {
+      min-height: 2.3em;
+      font-size: 2.5em;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      text-shadow: 0 0 24px rgba(var(--theme-rgb),.45);
+    }
+    .builder-cta {
+      padding: .8em 1.6em;
+      border: 0;
+      border-radius: .5em;
+      background: #f2f2f2;
+      box-shadow: 0 0 0 1px rgba(var(--theme-rgb),.5),0 0 22px rgba(var(--theme-rgb),.7);
+      color: #0a0a0b;
+      cursor: pointer;
+      font: 600 1em Inter,system-ui,sans-serif;
+      transition: transform .2s, background .2s;
+    }
+    .builder-cta:hover { transform: translateY(-2px); background: #fff; }
+    .builder-cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    .builder-toolbar {
+      display: flex;
+      align-items: center;
+      gap: .7em;
+      margin-top: .9em;
+      padding: .7em 1em;
+      border: 1px solid var(--builder-line);
+      border-radius: .6em;
+      background: #0d0d0f;
+      color: #a8a8b0;
+    }
+    .builder-dots { display: flex; gap: .3em; }
+    .builder-dots i { width: .55em; height: .55em; border-radius: 50%; background: #34343a; }
+    .builder-base {
+      position: relative;
+      height: 14px;
+      margin: 0 -4%;
+      border-radius: 0 0 18px 18px;
+      background: linear-gradient(#3b4560,#171a22);
+      box-shadow: 0 18px 40px -8px rgba(var(--theme-rgb),.7);
+    }
+    .builder-base::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 18%;
+      height: 5px;
+      transform: translateX(-50%);
+      border-radius: 0 0 8px 8px;
+      background: #0d0d0f;
+    }
+    @media (max-width: 860px) {
+      .builder-content { grid-template-columns: 1fr; gap: 40px; padding: 64px 20px; }
+      .builder-laptop { transform: rotateY(-8deg) rotateX(3deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .builder-section.is-visible .builder-letter,
+      .builder-section.is-visible .builder-screen::after,
+      .builder-stage::before,
+      .builder-caret { animation: none; }
+      .builder-letter { opacity: 1; transform: none; filter: none; }
+      .builder-laptop { opacity: 1; translate: 0 0; transition: none; }
+    }
+  
+    /* Premium template gallery */
+    
+  .premium-gallery{
+    --bg:#000000;
+    --radius:12px;
+    --line:rgba(255,255,255,.09);
+    --blue:#3b82f6;
+    position:relative;
+    background:var(--bg);
+    color:#fff;
+    font-family:Inter,Helvetica,Arial,sans-serif;
+  }
+  .premium-gallery ::selection{background:#3b82f6;color:#fff;}
+
+  /* ---------- Header ---------- */
+  .premium-site-header{
+    text-align:center;
+    padding:clamp(46px,7vh,84px) 20px 6px;
+    animation:premium-fadeDown .8s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes premium-fadeDown{from{opacity:0;transform:translateY(-18px);}to{opacity:1;transform:none;}}
+  .premium-site-header h1{
+    font-size:clamp(32px,4.6vw,54px);
+    font-weight:800;
+    letter-spacing:-.02em;
+    line-height:1.05;
+  }
+  .premium-tagline{
+    margin-top:14px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    font-size:clamp(13px,1.35vw,17px);
+    font-weight:500;
+    color:#e8eaed;
+    flex-wrap:wrap;
+  }
+  .premium-tagline .premium-dot{color:#8a8f98;font-size:.85em;transform:translateY(-1px);}
+
+  /* ---------- Stage / 3D grid ---------- */
+  .premium-stage{
+    max-width:1180px;
+    margin:clamp(30px,5vh,54px) auto 96px;
+    padding:0 28px;
+    perspective:2400px;
+  }
+  .premium-stage-inner{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:30px;
+    transform-style:preserve-3d;
+    transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+    transition:transform .3s ease;
+  }
+  .premium-tilt{
+    transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.22,.9,.3,1);
+  }
+  .premium-tilt:nth-child(3n+1){transform:rotateY(13deg) rotateX(1deg) translateZ(-14px);}
+  .premium-tilt:nth-child(3n+2){transform:rotateY(0deg) translateZ(8px);}
+  .premium-tilt:nth-child(3n+3){transform:rotateY(-13deg) rotateX(1deg) translateZ(-14px);}
+  .premium-tilt:nth-child(n+4){transform-origin:top center;}
+  .premium-tilt:nth-child(4){transform:rotateY(13deg) rotateX(-2deg) translateZ(-14px);}
+  .premium-tilt:nth-child(5){transform:rotateY(0deg) rotateX(-2deg) translateZ(8px);}
+  .premium-tilt:nth-child(6){transform:rotateY(-13deg) rotateX(-2deg) translateZ(-14px);}
+  .premium-tilt:hover,.premium-tilt:focus-within{
+    transform:rotateY(0deg) rotateX(0deg) translateZ(46px) scale(1.025);
+    z-index:6;
+  }
+  .premium-float{animation:premium-float 7s ease-in-out infinite;}
+  .premium-float.f2{animation-delay:-1.6s;}
+  .premium-float.f3{animation-delay:-3.1s;}
+  .premium-float.f4{animation-delay:-2.3s;}
+  .premium-float.f5{animation-delay:-4.4s;}
+  .premium-float.f6{animation-delay:-.9s;}
+  @keyframes premium-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+
+  .premium-card{
+    position:relative;
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:#0c0d10;
+    box-shadow:0 34px 60px -18px rgba(0,0,0,.85),0 0 0 1px var(--line);
+    outline:none;
+    animation:premium-rise .9s cubic-bezier(.2,.8,.2,1) both;
+    animation-delay:var(--d,0s);
+  }
+  @keyframes premium-rise{from{opacity:0;transform:translateY(48px) scale(.94);}to{opacity:1;transform:none;}}
+  .premium-card:hover{box-shadow:0 44px 80px -20px rgba(0,0,0,.95),0 0 0 1px rgba(var(--theme-rgb),.3),0 0 28px rgba(var(--theme-rgb),.2);}
+
+  /* ---------- Mock base ---------- */
+  .premium-mock{
+    aspect-ratio:16/10;
+    width:100%;
+    container-type:inline-size;
+    position:relative;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    font-family:'Inter',Helvetica,Arial,sans-serif;
+    user-select:none;
+  }
+  .premium-m-nav{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:3.1cqw 4cqw;
+    font-size:10px;font-size:2.55cqw;
+    font-weight:700;
+    flex:none;
+  }
+  .premium-m-logo{display:flex;align-items:center;gap:1.5cqw;}
+  .premium-m-logo i{width:2.7cqw;height:2.7cqw;border-radius:.9cqw;background:currentColor;display:inline-block;}
+  .premium-m-links{display:flex;gap:3.1cqw;font-weight:500;opacity:.82;}
+  .premium-m-line{height:1.5cqw;border-radius:1cqw;background:currentColor;opacity:.22;}
+  .premium-w80{width:80%;}.premium-w70{width:70%;}.premium-w60{width:60%;}.premium-w50{width:50%;}.premium-w40{width:40%;}
+  .premium-m-hero{padding:5cqw 5cqw 0;}
+  .premium-m-hero h3{
+    font-size:26px;font-size:7.4cqw;
+    line-height:1.06;font-weight:800;letter-spacing:-.02em;
+  }
+  .premium-mock-dark{background:#0c0d10;color:#fff;}
+  .premium-mock-light{
+    background:var(--light-page-surface,#e2e4e8);
+    color:#141414;
+  }
+  .premium-mock-light .premium-m-nav,
+  .premium-mock-light .premium-body,
+  .premium-mock-light .premium-col,
+  .premium-mock-light .premium-strip{
+    background-color:var(--light-page-surface,#e2e4e8);
+  }
+  .premium-mock-light .premium-m-logo i{background:var(--light-page-accent,#687080);}
+  .premium-mock-light .premium-m-links b:first-child{color:var(--light-page-accent,#687080);}
+  .premium-mock-light .premium-m-line{background:var(--light-page-accent,#687080);opacity:.28;}
+  .premium-mock-light .premium-photo{background:linear-gradient(180deg,var(--light-page-soft,#f1f2f4),var(--light-page-surface,#e2e4e8));}
+  .premium-mock-light .premium-strip{color:#252a33;}
+  .premium-mock-blue{background:linear-gradient(135deg,#2e83c4 0%,#1d6096 100%);color:#fff;}
+
+  /* 1 — Brand (dark agency) */
+  .premium-brand{background:#0a0b0d;}
+  .premium-brand::before{
+    content:'';position:absolute;inset:0;
+    background:
+      radial-gradient(60% 55% at 76% 16%,rgba(140,162,192,.30),transparent 62%),
+      radial-gradient(50% 45% at 18% 85%,rgba(92,112,142,.20),transparent 60%),
+      linear-gradient(180deg,#101216,#0a0b0d);
+  }
+  .premium-brand::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(115deg,transparent 42%,rgba(var(--theme-rgb),.12) 50%,transparent 58%);
+  }
+  .premium-brand .premium-m-nav,.premium-brand .premium-m-hero{position:relative;z-index:2;}
+  .premium-brand .premium-m-hero{padding-top:9cqw;}
+  .premium-brand .premium-m-logo i{background:#fff;}
+  .premium-brand-image{display:block;object-fit:cover;}
+
+  /* 2 — Minimal */
+  .premium-minimal .premium-body{flex:1;display:flex;min-height:0;}
+  .premium-minimal .premium-col{flex:1;padding:5cqw 4cqw;display:flex;flex-direction:column;gap:2.4cqw;}
+  .premium-minimal .premium-col h3{font-size:24px;font-size:6.9cqw;line-height:1.08;font-weight:800;letter-spacing:-.02em;color:#111;}
+  .premium-minimal .premium-photo{width:42%;position:relative;overflow:hidden;background:linear-gradient(180deg,#d9d9d9,#a9a9a9);}
+  .premium-minimal .premium-photo svg{position:absolute;inset:0;width:100%;height:100%;}
+
+  /* 3 — Explore */
+  .premium-explore .premium-body{flex:1;display:flex;min-height:0;position:relative;}
+  .premium-explore .premium-col{width:46%;padding:5cqw 4cqw;display:flex;flex-direction:column;gap:2.6cqw;}
+  .premium-explore .premium-col h3{font-size:24px;font-size:6.9cqw;line-height:1.08;font-weight:800;letter-spacing:-.02em;}
+  .premium-explore .premium-photo{width:54%;position:relative;overflow:hidden;}
+  .premium-explore .premium-photo svg{position:absolute;inset:0;width:100%;height:100%;}
+  .premium-explore .premium-strip{
+    flex:none;background:#fff;color:#333;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:2.1cqw 4cqw;font-size:8px;font-size:2.2cqw;font-weight:600;
+  }
+  .premium-explore .premium-strip em{font-style:normal;opacity:.55;}
+
+  /* 4 — Create */
+  .premium-create .premium-body{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .premium-create .premium-m-hero h3{font-size:22px;font-size:6.2cqw;}
+  .premium-create .premium-mosaic{
+    margin-top:auto;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:2cqw;
+    padding:0 4cqw 4cqw;
+  }
+  .premium-create .premium-ph{height:24cqw;border-radius:1.6cqw;}
+  .premium-create .premium-ph1{background:linear-gradient(160deg,#404040,#141414);}
+  .premium-create .premium-ph2{background:linear-gradient(200deg,#ececec,#9a9a9a);transform:translateY(-2cqw);}
+  .premium-create .premium-ph3{background:linear-gradient(180deg,#c2c2c2,#6d6d6d);}
+
+  /* 5 — Portfolio dark */
+  .premium-folio .premium-body{flex:1;display:flex;flex-direction:column;min-height:0;padding:4cqw 4cqw 4cqw;}
+  .premium-folio .premium-tag{font-size:8px;font-size:2.1cqw;letter-spacing:.22em;font-weight:700;color:#7f8ea3;margin-bottom:2cqw;}
+  .premium-folio h3{font-size:22px;font-size:6.1cqw;font-weight:800;letter-spacing:-.02em;}
+  .premium-folio .premium-m-line{margin-top:2cqw;}
+  .premium-folio .premium-thumbs{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2cqw;}
+  .premium-folio .premium-th{height:26cqw;border-radius:1.6cqw;position:relative;overflow:hidden;}
+  .premium-folio .premium-t1{background:radial-gradient(80% 60% at 70% 18%,#24466b,#0d141d 72%);}
+  .premium-folio .premium-t2{background:radial-gradient(72% 60% at 50% 28%,#7a5a3d,#241a12 78%);}
+  .premium-folio .premium-t3{background:linear-gradient(180deg,#4c4c4c,#202020);}
+  .premium-folio .premium-th svg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:82%;}
+
+  /* 6 — Dashboard */
+  .premium-dash{flex-direction:row;background:#0b0e14;color:#e5e9f0;}
+  .premium-dash aside{
+    width:24%;flex:none;background:#0f131b;border-right:1px solid #1b2330;
+    padding:3cqw 2.4cqw;display:flex;flex-direction:column;gap:3cqw;
+  }
+  .premium-dash .premium-side-logo{display:flex;align-items:center;gap:1.8cqw;font-size:9px;font-size:2.6cqw;font-weight:800;}
+  .premium-dash .premium-side-logo i{width:3cqw;height:3cqw;border-radius:1cqw;background:var(--blue);}
+  .premium-dash .premium-mi{display:flex;align-items:center;gap:2cqw;opacity:.5;padding:1.6cqw;border-radius:1.6cqw;}
+  .premium-dash .premium-mi i{width:2.8cqw;height:2.8cqw;border-radius:.9cqw;background:#8b93a1;flex:none;}
+  .premium-dash .premium-mi span{height:1.4cqw;border-radius:1cqw;background:#8b93a1;flex:1;}
+  .premium-dash .premium-mi.active{opacity:1;background:rgba(var(--theme-rgb),.16);}
+  .premium-dash .premium-mi.active i{background:var(--blue);}
+  .premium-dash .premium-mi.active span{background:#dbe6f6;}
+  .premium-dash main{flex:1;min-width:0;padding:3.2cqw;display:flex;flex-direction:column;gap:2.6cqw;}
+  .premium-dash .premium-top{display:flex;justify-content:space-between;align-items:center;}
+  .premium-dash .premium-top h3{font-size:18px;font-size:5.2cqw;font-weight:800;letter-spacing:-.01em;}
+  .premium-dash .premium-top .premium-who{display:flex;align-items:center;gap:1.8cqw;}
+  .premium-dash .premium-top .premium-bell{width:2.4cqw;height:2.4cqw;border-radius:50%;background:#2a3547;position:relative;}
+  .premium-dash .premium-top .premium-bell::after{content:'';position:absolute;top:-.4cqw;right:-.4cqw;width:1.1cqw;height:1.1cqw;border-radius:50%;background:#f59e0b;}
+  .premium-dash .premium-top .premium-av{width:4.6cqw;height:4.6cqw;border-radius:50%;background:linear-gradient(135deg,#5eead4,#3b82f6);}
+  .premium-dash .premium-panel{
+    flex:1;min-height:0;background:#101623;border:1px solid #1d2634;border-radius:2.2cqw;
+    padding:3cqw;display:flex;gap:3cqw;
+  }
+  .premium-dash .premium-d-list{width:36%;display:flex;flex-direction:column;justify-content:center;gap:2.6cqw;}
+  .premium-dash .premium-dr b{display:block;height:1.6cqw;border-radius:1cqw;background:#33415a;width:80%;}
+  .premium-dash .premium-dr span{display:block;height:1.3cqw;border-radius:1cqw;background:#22304a;width:55%;margin-top:1.2cqw;}
+  .premium-dash .premium-d-chart{flex:1;min-width:0;}
+  .premium-dash .premium-d-chart svg{width:100%;height:100%;display:block;}
+  .premium-dash .premium-stats{display:flex;gap:2.4cqw;flex:none;}
+  .premium-dash .premium-stat{flex:1;background:#101623;border:1px solid #1d2634;border-radius:2cqw;padding:2.4cqw;}
+  .premium-dash .premium-stat b{display:block;font-size:12px;font-size:3.5cqw;font-weight:800;color:#fff;}
+  .premium-dash .premium-stat span{display:block;height:1.2cqw;background:#2a3648;border-radius:1cqw;margin-top:1.4cqw;width:70%;}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1020px){
+    .premium-stage-inner{grid-template-columns:repeat(2,1fr);}
+    .premium-tilt:nth-child(odd){transform:rotateY(9deg) translateZ(-8px);}
+    .premium-tilt:nth-child(even){transform:rotateY(-9deg) translateZ(-8px);}
+    .premium-tilt:hover,.premium-tilt:focus-within{transform:rotateY(0) translateZ(30px) scale(1.02);}
+  }
+  @media (max-width:680px){
+    .premium-stage{perspective:none;padding:0 18px;}
+    .premium-stage-inner{grid-template-columns:1fr;gap:24px;}
+    .premium-tilt,.premium-tilt:nth-child(n){transform:none !important;}
+    .premium-stage{margin-bottom:64px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .premium-float,.premium-card,.premium-site-header{animation:none !important;}
+    .premium-stage-inner{transform:none !important;}
+  }
+
+  .premium-gallery:not(.is-visible) .premium-card,
+  .premium-gallery:not(.is-visible) .premium-site-header { animation-play-state: paused; }
+  .premium-gallery:not(.is-visible) .premium-card { opacity: 0; }
+
+  /* Compact AI builder section */
+  .ai-builder-section {
+    --ai-bg: #05080f;
+    --ai-card: #121a29;
+    --ai-line: rgba(255,255,255,.08);
+    --ai-muted: #8b96a8;
+    --ai-blue: #3c71ff;
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    min-height: 470px;
+    place-items: center;
+    overflow: hidden;
+    padding: 58px 24px;
+    background:
+      radial-gradient(700px 400px at 70% 50%,rgba(var(--theme-rgb),.28),transparent 70%),
+      radial-gradient(600px 500px at 15% 30%,rgba(16,24,42,.9),var(--ai-bg) 60%);
+    color: #fff;
+    font-family: Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .ai-builder-layout {
+    display: grid;
+    width: min(100%, 840px);
+    grid-template-columns: minmax(0,.85fr) minmax(0,1fr);
+    align-items: center;
+    gap: 54px;
+  }
+  .ai-builder-copy,
+  .ai-builder-card {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .65s ease, transform .65s cubic-bezier(.2,.7,.2,1);
+  }
+  .ai-builder-section.is-visible .ai-builder-copy,
+  .ai-builder-section.is-visible .ai-builder-card {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .ai-builder-section.is-visible .ai-builder-card { transition-delay: .12s; }
+  .ai-builder-copy h2 {
+    color: #fff;
+    font-size: clamp(29px,3.6vw,40px);
+    font-weight: 700;
+    letter-spacing: -.04em;
+    line-height: 1.08;
+  }
+  .ai-builder-copy p {
+    margin-top: 12px;
+    color: #aab4c5;
+    font-size: clamp(15px,1.6vw,18px);
+    line-height: 1.45;
+  }
+  .ai-builder-badge {
+    display: inline-flex;
+    height: 30px;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    padding: 0 11px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 999px;
+    background: rgba(255,255,255,.03);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .ai-builder-badge-icon {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 50%;
+    background: radial-gradient(100% 100% at 50% 0%,#0f172a,#0b1220);
+  }
+  .ai-builder-badge-icon svg { width: 11px; height: 11px; }
+  .ai-builder-badge span { color: #a9b3c3; font-size: 12px; font-weight: 500; }
+  .ai-builder-card {
+    padding: 10px;
+    border: 1px solid var(--ai-line);
+    border-radius: 16px;
+    background: linear-gradient(180deg,rgba(22,30,48,.92),rgba(14,19,32,.96));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.03),0 20px 60px rgba(0,0,0,.55),0 0 28px rgba(var(--theme-rgb),.12),inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(12px);
+  }
+  .ai-builder-input {
+    min-height: 70px;
+    padding: 13px 14px;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 11px;
+    background: #1c2536;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    color: #aab4c5;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .ai-builder-action-row {
+    position: relative;
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-right: 2px;
+  }
+  .ai-builder-arrow {
+    position: absolute;
+    top: -8px;
+    left: 8px;
+    width: 42px;
+    height: 42px;
+    pointer-events: none;
+  }
+  .ai-builder-arrow svg { width: 100%; height: 100%; }
+  .ai-builder-generate {
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 17px;
+    border: 0;
+    border-radius: 11px;
+    background: linear-gradient(180deg,#5a87ff,#3a66ff 35%,#2e5bff);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.18),inset 0 1px 0 rgba(255,255,255,.35),0 8px 24px rgba(var(--theme-rgb),.5);
+    color: white;
+    cursor: pointer;
+    font: 600 14px Inter,system-ui,sans-serif;
+    transition: transform .15s ease,filter .15s ease;
+  }
+  .ai-builder-generate:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .ai-builder-generate:active { transform: scale(.99); }
+  .ai-builder-generate:focus-visible { outline: 2px solid #a8c0ff; outline-offset: 3px; }
+  .ai-builder-generate:disabled { cursor: wait; }
+  .ai-builder-generate svg { width: 16px; height: 16px; flex: none; }
+  @media (max-width: 680px) {
+    .ai-builder-section { min-height: auto; padding: 54px 20px; }
+    .ai-builder-layout { width: min(100%,440px); grid-template-columns: 1fr; gap: 30px; }
+    .ai-builder-copy h2 { font-size: clamp(30px,8vw,38px); }
+    .ai-builder-card { width: 100%; }
+    .ai-builder-arrow { left: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ai-builder-copy,
+    .ai-builder-card { opacity: 1; transform: none; transition: none; }
+  }
+
+  .tx-features-section {
+    --tx-feature-border: rgba(255,255,255,.1);
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    min-height: 410px;
+    place-items: center;
+    overflow: hidden;
+    padding: 48px 20px;
+    background: #000;
+    color: #fff;
+    font-family: Inter,system-ui,sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tx-features-ambient {
+    position: absolute;
+    z-index: -1;
+    top: 48%;
+    left: 50%;
+    width: min(640px,90vw);
+    height: 320px;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    background: radial-gradient(ellipse 55% 45% at 50% 38%,rgba(var(--theme-rgb),.16),transparent 70%);
+    animation: tx-features-breathe 5s ease-in-out infinite;
+  }
+  @keyframes tx-features-breathe {
+    50% { opacity: .7; transform: translate(-50%,-50%) scale(1.04); }
+  }
+  .tx-features-stage {
+    position: relative;
+    width: min(100%,740px);
+    text-align: center;
+  }
+  .tx-features-title {
+    font-size: clamp(23px,4vw,32px);
+    font-weight: 800;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+  }
+  .tx-features-title span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+  }
+  .tx-features-section.is-visible .tx-features-title span {
+    animation: tx-features-word-up .7s cubic-bezier(.2,.7,.2,1) forwards;
+    animation-delay: calc(.05s + var(--word-index)*.08s);
+  }
+  @keyframes tx-features-word-up {
+    to { opacity: 1; transform: none; filter: none; }
+  }
+  .tx-features-subtitle {
+    margin-top: 7px;
+    color: #c9c9d1;
+    font-size: 16px;
+    letter-spacing: -.01em;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .tx-features-section.is-visible .tx-features-subtitle {
+    animation: tx-features-fade-up .6s ease .35s forwards;
+  }
+  @keyframes tx-features-fade-up {
+    to { opacity: 1; transform: none; }
+  }
+  .tx-feature-list {
+    display: grid;
+    width: min(600px,100%);
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    align-items: start;
+    gap: clamp(10px,2vw,16px);
+    margin: 26px auto 0;
+    perspective: 800px;
+  }
+  .tx-feature-item {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    opacity: 0;
+    transform: translateY(18px) scale(.97);
+    cursor: pointer;
+    outline: none;
+  }
+  .tx-features-section.is-visible .tx-feature-item {
+    animation: tx-features-card-in .65s cubic-bezier(.2,.75,.25,1) forwards;
+    animation-delay: calc(.45s + var(--feature-index)*.08s);
+  }
+  @keyframes tx-features-card-in {
+    to { opacity: 1; transform: none; }
+  }
+  .tx-feature-icon {
+    position: relative;
+    display: grid;
+    width: min(100%,84px);
+    aspect-ratio: 1;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--tx-feature-border);
+    border-radius: 16px;
+    background: linear-gradient(180deg,#15151b 0%,#101014 50%,#0a0a0e 100%);
+    box-shadow: inset 0 1px 0 rgba(var(--theme-rgb),.14);
+    transform-style: preserve-3d;
+    transition: transform .3s cubic-bezier(.2,.7,.2,1);
+  }
+  .tx-feature-icon::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg,transparent 30%,rgba(var(--theme-rgb),.24) 48%,transparent 62%);
+    content: "";
+    pointer-events: none;
+    transform: translateX(-120%);
+  }
+  .tx-feature-item.is-active .tx-feature-icon::after,
+  .tx-feature-item:hover .tx-feature-icon::after { animation: tx-features-sheen .8s ease; }
+  @keyframes tx-features-sheen { to { transform: translateX(120%); } }
+  .tx-feature-icon svg {
+    width: 34%;
+    height: 34%;
+    min-width: 20px;
+    min-height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+    transform: translateZ(18px);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .tx-feature-label {
+    margin-top: 9px;
+    color: #f1f1f4;
+    font-size: clamp(10px,1.4vw,12px);
+    font-weight: 500;
+    line-height: 1.25;
+    transition: color .2s ease;
+  }
+  .tx-feature-item.is-active .tx-feature-icon,
+  .tx-feature-item:hover .tx-feature-icon,
+  .tx-feature-item:focus-visible .tx-feature-icon {
+    transform: translateY(-4px);
+    border-color: rgba(var(--theme-rgb),.42);
+    box-shadow: 0 10px 24px rgba(0,0,0,.65),0 0 22px rgba(var(--theme-rgb),.22),inset 0 1px 0 rgba(var(--theme-rgb),.2);
+  }
+  .tx-feature-item.is-active .tx-feature-icon svg,
+  .tx-feature-item:hover .tx-feature-icon svg { transform: translateZ(22px) scale(1.1); }
+  .tx-feature-item.is-active .tx-feature-label { color: #fff; }
+  .tx-feature-item:focus-visible .tx-feature-icon { outline: 2px solid #fff; outline-offset: 3px; }
+  .tx-feature-ping {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(var(--theme-rgb),.85);
+    pointer-events: none;
+    transform: translate(-50%,-50%);
+    animation: tx-features-ping .5s ease-out forwards;
+  }
+  @keyframes tx-features-ping {
+    to { opacity: 0; transform: translate(-50%,-50%) scale(12); }
+  }
+  @media (max-width:520px) {
+    .tx-features-section { min-height: 340px; padding: 38px 14px; }
+    .tx-feature-list { gap: 8px; margin-top: 22px; }
+    .tx-feature-icon { border-radius: 12px; }
+    .tx-feature-label { margin-top: 7px; font-size: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tx-features-ambient { animation: none; }
+    .tx-features-title span,
+    .tx-features-subtitle,
+    .tx-feature-item { opacity: 1; transform: none; filter: none; animation: none !important; }
+    .tx-feature-icon,
+    .tx-feature-icon svg { transition: none; }
+  }
+
+  .tx-pricing-section {
+    --tx-pricing-border: rgba(255,255,255,.08);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 62px 24px 54px;
+    background:
+      radial-gradient(600px 320px at 55% 0%,rgba(var(--theme-rgb),.18),transparent 68%),
+      #04060a;
+    color: #fff;
+    font-family: "Plus Jakarta Sans",Inter,system-ui,sans-serif;
+  }
+  .tx-pricing-glow {
+    position: absolute;
+    z-index: -1;
+    top: -150px;
+    left: 50%;
+    width: min(600px,90vw);
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(var(--theme-rgb),.2);
+    filter: blur(100px);
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+  .tx-pricing-inner {
+    width: min(100%,1040px);
+    margin: 0 auto;
+  }
+  .tx-pricing-heading {
+    margin-bottom: 28px;
+    color: #fff;
+    font-size: clamp(28px,4.2vw,42px);
+    font-weight: 700;
+    letter-spacing: -.045em;
+    line-height: 1.08;
+  }
+  .tx-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .tx-pricing-card {
+    position: relative;
+    display: flex;
+    min-height: 232px;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 21px 17px 17px;
+    border: 1px solid var(--tx-pricing-border);
+    border-radius: 18px;
+    background: radial-gradient(120% 120% at 50% 0%,rgba(25,33,50,.45),rgba(11,15,23,.88));
+    text-align: center;
+    transition: transform .25s ease;
+  }
+  .tx-pricing-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,.18);
+    box-shadow: 0 18px 36px -18px rgba(0,0,0,.8);
+  }
+  .tx-pricing-card.is-active { border-color: rgba(var(--theme-rgb),.8); box-shadow: 0 0 30px -8px rgba(var(--theme-rgb),.55); }
+  .tx-pricing-card.tx-pricing-pro {
+    border: 1px solid rgba(var(--theme-rgb),.65);
+    background: radial-gradient(120% 120% at 50% 0%,rgba(30,58,138,.35),rgba(10,16,30,.92));
+    box-shadow: 0 0 32px -8px rgba(var(--theme-rgb),.48),inset 0 0 18px -5px rgba(var(--theme-rgb),.24);
+  }
+  .tx-pricing-card.tx-pricing-pro:hover {
+    border-color: rgba(var(--theme-rgb),.9);
+    box-shadow: 0 0 40px -6px rgba(var(--theme-rgb),.58),inset 0 0 22px -4px rgba(var(--theme-rgb),.3);
+  }
+  .tx-pricing-popular {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    padding: 4px 11px;
+    border: 1px solid rgba(var(--theme-rgb),.7);
+    border-radius: 999px;
+    background: #0b1224;
+    box-shadow: 0 0 18px rgba(var(--theme-rgb),.4);
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+  .tx-pricing-name {
+    margin: 0 0 12px;
+    color: #e5e7eb;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .tx-pricing-pro .tx-pricing-name { color: var(--theme-color); font-weight: 700; }
+  .tx-pricing-amount {
+    color: #fff;
+    font-size: clamp(32px,4vw,42px);
+    font-weight: 700;
+    letter-spacing: -.05em;
+    line-height: 1;
+  }
+  .tx-pricing-period {
+    margin-top: 8px;
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .02em;
+  }
+  .tx-pricing-pro .tx-pricing-period { color: #cbd5e1; }
+  .tx-pricing-button {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 20px;
+    padding: 9px 14px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 999px;
+    background: #181f2f;
+    color: #e5e7eb;
+    cursor: pointer;
+    font: 600 12px "Plus Jakarta Sans",Inter,system-ui,sans-serif;
+    transition: background .2s,color .2s,transform .2s;
+  }
+  .tx-pricing-button:hover { background: #232b40; color: #fff; }
+  .tx-pricing-button:active { transform: scale(.98); }
+  .tx-pricing-button:focus-visible,
+  .tx-pricing-close:focus-visible,
+  .tx-pricing-submit:focus-visible { outline: 2px solid #60a5fa; outline-offset: 3px; }
+  .tx-pricing-pro .tx-pricing-button {
+    border: 0;
+    background: #fff;
+    color: #0b1120;
+  }
+  .tx-pricing-pro .tx-pricing-button:hover { background: #e5e7eb; }
+  .tx-pricing-assurances {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px 22px;
+    color: #cbd5e1;
+    font-size: 12px;
+  }
+  .tx-pricing-assurance {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tx-pricing-assurance svg {
+    width: 2.2em;
+    height: 2.2em;
+    flex: none;
+    color: #93c5fd;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .tx-pricing-divider { width: 1px; height: 16px; background: #263244; }
+  .tx-pricing-modal[hidden] { display: none; }
+  .tx-pricing-modal {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+  }
+  .tx-pricing-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.8);
+    backdrop-filter: blur(7px);
+  }
+  .tx-pricing-dialog {
+    position: relative;
+    width: min(100%,400px);
+    padding: 24px;
+    border: 1px solid rgba(var(--theme-rgb),.36);
+    border-radius: 18px;
+    background: #0b101c;
+    box-shadow: 0 24px 70px rgba(0,0,0,.65),0 0 36px rgba(var(--theme-rgb),.2);
+  }
+  .tx-pricing-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+  }
+  .tx-pricing-close:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .tx-pricing-dialog-title { margin: 0 36px 4px 0; font-size: 18px; font-weight: 700; }
+  .tx-pricing-dialog-subtitle { margin: 0 0 18px; color: #9ca3af; font-size: 12px; }
+  .tx-pricing-summary {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px;
+    background: rgba(17,24,39,.65);
+  }
+  .tx-pricing-summary-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  .tx-pricing-summary-row span:first-child { color: #9ca3af; }
+  .tx-pricing-summary-row span:last-child { color: #e5e7eb; text-align: right; }
+  .tx-pricing-summary-row .tx-pricing-summary-price { color: #fff !important; font-size: 16px; font-weight: 700; }
+  .tx-pricing-email-label { display: block; margin-bottom: 6px; color: #d1d5db; font-size: 12px; }
+  .tx-pricing-email {
+    width: 100%;
+    min-height: 40px;
+    padding: 9px 12px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px;
+    background: #131927;
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+  }
+  .tx-pricing-email:focus { border-color: #3b82f6; outline: none; }
+  .tx-pricing-submit {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 4.2cqw;
+    border: 0;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    font: 600 13px "Plus Jakarta Sans",Inter,system-ui,sans-serif;
+  }
+  .tx-pricing-submit:hover { background: #3b82f6; }
+  .tx-pricing-submit:disabled { cursor: wait; opacity: .75; }
+  .tx-pricing-note { min-height: 16px; margin: 10px 0 0; color: #93c5fd; font-size: 11px; }
+  .tx-pricing-note[data-state="success"] { color: #86efac; }
+  .tx-pricing-note[data-state="error"] { color: #fca5a5; }
+  @media (max-width:760px) {
+    .tx-pricing-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+    .tx-pricing-card { min-height: 216px; }
+  }
+  @media (max-width:420px) {
+    .tx-pricing-section { padding: 48px 16px 40px; }
+    .tx-pricing-grid { gap: 11px; }
+    .tx-pricing-card { min-height: 202px; padding: 18px 12px 13px; border-radius: 15px; }
+    .tx-pricing-heading { margin-bottom: 22px; }
+    .tx-pricing-assurances { gap: 12px 16px; font-size: 11px; }
+    .tx-pricing-divider { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tx-pricing-card,
+    .tx-pricing-button { transition: none; }
+  }
+
+  .tx-site-footer {
+    padding: 54px 28px 22px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    background: #07080c;
+    color: #e5e7eb;
+    font-family: "Plus Jakarta Sans",Inter,system-ui,sans-serif;
+  }
+  .tx-site-footer-inner { width: min(100%,1120px); margin: 0 auto; }
+  .tx-site-footer-top {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(4,minmax(110px,1fr));
+    gap: 34px;
+    padding-bottom: 38px;
+  }
+  .tx-site-footer-brand { max-width: 250px; }
+  .tx-site-footer-brand img { display: block; width: 168px; max-width: 100%; height: auto; }
+  .tx-site-footer-brand p { margin: 10px 0 0; color: #9299a8; font-size: 13px; line-height: 1.6; }
+  .tx-site-footer-group h2 {
+    margin: 3px 0 14px;
+    color: #d1d5db;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .tx-site-footer-group ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .tx-site-footer-group a { color: #9097a5; font-size: 12px; text-decoration: none; transition: color .18s ease; }
+  .tx-site-footer-group a:hover { color: #fff; }
+  .tx-site-footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    color: #737b89;
+    font-size: 11px;
+  }
+  #vortex .vortex-core-glow {
+    background-color: rgba(var(--theme-rgb),.1) !important;
+  }
+  #burstBtn { box-shadow: 0 0 25px rgba(var(--theme-rgb),.32); }
+  #burstBtn:hover { box-shadow: 0 0 34px rgba(var(--theme-rgb),.55); }
+  @media(max-width:760px) {
+    .tx-site-footer { padding: 42px 22px 20px; }
+    .tx-site-footer-top { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 28px 20px; }
+    .tx-site-footer-brand { grid-column: 1 / -1; }
+  }
+  @media(max-width:420px) {
+    .tx-site-footer-top { gap: 24px 14px; }
+    .tx-site-footer-bottom { flex-direction: column; }
+  }
+
+</style>
 </head>
-<body>
-  <video id="background-video" autoplay muted loop playsinline aria-hidden="true">
-    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
-  </video>
-  <div class="grid-bg" aria-hidden="true"></div>
-  <div class="glow-bg" aria-hidden="true"></div>
+<body class="selection:bg-white selection:text-black">
+  <div id="audio-toast" class="fixed top-20 right-6 z-50 transition-all duration-300 transform translate-y-[-20px] opacity-0 pointer-events-none flex items-center gap-3 px-4 py-2.5 rounded-full bg-black/90 border border-white/20 text-xs font-mono text-zinc-300 shadow-2xl backdrop-blur-md">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+    <span id="audio-status-text">Atmospheric sound enabled</span>
+  </div>
 
-  <!-- Navbar -->
-  <header class="navbar">
-    <div class="logo">
-       <img src="images/reallogo.png" 
-            width="190px"
-            alt="TemplifyX logo">
+  <header class="fixed top-0 left-0 w-full z-40 px-6 py-4 transition-all duration-300" id="navbar">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="#" class="flex items-center gap-1 group">
+        <img src="images/logo_only.png" alt="TemplifyX logo" class="h-16 w-16 object-contain drop-shadow-[0_0_18px_rgba(255,255,255,0.22)] transition-transform duration-300 group-hover:scale-105" />
+        <span class="text-2xl font-bold tracking-tight text-white flex items-center">
+          Templify<span class="chrome-gradient font-black ml-0.5">X</span>
+        </span>
+      </a>
 
+      <nav class="hidden md:flex items-center gap-1 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md text-sm text-zinc-400">
+        <a href="#vortex" class="px-4 py-1.5 rounded-full hover:text-white transition-colors">Experience</a>
+        <a href="#workflow" class="px-4 py-1.5 rounded-full hover:text-white transition-colors">Pillars</a>
+        <a href="#premium-stage" class="px-4 py-1.5 rounded-full hover:text-white transition-colors">Templates</a>
+        <a href="#aiBuilder" class="px-4 py-1.5 rounded-full hover:text-white transition-colors">Generator</a>
+        <a href="#templifyPricing" class="px-4 py-1.5 rounded-full hover:text-white transition-colors">Pricing</a>
+      </nav>
 
+      <div class="flex items-center gap-3">
+        <button class="sign-in-btn" onclick="window.location.href='auth.html'">Sign in</button>
+        <button class="login-btn" onclick="window.location.href='auth.html'">Login</button>
+        <button id="soundToggleBtn" title="Toggle Spatial Audio" class="w-9 h-9 rounded-full bg-white/[0.05] border border-white/10 hover:border-white/30 flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-200">
+          <i data-lucide="volume-x" id="soundIcon" class="w-4 h-4"></i>
+        </button>
+
+        <button id="mobileMenuBtn" class="md:hidden p-2 text-zinc-400 hover:text-white">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
     </div>
-    <nav>
-      <a href="#features">Features</a>
-      <a href="#products">Products</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#testimonials">Reviews</a>
-    </nav>
-    <div class="nav-actions">
-      <button class="sign-in-btn" onclick="goToSignup()">Sign in</button>
-      <button class="login-btn" onclick="goToLogin()">Login</button>
 
-<script>
-function goToLogin() {
-    window.location.href = "auth.html";
-}
-</script>
-
-<style>
-.login-btn {
-    padding: 10px 18px;
-    font-size: 16px;
-    background-color: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.login-btn:hover {
-    background-color: #0b0a0a ;
-    box-shadow: 0 10px 30px #f5f1f1;
-    transition: 0.3s;
-} 
-
-</style>
-
-
-<script>
-function goToSignup() {
-    window.location.href = "auth.html";
-}
-</script>
-
-<style>
-.sign-in-btn {
-    padding: 10px 18px;
-    font-size: 16px;
-    background-color: rgb(11, 11, 11);
-    color: rgb(255, 254, 254);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.sign-in-btn:hover {
-    background-color: #000000;
-    box-shadow: 0 10px 30px #ffffff;
-    transition: 0.3s;
-
-}
-
-</style>
-
-
-
-
-
-
-      
+    <div id="mobileMenu" class="md:hidden hidden pt-4 pb-6 px-4 mt-3 rounded-2xl bg-zinc-950/95 border border-white/10 backdrop-blur-2xl">
+      <div class="flex flex-col gap-3 font-mono text-sm">
+        <a href="#vortex" class="mobile-nav-link text-zinc-300 py-2 border-b border-white/5">01. Experience</a>
+        <a href="#workflow" class="mobile-nav-link text-zinc-300 py-2 border-b border-white/5">02. Pillars</a>
+        <a href="#premium-stage" class="mobile-nav-link text-zinc-300 py-2 border-b border-white/5">03. Templates</a>
+        <a href="#aiBuilder" class="mobile-nav-link text-zinc-300 py-2">04. Studio Generator</a>
+        <a href="#templifyPricing" class="mobile-nav-link text-zinc-300 py-2 border-b border-white/5">05. Pricing</a>
+        <a href="#aiBuilder" class="mobile-nav-link mt-2 text-center py-2.5 rounded-lg bg-white text-black font-sans font-semibold transition-colors hover:bg-zinc-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Start Building</a>
+      </div>
     </div>
   </header>
 
+  <section id="vortex" class="relative w-full h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-black select-none">
+    <canvas id="particleCanvas" class="absolute inset-0 w-full h-full z-0 cursor-crosshair"></canvas>
 
-  <!-- Hero -->
-  <section class="hero">
-    <h1>Designed to <span>perfection</span></h1>
-    <p>
-      Discover premium templates, UI kits, fonts, and design resources.
-      Everything you need to build beautiful digital experiences.
-    </p>
+    <div class="relative z-10 text-center px-4 pointer-events-none transform translate-y-[-10px] md:translate-y-[-15px]">
+      <div class="vortex-core-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] md:w-[600px] h-[180px] md:h-[300px] bg-white/[0.04] blur-[90px] rounded-full pointer-events-none"></div>
 
-    <div class="hero-actions">
-      <button class="btn primary">Explore Products</button>
-      <button class="btn outline">No-Code Website Builder</button>
-      <div class="light-pillar"></div>
+      <div class="shine-sweep inline-block">
+        <h1 class="text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.25] font-bold tracking-tight text-white flex items-center justify-center">
+          <span>Templify</span>
+          <span class="chrome-gradient font-extrabold ml-1 inline-block transform hover:scale-105 transition-transform duration-300">X</span>
+        </h1>
+      </div>
 
+      <div class="mt-4 md:mt-6 flex items-center justify-center gap-3 sm:gap-5 md:gap-8 font-mono text-[11px] sm:text-xs md:text-sm tracking-[0.32em] sm:tracking-[0.45em] md:tracking-[0.6em] text-zinc-300 font-light drop-shadow-md">
+        <span class="hover:text-white transition-colors duration-200">BUILD</span>
+        <span class="text-zinc-600">•</span>
+        <span class="hover:text-white transition-colors duration-200">CUSTOMIZE</span>
+        <span class="text-zinc-600">•</span>
+        <span class="hover:text-white transition-colors duration-200">LAUNCH</span>
+      </div>
+
+      <div class="mt-10 sm:mt-12 pointer-events-auto flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button id="burstBtn" class="px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-semibold bg-white/10 hover:bg-white text-white hover:text-black border border-white/20 backdrop-blur-lg transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.15)] flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Distort Vortex Energy</span>
+        </button>
+
+        <a href="#workflow" class="px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider text-zinc-400 hover:text-white border border-transparent hover:border-white/20 transition-all flex items-center gap-2">
+          <span>Explore Platform</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 animate-bounce"></i>
+        </a>
+      </div>
     </div>
 
-    <div class="rating">
-      <span>★★★★★</span>
-      <small>4.9/5 (1800+ reviews)</small>
+    <div class="absolute bottom-8 left-6 md:left-10 z-20 hidden sm:flex items-center gap-3 bg-zinc-950/80 border border-white/10 px-4 py-2.5 rounded-xl backdrop-blur-md font-mono text-xs text-zinc-400">
+      <span class="text-zinc-500 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+        PARTICLES:
+      </span>
+      <span id="particleCountDisplay" class="text-white font-bold">1,200</span>
+      <span class="text-zinc-700">|</span>
+      <button id="toggleSpeedBtn" class="hover:text-white transition-colors flex items-center gap-1">
+        <span>VORTEX SPEED:</span>
+        <span id="speedModeLabel" class="text-white bg-white/10 px-1.5 py-0.5 rounded text-[10px]">1.0x</span>
+      </button>
+      <span class="text-zinc-700">|</span>
+      <button id="toggleColorBtn" class="hover:text-white transition-colors flex items-center gap-1">
+        <span class="w-2.5 h-2.5 rounded-full bg-white border border-white/40 inline-block" id="currentColorDot"></span>
+        <span id="colorNameLabel">Silver Core</span>
+      </button>
+    </div>
+
+    <div class="absolute bottom-8 right-6 md:right-10 z-20 hidden sm:flex items-center gap-2 text-[11px] font-mono tracking-widest text-zinc-500 uppercase">
+      
     </div>
   </section>
 
-  
-
-
-
-
-
-  <section id="features" class="categories">
-  <small class="section-label">CATEGORIES</small>
-  <h2>Browse by category</h2>
-
-  <div class="category-grid">
-    <div class="category-card">
-      <div class="icon">🗐</div>
-      <h4>Templates</h4>
-      <p>240 items</p>
-    </div>
-    <div class="category-card">
-      <div class="icon">〽</div>
-      <h4>UI Kits</h4>
-      <p>185 items</p>
-    </div>
-    <div class="category-card">
-      <div class="icon">♛</div>
-      <h4>Icons</h4>
-      <p>520 items</p>
-    </div>
-    <div class="category-card">
-      <div class="icon">𝐓</div>
-      <h4>Fonts</h4>
-      <p>130 items</p>
-    </div>
-    <div class="category-card">
-      <div class="icon">🏞</div>
-      <h4>Graphics</h4>
-      <p>310 items</p>
-    </div>
-    <div class="category-card">
-      <div class="icon">&lt;/&gt;</div>
-      <h4>Code</h4>
-      <p>95 items</p>
-    </div>
-  </div>
-</section>
-
-<section id="products" class="featured-section">
-  <div class="featured-header">
-    <div>
-      <p class="section-label">FEATURED</p>
-      <h2>Top digital products</h2>
-    </div>
-    <a href="#" class="view-all">View all products →</a>
-  </div>
-
-  <div class="product-grid">
-    
-    
-    
-    <!-- Card 1 --> 
-     <div class="product-card">
-   <span class="badge best-seller">BEST SELLER</span>
-
- <div class="product-image">
-    <video class="product-preview-image"
-           autoplay
-           muted
-           loop
-           playsinline>
-      <source src="video/web1.mp4" type="video/mp4">
-    </video>
-  </div>
-
-
-
-      <div class="product-content">
-        <p class="category">Web Template</p>
-        <h3>Modern beauty eCommerce website template for skincare beauty brands</h3>
-        <p class="meta">⭐ 4.9 | 234 reviews | ⬇ 2.4k</p>
-        <div class="price-row">
-          <div>
-            <span class="price">$Free</span>
-            <span class="old-price">$79</span>
-          </div>
-          <button class="cart-btn">🛒</button>
-        </div>
+  <section id="workflow" class="builder-section" aria-label="Create a website with the TemplifyX builder">
+    <main class="builder-content">
+      <div class="builder-copy">
+        <h2 id="builderTitle" aria-label="Create Your Website in 5 Minutes">
+          <span data-builder-line="Create Your"></span>
+          <span data-builder-line="Website in"></span>
+          <span data-builder-line="5 Minutes"></span>
+        </h2>
+        <p class="builder-subtitle"><span id="builderSubtitle"></span><span class="builder-caret" aria-hidden="true"></span></p>
       </div>
-    </div>
 
-    <!-- Card 2 -->
-    <div class="product-card">
-     <span class="badge new">NEW</span>
-      <div class="product-image">
-        <video class="product-preview-image"
-           autoplay
-           muted
-           loop
-           playinline>
-      <source src="video/web2.mov.mp4" type="video/mp4">
-    </video>
-    </div>
-    
-
-      <div class="product-content">
-        <p class="category">Web Template</p>
-        <h3>Professional eCommerce template for fashion clothing brands</h3>
-        <p class="meta">⭐ 4.8 | 189 reviews | ⬇ 1.8k</p>
-        <div class="price-row">
-          <div>
-            <span class="price">$Free</span>
-            <span class="old-price">$59</span>
-          </div>
-          <button class="cart-btn">🛒</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="product-card">
-     <span class="badge new">POPULAR</span>
-      <div class="product-image">
-        <video class="product-preview-image"
-           autoplay
-           muted
-           loop
-           playinline>
-      <source src="video/web4.mp4" type="video/mp4">
-    </video>
-    </div>
-
-      <div class="product-content">
-        <p class="category">Dashboard Kit</p>
-        <h3>Built for Powerful HR Management</h3>
-        <p class="meta">⭐ 4.9 | 412 reviews | ⬇ 5.1k</p>
-        <div class="price-row">
-          <div>
-            <span class="price">$Free</span>
-            <span class="old-price">$49</span>
-          </div>
-          <button class="cart-btn">🛒</button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Card 4 -->
-    <div class="product-card">
-     <span class="badge new">POPULAR</span>
-      <div class="product-image">
-        <video class="product-preview-image"
-           autoplay
-           muted
-           loop
-           playinline>
-      <source src="video/web8.mp4" type="video/mp4">
-    </video>
-    </div>
-
-      <div class="product-content">
-        <p class="category">UI Kit</p>
-        <h3>Modern AI landing page with anime-inspired design.</h3>
-        <p class="meta">⭐ 4.9 | 412 reviews | ⬇ 5.1k</p>
-        <div class="price-row">
-          <div>
-            <span class="price">$Free</span>
-            <span class="old-price">$49</span>
-          </div>
-          <button class="cart-btn">🛒</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Card 5 -->
-    <div class="product-card">
-     <span class="badge new">POPULAR</span>
-      <div class="product-image">
-        <video class="product-preview-image"
-           autoplay
-           muted
-           loop
-           playinline>
-      <source src="video/web6.mov" type="video/mp4">
-    </video>
-    </div>
-
-      <div class="product-content">
-        <p class="category">E-commerce</p>
-        <h3>Premium luxury watch store with a bold, modern design</h3>
-        <p class="meta">⭐ 4.9 | 412 reviews | ⬇ 5.1k</p>
-        <div class="price-row">
-          <div>
-            <span class="price">$Free</span>
-            <span class="old-price">$49</span>
-          </div>
-          <button class="cart-btn">🛒</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 6 -->
-    <div class="product-card">
-     <span class="badge new">POPULAR</span>
-      <div class="product-image">
-        <video class="product-preview-image"
-           autoplay
-           muted
-           loop
-           playinline>
-      <source src="video/web9.mov" type="video/mp4">
-    </video>
-    </div>
-
-      <div class="product-content">
-        <p class="category">Web Template</p>
-        <h3>Smart website for AI innovators</h3>
-        <p class="meta">⭐ 4.9 | 412 reviews | ⬇ 5.1k</p>
-        <div class="price-row">
-          <div>
-            <span class="price">$Free</span>
-            <span class="old-price">$49</span>
-          </div>
-          <button class="cart-btn">🛒</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<section class="steps">
-  <small class="section-label">HOW IT WORKS</small>
-  <h2>Three simple steps</h2>
-
-  <div class="steps-grid">
-
-    <div class="step-card">
-      <span class="step-number">01</span>
-      <h3>Browse & Discover</h3>
-      <p>Explore thousands of curated digital products across categories.</p>
-    </div>
-
-    <div class="step-card">
-      <span class="step-number">02</span>
-      <h3>Preview & Choose</h3>
-      <p>See detailed previews and pick the perfect resource for your project.</p>
-    </div>
-
-    <div class="step-card">
-      <span class="step-number">03</span>
-      <h3>Purchase & Download</h3>
-      <p>Secure checkout with instant download access to all your files.</p>
-    </div>
-
-  </div>
-</section>
-
-<section id="testimonials" class="testimonials">
-  <small class="section-label">TESTIMONIALS</small>
-  <h2>Loved by thousands</h2>
-
-  <div class="testimonial-grid">
-
-    <div class="testimonial-card">
-      <div class="stars">★★★★★</div>
-      <p>
-        "TemplifyX completely transformed our design workflow.
-        The quality of templates is unmatched."
-      </p>
-      <h4>Sarah Chen</h4>
-      <span>Lead Designer at Figma</span>
-    </div>
-
-    <div class="testimonial-card">
-      <div class="stars">★★★★★</div>
-      <p>
-        "The best marketplace for digital products. Period.
-        Every purchase has exceeded expectations."
-      </p>
-      <h4>Marcus Johnson</h4>
-      <span>Founder, PixelForge</span>
-    </div>
-
-    <div class="testimonial-card">
-      <div class="stars">★★★★★</div>
-      <p>
-        "I've saved hundreds of hours using TemplifyX resources.
-        The attention to detail is incredible."
-      </p>
-      <h4>Aisha Patel</h4>
-      <span>Creative Director</span>
-    </div>
-
-  </div>
-</section>
-
-
-<section class="why">
-    <div class="why-container">
-
-        <div class="why-header">
-           <span class="why-label">WHY TEMPLIFYX</span>
-           <h1>Built for creators who demand excellence</h1>
-           <p>Everything you need to buy, customize, and launch professional templates faster.</p>
-        </div>
-
-        <div class="why-grid">
-
-            <div class="why-card">
-                <div class="why-icon">🗲</div>
-                <h3>Instant Downloads</h3>
-                <p>Access your files immediately after purchase with zero waiting time.</p>
+      <div class="builder-stage" aria-label="TemplifyX editor preview">
+        <div class="builder-laptop">
+          <div class="builder-lid">
+            <div class="builder-screen">
+              <aside class="builder-sidebar">
+                <div class="builder-brand"><img class="builder-mark" src="images/logo_only.png" alt="">TemplifyX</div>
+                <div class="builder-nav-item is-active">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                  Templates
+                </div>
+                <div class="builder-nav-item">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+                  Elements
+                </div>
+                <div class="builder-nav-item">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+                  Settings
+                </div>
+              </aside>
+              <div class="builder-editor">
+                <div class="builder-canvas">
+                  <h3 id="builderCanvasTitle" aria-label="Your Dream Website Awaits"></h3>
+                  <button class="builder-cta" type="button">Get Started</button>
+                </div>
+                <div class="builder-toolbar"><span class="builder-dots"><i></i><i></i><i></i></span>TemplifyX Toolbar</div>
+              </div>
             </div>
-
-            <div class="why-card">
-                <div class="why-icon">🔒︎</div>
-                <h3>Secure Payments</h3>
-                <p>Protected transactions powered by industry-standard encryption.</p>
-            </div>
-
-            <div class="why-card">
-                <div class="why-icon">⇆</div>
-                <h3>Lifetime Updates</h3>
-                <p>Receive future improvements and updates at no extra cost.</p>
-            </div>
-
+          </div>
+          <div class="builder-base"></div>
         </div>
-
-    </div>
-</section>
-  
-  <section id="pricing" class="plans-section">
-    <small class="section-label">SUBSCRIPTION PLANS</small>
-    <h2 class="plans-title">Pricing Plans</h2>
-
-    <div class="plans-grid">
-      <article class="plan-card plan-free">
-        <div class="plan-type">FREE</div>
-        <div class="plan-price"><span class="amount">$0</span><span class="per">/mo</span></div>
-        <p class="plan-desc">Try it out with no commitment.</p>
-        <ul class="plan-features">
-          <li>🗹 3 Downloads / Month</li>
-          <li>🗹 1 Website Export</li>
-          <li>🗹 TemplifyX Branding Included</li>
-          <li>🗹 1-Time Web Builder Access</li>
-          <li>🗹 Access to 10 Templates</li>
-          <li>🗹 Community Support</li>
-
-        </ul>
-        <button class="plan-btn">Get Free Access</button>
-      </article>
-
-      <article class="plan-card plan-basic">
-        <div class="plan-type">BASIC</div>
-        <div class="plan-price">
-           <span class="amount">$9 </span>
-           <span class="per">/mon</span>
-       </div>
-        <p class="plan-desc">For individuals who need more room to grow.</p>
-        <ul class="plan-features">
-          <li>🗹 20 Downloads / Month</li>
-          <li>🗹 No Branding</li>
-          <li>🗹 Unlimited Web Builder Access</li>
-          <li>🗹 Access to 20 Basic Templates</li>
-          <li>🗹 Standard Support</li>
-        </ul>
-        <button class="plan-btn">Upgrade Basic</button>
-      </article>
-
-      <article class="plan-card plan-pro plan-popular">
-        <div class="popular-badge">Most popular</div>
-        <div class="plan-type">PRO</div>
-        <div class="plan-price"><span class="amount">$29</span><span class="per">/mo</span></div>
-        <p class="plan-desc">For power users who want the full suite.</p>
-        <ul class="plan-features">
-          <li>🗹 Unlimited Downloads</li>
-          <li>🗹 No Branding</li>
-          <li>🗹 Unlimited Web Builder Access</li>
-          <li>🗹 Access to 70 Pro Templates</li>
-          <li>🗹 New Template Updates</li>
-        </ul>
-        <button class="plan-btn plan-cta">Upgrade Pro</button>
-      </article>
-
-      <article class="plan-card plan-premium">
-        <div class="plan-type">PREMIUM</div>
-        <div class="plan-price"><span class="amount">$59</span><span class="per">/mo</span></div>
-        <p class="plan-desc">For teams that need collaboration and control.</p>
-        <ul class="plan-features">
-          <li>🗹 All Unlimited </li>
-          <li>🗹 No Branding</li>
-          <li>🗹 Access to All Premium Templates</li>
-          <li>🗹 Early Access to New Features</li>
-          <li>🗹 Ai Features (optional future upgrade)</li>
-        </ul>
-        <button class="plan-btn plan-cta">Upgrade Premium</button>
-      </article>
-    </div>
+      </div>
+    </main>
   </section>
 
-</section>
 
+<div class="premium-gallery" id="premiumTemplates">
+<header class="premium-site-header">
+  <h1>Premium Templates</h1>
+  <p class="premium-tagline">
+    <span>Modern</span><span class="premium-dot">•</span>
+    <span>Responsive</span><span class="premium-dot">•</span>
+    <span>Professional</span>
+  </p>
+</header>
 
+<div class="premium-catalog-content">
+  <section class="premium-stage" id="premium-stage" aria-label="Template gallery">
+    <div class="premium-stage-inner" id="premium-stageInner">
 
-
-
-
-<footer class="footer">
-  <div class="footer-top">
-    <div class="footer-brand">
-      <h3> TemplifyX</h3>
-      <p>Premium digital products marketplace for modern creators.</p>
-    </div>
-
-    <div class="footer-links">
-      <div>
-        <h5>PRODUCTS</h5>
-        <a href="#">Templates</a>
-        <a href="#">UI Kits</a>
-        <a href="#">Icons</a>
-        <a href="#">Fonts</a>
-        <a href="#">Graphics</a>
-        <a href="#">Code Snippets</a>
-      </div>
-
-      <div>
-        <h5>COMPANY</h5>
-        <a href="#">About</a>
-        <a href="#">Careers</a>
-        <a href="#">Blog</a>
-        <a href="#">Press</a>
-      </div>
-
-      <div>
-        <h5>SUPPORT</h5>
-        <a href="#">Help Center</a>
-        <a href="#">Contact</a>
-        <a href="#">Refund Policy</a>
-        <a href="#">License</a>
-      </div>
-
-      <div>
-        <h5>LEGAL</h5>
-        <a href="#">Terms</a>
-        <a href="#">Privacy</a>
-        <a href="#">Cookies</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer-bottom">
-    © 2026 TemplifyX. All rights reserved.
-  </div>
-
-  <div id="planCheckoutModal" class="plan-checkout-modal hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:20px;z-index:3000;">
-    <div id="planCheckoutModalCard" style="width:min(480px,100%);background:#101010;border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:24px;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.45);">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px;">
-        <div>
-          <div style="font-size:20px;font-weight:700;">Complete your plan purchase</div>
-          <div id="planCheckoutSubtitle" style="margin-top:6px;color:#9ca3af;font-size:14px;">Secure checkout for your selected plan.</div>
+      <!-- 1 · Brand (dark agency) -->
+      <div class="premium-tilt">
+        <div class="premium-float premium-f1">
+          <article class="premium-card">
+            <img class="premium-mock premium-brand-image" src="images/design1.png"
+              alt="Studio brand agency template preview">
+          </article>
         </div>
-        <button type="button" onclick="closePlanCheckout()" style="background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;">×</button>
       </div>
 
-      <div style="padding:16px;border-radius:16px;background:#0b0b0b;border:1px solid rgba(255,255,255,0.08);margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <!-- 2 · Minimal -->
+     <div class="premium-tilt">
+        <div class="premium-float premium-f1">
+          <article class="premium-card">
+            <img class="premium-mock premium-brand-image" src="images/design2.jpg"
+              alt="Studio brand agency template preview">
+          </article>
+        </div>
+      </div>
+
+      <!-- 3 · Explore -->
+      <div class="premium-tilt">
+        <div class="premium-float premium-f1">
+          <article class="premium-card">
+            <img class="premium-mock premium-brand-image" src="images/design3.jpg"
+              alt="Studio brand agency template preview">
+          </article>
+        </div>
+      </div>
+
+      <!-- 5 · Folio (dark portfolio) -->
+     <div class="premium-tilt">
+        <div class="premium-float premium-f1">
+          <article class="premium-card">
+            <img class="premium-mock premium-brand-image" src="images/design4.jpg"
+              alt="Studio brand agency template preview">
+          </article>
+        </div>
+      </div>
+
+       <!-- 6 · Folio (dark portfolio) -->
+     <div class="premium-tilt">
+        <div class="premium-float premium-f1">
+          <article class="premium-card">
+            <img class="premium-mock premium-brand-image" src="images/design5.jpg"
+              alt="Studio brand agency template preview">
+          </article>
+        </div>
+      </div>
+
+      <!-- 6 · Dashboard -->
+       <div class="premium-tilt">
+        <div class="premium-float premium-f1">
+          <article class="premium-card">
+            <img class="premium-mock premium-brand-image" src="images/design6.jpg"
+              alt="Studio brand agency template preview">
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</div>
+  <section class="tx-features-section" id="templifyFeatures" aria-labelledby="templifyFeaturesTitle">
+    <div class="tx-features-ambient" aria-hidden="true"></div>
+    <div class="tx-features-stage">
+      <h2 class="tx-features-title" id="templifyFeaturesTitle">
+        <span style="--word-index:0">More</span>
+        <span style="--word-index:1">Than</span>
+        <span style="--word-index:2">Just</span>
+        <span style="--word-index:3">Templates</span>
+      </h2>
+      <p class="tx-features-subtitle">Build. Customize. Sell.</p>
+      <div class="tx-feature-list" id="templifyFeatureList" aria-label="TemplifyX features">
+        <button class="tx-feature-item" style="--feature-index:0" type="button" aria-label="Builder Modules">
+          <span class="tx-feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="7.2" height="7.2" rx="1.9"/><rect x="13.2" y="3.6" width="7.2" height="7.2" rx="1.9"/><rect x="3.6" y="13.2" width="7.2" height="7.2" rx="1.9"/><rect x="13.2" y="13.2" width="7.2" height="7.2" rx="1.9"/></svg>
+          </span>
+          <span class="tx-feature-label">Builder<br>Modules</span>
+        </button>
+        <button class="tx-feature-item" style="--feature-index:1" type="button" aria-label="Auth System">
+          <span class="tx-feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2.8 19 5.6v5.2c0 4.6-2.95 7.8-7 9.4-4.05-1.6-7-4.8-7-9.4V5.6l7-2.8Z"/><path d="M12 8.2v5.2"/><path d="M9.6 11.2 12 13.6l2.4-2.4"/></svg>
+          </span>
+          <span class="tx-feature-label">Auth<br>System</span>
+        </button>
+        <button class="tx-feature-item" style="--feature-index:2" type="button" aria-label="Checkout Integration">
+          <span class="tx-feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3.2 4.2h2.2l2.4 11.2h10.3l2-7.2H7.1"/><circle cx="9.6" cy="19.4" r="1.3"/><circle cx="16.8" cy="19.4" r="1.3"/></svg>
+          </span>
+          <span class="tx-feature-label">Checkout<br>Integration</span>
+        </button>
+        <button class="tx-feature-item" style="--feature-index:3" type="button" aria-label="Dashboard Kits">
+          <span class="tx-feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="4" y="3.8" width="16" height="16.4" rx="2.2"/><path d="M8.2 15.6v-2.8M12 15.6V9.4M15.8 15.6v-4.2"/><path d="M7.5 7.2h9"/></svg>
+          </span>
+          <span class="tx-feature-label">Dashboard<br>Kits</span>
+        </button>
+        <button class="tx-feature-item" style="--feature-index:4" type="button" aria-label="And More">
+          <span class="tx-feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.8v3.8h-3.8"/><path d="M12 8.2V12l2.6 1.8"/></svg>
+          </span>
+          <span class="tx-feature-label">&amp; More</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  <section class="ai-builder-section" id="aiBuilder" aria-labelledby="aiBuilderTitle">
+    <div class="ai-builder-layout">
+      <div class="ai-builder-copy">
+        <h2 id="aiBuilderTitle">AI Builder</h2>
+        <p>Turn your ideas<br>into a real website<br>with a single prompt.</p>
+        <div class="ai-builder-badge">
+          <span class="ai-builder-badge-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 0L13.9 8.1L22 10L13.9 11.9L12 20L10.1 11.9L2 10L10.1 8.1L12 0Z" fill="#5B8DEF"/>
+              <path d="M19 14L19.7 16.3L22 17L19.7 17.7L19 20L18.3 17.7L16 17L18.3 16.3L19 14Z" fill="#5B8DEF"/>
+            </svg>
+          </span>
+          <span>Powered by AI</span>
+        </div>
+      </div>
+
+      <div class="ai-builder-card">
+        <div class="ai-builder-input">Create a modern portfolio website<br>for a developer...</div>
+        <div class="ai-builder-action-row">
+          <span class="ai-builder-arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 46" fill="none">
+              <path d="M6 32C6 18 14 10 30 9.5" stroke="white" stroke-opacity=".85" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M24.5 4.2L31.2 9.5L23.8 14.2" stroke="white" stroke-opacity=".85" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <button class="ai-builder-generate" id="aiBuilderGenerate" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 0L13.8 8.2L22 10L13.8 11.8L12 20L10.2 11.8L2 10L10.2 8.2L12 0Z" fill="white"/>
+            </svg>
+            <span>Generate</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="tx-pricing-section" id="templifyPricing" aria-labelledby="txPricingTitle">
+    <div class="tx-pricing-glow" aria-hidden="true"></div>
+    <div class="tx-pricing-inner">
+      <h2 class="tx-pricing-heading" id="txPricingTitle">Simple &amp; Flexible<br>Pricing</h2>
+      <div class="tx-pricing-grid">
+        <article class="tx-pricing-card">
           <div>
-            <div id="planCheckoutPlanName" style="font-size:16px;font-weight:700;text-transform:uppercase;">BASIC</div>
-            <div id="planCheckoutPlanDesc" style="font-size:13px;color:#bdbdbd;margin-top:4px;">Access after checkout</div>
+            <h3 class="tx-pricing-name">Free</h3>
+            <p class="tx-pricing-amount">$0</p>
+            <p class="tx-pricing-period">3 downloads/mo</p>
           </div>
-          <div id="planCheckoutPlanPrice" style="font-size:22px;font-weight:700;">$19/mo</div>
-        </div>
+          <button class="tx-pricing-button" type="button" data-plan="Free" data-price="$0" data-features="3 downloads/mo">Get Started</button>
+        </article>
+        <article class="tx-pricing-card">
+          <div>
+            <h3 class="tx-pricing-name">Basic</h3>
+            <p class="tx-pricing-amount">$19</p>
+            <p class="tx-pricing-period">20 downloads/mo</p>
+          </div>
+          <button class="tx-pricing-button" type="button" data-plan="Basic" data-price="$19" data-features="20 downloads/mo">Get Started</button>
+        </article>
+        <article class="tx-pricing-card tx-pricing-pro">
+          <span class="tx-pricing-popular">MOST POPULAR</span>
+          <div>
+            <h3 class="tx-pricing-name">Pro</h3>
+            <p class="tx-pricing-amount">$29</p>
+            <p class="tx-pricing-period">Unlimited downloads</p>
+          </div>
+          <button class="tx-pricing-button" type="button" data-plan="Pro" data-price="$29" data-features="Unlimited downloads">Get Started</button>
+        </article>
+        <article class="tx-pricing-card">
+          <div>
+            <h3 class="tx-pricing-name">Premium</h3>
+            <p class="tx-pricing-amount">$59</p>
+            <p class="tx-pricing-period">Unlimited downloads</p>
+          </div>
+          <button class="tx-pricing-button" type="button" data-plan="Premium" data-price="$59" data-features="Unlimited downloads">Get Started</button>
+        </article>
       </div>
-
-      <form id="planCheckoutForm" onsubmit="handlePlanCheckout(event)">
-        <label style="display:block;font-size:13px;color:#c7c7c7;margin-bottom:8px;">Email address</label>
-        <input id="checkoutEmail" type="email" required placeholder="you@example.com" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0b0b0b;color:#fff;outline:none;" />
-
-        <div style="display:flex;gap:10px;margin-top:16px;">
-          <button type="submit" style="flex:1;padding:12px 14px;border:none;border-radius:999px;background:#99959553;color:#171717;font-weight:700;cursor:pointer;">Complete Purchase</button>
-          <button type="button" onclick="closePlanCheckout()" style="padding:12px 14px;border:1px solid rgba(255,255,255,0.14);border-radius:999px;background:transparent;color:#fff;font-weight:600;cursor:pointer;">Cancel</button>
-        </div>
+      <div class="tx-pricing-assurances" aria-label="Plan benefits">
+        <span class="tx-pricing-assurance">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          No Branding
+        </span>
+        <span class="tx-pricing-divider" aria-hidden="true"></span>
+        <span class="tx-pricing-assurance">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><circle cx="12" cy="12" r="3"/></svg>
+          Anytime Builder
+        </span>
+        <span class="tx-pricing-divider" aria-hidden="true"></span>
+        <span class="tx-pricing-assurance">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+          Pro Templates
+        </span>
+      </div>
+    </div>
+  </section>
+  <div class="tx-pricing-modal" id="txPricingModal" role="dialog" aria-modal="true" aria-labelledby="txPricingModalTitle" aria-describedby="txPricingModalDescription" hidden>
+    <div class="tx-pricing-backdrop" data-pricing-close></div>
+    <div class="tx-pricing-dialog">
+      <button class="tx-pricing-close" type="button" aria-label="Close plan details" data-pricing-close>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
+      </button>
+      <h2 class="tx-pricing-dialog-title" id="txPricingModalTitle">Start with <span id="txPricingPlan">Pro</span></h2>
+      <p class="tx-pricing-dialog-subtitle" id="txPricingModalDescription">Review your selected plan.</p>
+      <div class="tx-pricing-summary">
+        <div class="tx-pricing-summary-row"><span>Plan price:</span><span class="tx-pricing-summary-price" id="txPricingPrice">$29/mo</span></div>
+        <div class="tx-pricing-summary-row"><span>Included downloads:</span><span id="txPricingFeatures">Unlimited downloads</span></div>
+        <div class="tx-pricing-summary-row"><span>Billing cycle:</span><span>Monthly</span></div>
+      </div>
+      <form id="txPricingForm">
+        <label class="tx-pricing-email-label" for="txPricingEmail">Email address</label>
+        <input class="tx-pricing-email" id="txPricingEmail" type="email" autocomplete="email" placeholder="you@company.com" required>
+        <button class="tx-pricing-submit" type="submit">Continue to Checkout</button>
+        <p class="tx-pricing-note" id="txPricingNote" role="status" aria-live="polite"></p>
       </form>
     </div>
   </div>
-
-  <style>
-    .plan-checkout-modal {
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-    }
-
-    .plan-checkout-modal.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .plan-checkout-modal #planCheckoutModalCard {
-      transform: scale(0.92) translateY(16px);
-      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .plan-checkout-modal.show #planCheckoutModalCard {
-      transform: scale(1) translateY(0);
-    }
-
-    .plan-success-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 4000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(8px);
-      animation: successFadeIn 0.24s ease;
-    }
-
-    .plan-success-card {
-      width: min(420px, 100%);
-      background: linear-gradient(145deg, #161616, #0d0d0d);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      padding: 28px 24px;
-      text-align: center;
-      color: white;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-      animation: successPop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .plan-success-icon {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      margin: 0 auto 16px;
-      display: grid;
-      place-items: center;
-      font-size: 34px;
-      background: linear-gradient(135deg, #f9f7f7, #ff7a00);
-      box-shadow: 0 12px 30px rgba(255, 43, 0, 0.35);
-      animation: successPulse 0.8s ease-in-out infinite alternate;
-    }
-
-    .plan-success-title {
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .plan-success-text {
-      color: #c9c9c9;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .plan-success-particle {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: #ff6b3d;
-      opacity: 0.9;
-      animation: particleFly 0.8s ease-out forwards;
-      pointer-events: none;
-    }
-
-    @keyframes successFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes successPop {
-      from { transform: scale(0.86) translateY(12px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
-    }
-
-    @keyframes successPulse {
-      from { transform: scale(0.95); }
-      to { transform: scale(1.05); }
-    }
-
-    @keyframes particleFly {
-      0% { transform: translate(0, 0) scale(1); opacity: 1; }
-      100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
-    }
-  </style>
-
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  </div>
+  <footer class="tx-site-footer">
+    <div class="tx-site-footer-inner">
+      <div class="tx-site-footer-top">
+        <div class="tx-site-footer-brand">
+          <img src="images/reallogo.png" alt="TemplifyX">
+        </div>
+        <nav class="tx-site-footer-group" aria-label="Products">
+          <h2>Products</h2>
+          <ul>
+            <li><a href="index.html#">Templates</a></li>
+            <li><a href="index.html#">UI Kits</a></li>
+            <li><a href="index.html#">Icons</a></li>
+            <li><a href="index.html#">Fonts</a></li>
+            <li><a href="index.html#">Graphics</a></li>
+            <li><a href="index.html#">Code Snippets</a></li>
+          </ul>
+        </nav>
+        <nav class="tx-site-footer-group" aria-label="Company">
+          <h2>Company</h2>
+          <ul>
+            <li><a href="index.html#">About</a></li>
+            <li><a href="index.html#">Careers</a></li>
+            <li><a href="index.html#">Blog</a></li>
+            <li><a href="index.html#">Press</a></li>
+          </ul>
+        </nav>
+        <nav class="tx-site-footer-group" aria-label="Support">
+          <h2>Support</h2>
+          <ul>
+            <li><a href="index.html#">Help Center</a></li>
+            <li><a href="index.html#">Contact</a></li>
+            <li><a href="index.html#">Refund Policy</a></li>
+            <li><a href="index.html#">License</a></li>
+          </ul>
+        </nav>
+        <nav class="tx-site-footer-group" aria-label="Legal">
+          <h2>Legal</h2>
+          <ul>
+            <li><a href="index.html#">Terms</a></li>
+            <li><a href="index.html#">Privacy</a></li>
+            <li><a href="index.html#">Cookies</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="tx-site-footer-bottom">
+        <span>© 2026 TemplifyX. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
   <script>
-  const SUPABASE_URL = 'https://vrhtmoovtnslxvqxvmmi.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHRtb292dG5zbHh2cXh2bW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NTEwODcsImV4cCI6MjA4NzIyNzA4N30.mqV74VmW4O4pqX8c4fOtpZX6AoemcVvPsbh9zHEE74w';
-  const { createClient } = supabase;
-  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    lucide.createIcons();
 
-  document.addEventListener("DOMContentLoaded", () => {
-  // On page load, check if Razorpay redirected back with a payment id
-  (async function handleRazorpayReturn() {
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height, centerX, centerY;
+    let particles = [];
+    const PARTICLE_COUNT = 1250;
+    let speedMultiplier = 1.0;
+    let primaryTint = { r: 245, g: 245, b: 255 };
+    let mouse = { x: -1000, y: -1000, isDown: false, forceRadius: 180 };
+    let shockwaves = [];
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      centerX = width / 2;
+      centerY = height / 2;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        mouse.x = e.touches[0].clientX;
+        mouse.y = e.touches[0].clientY;
+      }
+    });
+
+    window.addEventListener('touchend', () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    });
+
+    class Particle {
+      constructor(index) {
+        this.reset(true);
+        this.angle = (index / PARTICLE_COUNT) * Math.PI * 2 + Math.random() * 0.1;
+      }
+
+      reset(init = false) {
+        this.angle = init ? Math.random() * Math.PI * 2 : Math.random() * Math.PI * 2;
+        this.baseRadiusX = width < 768 ? width * 0.42 : Math.min(width * 0.32, 420);
+        this.baseRadiusY = width < 768 ? height * 0.24 : Math.min(height * 0.30, 260);
+        this.ringThickness = (Math.random() - 0.5) * (width < 768 ? 80 : 120);
+        this.size = Math.random() * 2.2 + 0.6;
+        this.angularSpeed = (0.007 + Math.random() * 0.009) * (Math.random() > 0.1 ? 1 : 0.8);
+        this.alpha = Math.random() * 0.8 + 0.2;
+        this.pulsing = Math.random() * 0.05;
+        this.spray = Math.random() < 0.15;
+        if (this.spray) {
+          this.size = Math.random() * 3 + 1.2;
+          this.alpha = Math.random() * 0.9 + 0.3;
+        }
+        this.noiseSeed = Math.random() * 1000;
+      }
+
+      update() {
+        this.angle += this.angularSpeed * speedMultiplier;
+        this.noiseSeed += 0.02;
+
+        const noiseOffset = Math.sin(this.noiseSeed) * 18 + Math.cos(this.angle * 3) * 12;
+        const rx = this.baseRadiusX + this.ringThickness + noiseOffset;
+        const ry = this.baseRadiusY + (this.ringThickness * 0.7) + (noiseOffset * 0.6);
+
+        let targetX = centerX + Math.cos(this.angle) * rx;
+        let targetY = centerY + Math.sin(this.angle) * ry;
+
+        const dx = targetX - mouse.x;
+        const dy = targetY - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > 0 && dist < mouse.forceRadius) {
+          const force = (1 - dist / mouse.forceRadius) * 45;
+          targetX += (dx / dist) * force;
+          targetY += (dy / dist) * force;
+        }
+
+        for (let s of shockwaves) {
+          const sdx = targetX - s.x;
+          const sdy = targetY - s.y;
+          const sdist = Math.sqrt(sdx * sdx + sdy * sdy);
+          if (Math.abs(sdist - s.currentRadius) < 35) {
+            targetX += (sdx / (sdist || 1)) * 25;
+            targetY += (sdy / (sdist || 1)) * 25;
+          }
+        }
+
+        this.x = targetX;
+        this.y = targetY;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${primaryTint.r}, ${primaryTint.g}, ${primaryTint.b}, ${this.alpha})`;
+        if (this.spray) {
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = `rgba(${primaryTint.r}, ${primaryTint.g}, ${primaryTint.b}, 0.8)`;
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Particle(i));
+    }
+
+    let flareAngle1 = 0.8;
+    let flareAngle2 = 3.8;
+
+    function drawLensFlares() {
+      flareAngle1 += 0.005 * speedMultiplier;
+      flareAngle2 += 0.005 * speedMultiplier;
+
+      const rx = width < 768 ? width * 0.42 : Math.min(width * 0.32, 420);
+      const ry = width < 768 ? height * 0.24 : Math.min(height * 0.30, 260);
+
+      const flares = [
+        { x: centerX + Math.cos(flareAngle1) * rx, y: centerY + Math.sin(flareAngle1) * ry, intensity: 1.0 },
+        { x: centerX + Math.cos(flareAngle2) * rx, y: centerY + Math.sin(flareAngle2) * ry, intensity: 0.85 }
+      ];
+
+      for (let flare of flares) {
+        ctx.save();
+        const grad = ctx.createRadialGradient(flare.x, flare.y, 0, flare.x, flare.y, 110);
+        grad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * flare.intensity})`);
+        grad.addColorStop(0.2, `rgba(${primaryTint.r}, ${primaryTint.g}, ${primaryTint.b}, ${0.5 * flare.intensity})`);
+        grad.addColorStop(0.6, `rgba(${primaryTint.r}, ${primaryTint.g}, ${primaryTint.b}, 0.1)`);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(flare.x, flare.y, 120, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.45 * flare.intensity})`;
+        ctx.lineWidth = 1.2;
+
+        ctx.beginPath();
+        ctx.moveTo(flare.x - 70, flare.y);
+        ctx.lineTo(flare.x + 70, flare.y);
+        ctx.moveTo(flare.x, flare.y - 70);
+        ctx.lineTo(flare.x, flare.y + 70);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+
+    function triggerBurst(x = centerX, y = centerY) {
+      shockwaves.push({
+        x, y,
+        currentRadius: 10,
+        maxRadius: 550,
+        speed: 18,
+        alpha: 1.0
+      });
+      playChime();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#020204';
+      ctx.fillRect(0, 0, width, height);
+
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const s = shockwaves[i];
+        s.currentRadius += s.speed;
+        s.alpha = 1 - (s.currentRadius / s.maxRadius);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.currentRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${primaryTint.r}, ${primaryTint.g}, ${primaryTint.b}, ${s.alpha * 0.4})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.restore();
+
+        if (s.currentRadius >= s.maxRadius) {
+          shockwaves.splice(i, 1);
+        }
+      }
+
+      for (let p of particles) {
+        p.update();
+        p.draw();
+      }
+
+      drawLensFlares();
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    canvas.addEventListener('click', (e) => {
+      triggerBurst(e.clientX, e.clientY);
+    });
+
+    document.getElementById('burstBtn').addEventListener('click', () => {
+      triggerBurst(centerX, centerY);
+    });
+
+    const toggleSpeedBtn = document.getElementById('toggleSpeedBtn');
+    const speedModeLabel = document.getElementById('speedModeLabel');
+    const speeds = [1.0, 1.8, 0.4];
+    const speedLabels = ['1.0x', '2.0x Turbo', '0.5x Ambient'];
+    let speedIdx = 0;
+
+    toggleSpeedBtn.addEventListener('click', () => {
+      speedIdx = (speedIdx + 1) % speeds.length;
+      speedMultiplier = speeds[speedIdx];
+      speedModeLabel.textContent = speedLabels[speedIdx];
+    });
+
+    const toggleColorBtn = document.getElementById('toggleColorBtn');
+    const colorNameLabel = document.getElementById('colorNameLabel');
+    const currentColorDot = document.getElementById('currentColorDot');
+
+    const palettes = [
+      { name: 'Silver Core', dot: '#ffffff', rgb: { r: 245, g: 245, b: 255 }, surface: '#e2e4e8', soft: '#f1f2f4', accent: '#687080' },
+      { name: 'Blue', dot: '#1e90ff', rgb: { r: 30, g: 144, b: 255 }, surface: '#dceeff', soft: '#eef7ff', accent: '#1e75ca' },
+      { name: 'Cosmic Cyan', dot: '#38bdf8', rgb: { r: 56, g: 189, b: 248 }, surface: '#dcf5fb', soft: '#effbfe', accent: '#168baa' },
+      { name: 'Hyper Indigo', dot: '#818cf8', rgb: { r: 129, g: 140, b: 248 }, surface: '#e7e9ff', soft: '#f3f4ff', accent: '#5b63cb' },
+      { name: 'Emerald Aura', dot: '#34d399', rgb: { r: 52, g: 211, b: 153 }, surface: '#ddf7ed', soft: '#effbf6', accent: '#16825b' }
+    ];
+    let paletteIdx = 0;
     try {
-      const params = new URLSearchParams(window.location.search);
-      const paymentId = params.get('razorpay_payment_id') || params.get('payment_id') || params.get('paymentId');
-      if (!paymentId) return;
+      const savedPalette = localStorage.getItem('templifyxColorPalette');
+      const savedPaletteIndex = palettes.findIndex((palette) => palette.name === savedPalette);
+      if (savedPaletteIndex >= 0) paletteIdx = savedPaletteIndex;
+    } catch (error) {
+      console.warn('Unable to read the saved color palette:', error);
+    }
 
-      const pendingSubscriptionId = sessionStorage.getItem('templifyxPendingSubscriptionId');
-      if (!pendingSubscriptionId) return;
+    toggleColorBtn.addEventListener('click', () => {
+      paletteIdx = (paletteIdx + 1) % palettes.length;
+      applyPalette(palettes[paletteIdx]);
+    });
 
-      // Call server to verify the payment status and link it to the pending subscription
-      const resp = await fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_id: paymentId, subscriptionId: pendingSubscriptionId })
+    function applyPalette(pal) {
+      primaryTint = pal.rgb;
+      colorNameLabel.textContent = pal.name;
+      currentColorDot.style.backgroundColor = pal.dot;
+      document.documentElement.style.setProperty('--theme-rgb', `${pal.rgb.r}, ${pal.rgb.g}, ${pal.rgb.b}`);
+      document.documentElement.style.setProperty('--theme-color', pal.dot);
+      document.documentElement.style.setProperty('--light-page-surface', pal.surface);
+      document.documentElement.style.setProperty('--light-page-soft', pal.soft);
+      document.documentElement.style.setProperty('--light-page-accent', pal.accent);
+      try {
+        localStorage.setItem('templifyxColorPalette', pal.name);
+      } catch (error) {
+        console.warn('Unable to save the selected color palette:', error);
+      }
+    }
+    applyPalette(palettes[paletteIdx]);
+
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let masterGain = null;
+    let osc1 = null, osc2 = null;
+
+    function initAudio() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(420, audioCtx.currentTime);
+
+        osc1 = audioCtx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(110, audioCtx.currentTime);
+
+        osc2 = audioCtx.createOscillator();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(111.5, audioCtx.currentTime);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(masterGain);
+        masterGain.connect(audioCtx.destination);
+
+        osc1.start();
+        osc2.start();
+      } catch (err) {
+        console.warn('AudioContext unavailable or blocked', err);
+      }
+    }
+
+    function playChime() {
+      if (!isAudioPlaying || !audioCtx) return;
+      try {
+        const chimeOsc = audioCtx.createOscillator();
+        const chimeGain = audioCtx.createGain();
+        chimeOsc.type = 'sine';
+        chimeOsc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        chimeOsc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+
+        chimeGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+
+        chimeOsc.connect(chimeGain);
+        chimeGain.connect(audioCtx.destination);
+        chimeOsc.start();
+        chimeOsc.stop(audioCtx.currentTime + 1.2);
+      } catch (e) {}
+    }
+
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
+    const audioToast = document.getElementById('audio-toast');
+    const audioStatusText = document.getElementById('audio-status-text');
+
+    function showToast(text) {
+      audioStatusText.textContent = text;
+      audioToast.classList.remove('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
+      setTimeout(() => {
+        audioToast.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
+      }, 2500);
+    }
+
+    soundToggleBtn.addEventListener('click', () => {
+      if (!audioCtx) initAudio();
+
+      if (!isAudioPlaying) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        masterGain.gain.setTargetAtTime(0.04, audioCtx.currentTime, 0.5);
+        isAudioPlaying = true;
+        soundIcon.setAttribute('data-lucide', 'volume-2');
+        soundToggleBtn.classList.add('bg-white/20', 'text-white');
+        showToast('TemplifyX Acoustic Atmosphere Engaged');
+      } else {
+        masterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.3);
+        isAudioPlaying = false;
+        soundIcon.setAttribute('data-lucide', 'volume-x');
+        soundToggleBtn.classList.remove('bg-white/20', 'text-white');
+        showToast('Audio Muted');
+      }
+      lucide.createIcons();
+    });
+
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
       });
 
-      if (resp.ok) {
-        const data = await resp.json();
-        // server should return the subscription record (plan, email, amount)
-        const plan = data?.plan || data?.subscription?.plan || null;
-        const email = data?.email || data?.subscription?.email || '';
-        const amount = data?.amount || data?.subscription?.amount || null;
-        if (plan) {
-          // mark plan active locally and sync it to Supabase (persistPlanState will also ensure subscription row exists)
-          await persistPlanState(plan, 'active', email, {
-            paymentId,
-            orderId: data?.order_id || data?.subscription?.order_id || '',
-            amount: amount ?? getPlanAmount(plan)
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+        });
+      });
+    }
+  </script>
+  <script>
+    (() => {
+      const section = document.querySelector('.builder-section');
+      const titleLines = section.querySelectorAll('[data-builder-line]');
+      const subtitle = section.querySelector('#builderSubtitle');
+      const canvasTitle = section.querySelector('#builderCanvasTitle');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let letterIndex = 0;
+
+      titleLines.forEach((line) => {
+        const text = line.dataset.builderLine;
+        line.setAttribute('aria-hidden', 'true');
+        for (const character of text) {
+          if (character === ' ') {
+            line.appendChild(document.createTextNode(' '));
+            continue;
+          }
+
+          const span = document.createElement('span');
+          span.className = 'builder-letter';
+          span.textContent = character;
+          span.style.animationDelay = `${letterIndex * 35}ms`;
+          letterIndex += 1;
+          line.appendChild(span);
+        }
+      });
+
+      function typeText(element, text, speed, onDone) {
+        if (reduceMotion) {
+          element.textContent = text;
+          if (onDone) onDone();
+          return;
+        }
+
+        let position = 0;
+        function typeNext() {
+          position += 1;
+          element.textContent = text.slice(0, position);
+          if (position < text.length) {
+            window.setTimeout(typeNext, speed + Math.random() * 40);
+          } else if (onDone) {
+            onDone();
+          }
+        }
+        typeNext();
+      }
+
+      function startBuilderAnimation() {
+        const startTyping = () => {
+          typeText(subtitle, 'No Coding Required', 55, () => {
+            window.setTimeout(typeCanvasTitle, 300);
+          });
+        };
+
+        function typeCanvasTitle() {
+          typeText(canvasTitle, 'Your Dream Website Awaits', 60, () => {
+            if (!reduceMotion) window.setTimeout(eraseCanvasTitle, 3200);
           });
         }
 
-        // clear pending subscription id
-        try { sessionStorage.removeItem('templifyxPendingSubscriptionId'); } catch (e) {}
+        function eraseCanvasTitle() {
+          let text = canvasTitle.textContent;
+          function eraseNext() {
+            text = text.slice(0, -1);
+            canvasTitle.textContent = text;
+            if (text.length) window.setTimeout(eraseNext, 22);
+            else window.setTimeout(typeCanvasTitle, 500);
+          }
+          eraseNext();
+        }
 
-        // update UI: make matching card active
-        window.dispatchEvent(new Event('planChanged'));
-        // Optionally show success message
-        alert('Payment verified — your plan is now active.');
-        // remove query params to keep URL clean
-        history.replaceState({}, document.title, window.location.pathname);
+        section.classList.add('is-visible');
+        if (reduceMotion) {
+          subtitle.textContent = 'No Coding Required';
+          canvasTitle.textContent = 'Your Dream Website Awaits';
+        } else {
+          window.setTimeout(startTyping, letterIndex * 35 + 500);
+        }
+      }
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            observer.disconnect();
+            startBuilderAnimation();
+          }
+        }, { threshold: 0.2 });
+        observer.observe(section);
       } else {
-        const err = await resp.json().catch(() => ({}));
-        console.warn('Payment verification failed', err);
-        alert('Payment could not be verified. If you paid, please contact support.');
+        startBuilderAnimation();
       }
-    } catch (e) {
-      console.error('Razorpay return handling error', e);
-    }
-  })();
-
-  const sections = document.querySelectorAll(
-    ".hero, .stats, .categories, .featured-section, .why, .footer, .steps, .testimonials, .plans-section"
-  );
-
-  sections.forEach(section => {
-    section.style.opacity = "0";
-    section.style.transform = "translateY(60px)";
-    section.style.transition = "all 0.8s cubic-bezier(.22,1,.36,1)";
-  });
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = "1";
-        entry.target.style.transform = "translateY(0)";
-        observer.unobserve(entry.target); // animate only once
-      }
-    });
-  }, {
-    threshold: 0.15
-  });
-
-  sections.forEach(section => {
-    observer.observe(section);
-  });
-
-});
-</script>
+    })();
+  </script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const cards = document.querySelectorAll(".plan-card");
-  const checkoutModal = document.getElementById("planCheckoutModal");
-  const checkoutTitle = document.getElementById("planCheckoutSubtitle");
-  const checkoutPlanName = document.getElementById("planCheckoutPlanName");
-  const checkoutPlanDesc = document.getElementById("planCheckoutPlanDesc");
-  const checkoutPlanPrice = document.getElementById("planCheckoutPlanPrice");
+(function(){
+  'use strict';
 
+  /* Staggered entrance */
+  var gallery = document.getElementById('premiumTemplates');
+  var cards = Array.prototype.slice.call(gallery.querySelectorAll('.premium-card'));
+  cards.forEach(function(card, i){
+    card.style.setProperty('--d', (i * 0.09) + 's');
+  });
+
+  if ('IntersectionObserver' in window){
+    var revealObserver = new IntersectionObserver(function(entries){
+      if (entries.some(function(entry){ return entry.isIntersecting; })){
+        gallery.classList.add('is-visible');
+        revealObserver.disconnect();
+      }
+    }, { threshold: 0.12 });
+    revealObserver.observe(gallery);
+  } else {
+    gallery.classList.add('is-visible');
+  }
+
+  /* Subtle pointer parallax on the 3D stage */
+  var stage = document.getElementById('premium-stage');
+  var inner = document.getElementById('premium-stageInner');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced && window.matchMedia('(pointer:fine)').matches){
+    stage.addEventListener('pointermove', function(e){
+      var r = stage.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - .5;
+      var py = (e.clientY - r.top) / r.height - .5;
+      inner.style.setProperty('--ry', (px * 5).toFixed(2) + 'deg');
+      inner.style.setProperty('--rx', (py * -4).toFixed(2) + 'deg');
+    });
+    stage.addEventListener('pointerleave', function(){
+      inner.style.setProperty('--ry', '0deg');
+      inner.style.setProperty('--rx', '0deg');
+    });
+  }
+
+})();
+</script>
+<script>
+(() => {
+  const section = document.getElementById('aiBuilder');
+  const generateButton = document.getElementById('aiBuilderGenerate');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        section.classList.add('is-visible');
+        observer.disconnect();
+      }
+    }, { threshold: 0.15 });
+    observer.observe(section);
+  } else {
+    section.classList.add('is-visible');
+  }
+
+  generateButton.addEventListener('click', () => {
+    if (generateButton.disabled) return;
+
+    const label = generateButton.querySelector('span');
+    const icon = generateButton.querySelector('svg');
+    const originalLabel = label.textContent;
+    const originalIcon = icon.innerHTML;
+    generateButton.disabled = true;
+    label.textContent = 'Generating';
+    icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke="white" stroke-opacity=".3" stroke-width="2"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="2" stroke-linecap="round"/>';
+
+    window.setTimeout(() => {
+      label.textContent = 'Generated';
+      icon.innerHTML = '<path d="M5 12l5 5L19 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+      window.setTimeout(() => {
+        label.textContent = originalLabel;
+        icon.innerHTML = originalIcon;
+        generateButton.disabled = false;
+      }, 1200);
+    }, prefersReducedMotion ? 0 : 900);
+  });
+})();
+</script>
+<script>
+(() => {
+  const section = document.getElementById('templifyFeatures');
+  const list = document.getElementById('templifyFeatureList');
+  const features = Array.from(list.querySelectorAll('.tx-feature-item'));
+  const iconBoxes = Array.from(list.querySelectorAll('.tx-feature-icon'));
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let activeIndex = 0;
+  let cycleTimer;
+
+  function setActive(index) {
+    features.forEach((feature, featureIndex) => {
+      feature.classList.toggle('is-active', featureIndex === index);
+    });
+    activeIndex = index;
+  }
+
+  function startCycle() {
+    if (reduceMotion || cycleTimer) return;
+    setActive(activeIndex % features.length);
+    cycleTimer = window.setInterval(() => {
+      setActive((activeIndex + 1) % features.length);
+    }, 2100);
+  }
+
+  function stopCycle() {
+    window.clearInterval(cycleTimer);
+    cycleTimer = undefined;
+  }
+
+  function reveal() {
+    if (section.classList.contains('is-visible')) return;
+    section.classList.add('is-visible');
+    window.removeEventListener('scroll', revealIfVisible);
+    if (observer) observer.disconnect();
+    startCycle();
+  }
+
+  let observer;
+  function revealIfVisible() {
+    const bounds = section.getBoundingClientRect();
+    if (bounds.top < window.innerHeight && bounds.bottom > 0) reveal();
+  }
+
+  if ('IntersectionObserver' in window) {
+    observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        reveal();
+      }
+    }, { threshold: 0.15 });
+    observer.observe(section);
+  }
+  window.addEventListener('scroll', revealIfVisible, { passive: true });
+  revealIfVisible();
+
+  list.addEventListener('mouseenter', stopCycle);
+  list.addEventListener('mouseleave', startCycle);
+  list.addEventListener('focusin', stopCycle);
+  list.addEventListener('focusout', (event) => {
+    if (!list.contains(event.relatedTarget)) startCycle();
+  });
+
+  iconBoxes.forEach((box, index) => {
+    const feature = features[index];
+    box.addEventListener('mousemove', (event) => {
+      if (reduceMotion) return;
+      const bounds = box.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width - .5;
+      const y = (event.clientY - bounds.top) / bounds.height - .5;
+      box.style.transform = `translateY(-4px) rotateY(${x * 12}deg) rotateX(${-y * 12}deg)`;
+    });
+    box.addEventListener('mouseleave', () => {
+      box.style.transform = '';
+    });
+    feature.addEventListener('click', (event) => {
+      setActive(index);
+      const bounds = box.getBoundingClientRect();
+      const ping = document.createElement('span');
+      ping.className = 'tx-feature-ping';
+      ping.style.left = `${event.clientX ? event.clientX - bounds.left : bounds.width / 2}px`;
+      ping.style.top = `${event.clientY ? event.clientY - bounds.top : bounds.height / 2}px`;
+      box.appendChild(ping);
+      window.setTimeout(() => ping.remove(), 550);
+    });
+    feature.addEventListener('focus', () => setActive(index));
+  });
+})();
+</script>
+<script>
+(() => {
+  const modal = document.getElementById('txPricingModal');
+  const planName = document.getElementById('txPricingPlan');
+  const price = document.getElementById('txPricingPrice');
+  const features = document.getElementById('txPricingFeatures');
+  const note = document.getElementById('txPricingNote');
+  const email = document.getElementById('txPricingEmail');
+  const form = document.getElementById('txPricingForm');
+  const submitButton = form.querySelector('[type="submit"]');
+  const closeButton = modal.querySelector('.tx-pricing-close');
+  const planButtons = Array.from(document.querySelectorAll('.tx-pricing-button'));
   const planMeta = {
-    free: { label: "Free", price: "$0/mo", desc: "Try it out with no commitment." },
-    basic: { label: "Basic", price: "$19/mo", desc: "Best for growing creators." },
-    pro: { label: "Pro", price: "$29/mo", desc: "Full access for power users." },
-    premium: { label: "Premium", price: "$59/mo", desc: "Advanced tools for teams." }
+    free: { label: 'Free', price: '$0/mo', features: '3 downloads/mo' },
+    basic: { label: 'Basic', price: '$19/mo', features: '20 downloads/mo' },
+    pro: { label: 'Pro', price: '$29/mo', features: 'Unlimited downloads' },
+    premium: { label: 'Premium', price: '$59/mo', features: 'Unlimited downloads' }
   };
-
-  const normalizePlan = (value) => {
-    const normalized = String(value || "").trim().toLowerCase();
-    return ["free", "basic", "pro", "premium"].includes(normalized) ? normalized : "free";
+  const paymentLinks = {
+    basic: 'https://rzp.io/rzp/TemplifyX',
+    pro: 'https://rzp.io/rzp/templifyxpro',
+    premium: 'https://rzp.io/rzp/templifyxpremium'
   };
+  let previousFocus;
+  let activeButton;
 
-  const getSessionUser = () => {
+  function closeModal() {
+    modal.hidden = true;
+    if (previousFocus) previousFocus.focus();
+  }
+
+  function normalizePlan(value) {
+    const plan = String(value || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(planMeta, plan) ? plan : '';
+  }
+
+  function getSessionUser() {
     try {
-      const raw = localStorage.getItem("templifyx_local_session");
-      return raw ? JSON.parse(raw) : null;
+      return JSON.parse(localStorage.getItem('templifyx_local_session') || 'null');
     } catch (error) {
       return null;
     }
-  };
+  }
 
-  const getPlanStorageKey = (user) => {
-    const identity = user?.id || user?.email || user?.user_metadata?.email || user?.username || user?.name || "";
-    const normalizedIdentity = String(identity || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    return normalizedIdentity ? `templifyx_plan_state_${normalizedIdentity}` : "templifyx_plan_state_default";
-  };
+  function getPlanStorageKey(user) {
+    const identity = user && (user.id || user.email || (user.user_metadata && user.user_metadata.email) || user.username || user.name);
+    const normalizedIdentity = String(identity || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    return normalizedIdentity ? `templifyx_plan_state_${normalizedIdentity}` : 'templifyx_plan_state_default';
+  }
 
-  const getStoredPlanState = () => {
-    const sessionUser = getSessionUser();
-    const storageKey = getPlanStorageKey(sessionUser);
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.plan) {
-          return {
-            plan: normalizePlan(parsed.plan),
-            status: String(parsed.status || "active").toLowerCase() || "active",
-            updatedAt: parsed.updatedAt || null
-          };
-        }
-      }
-    } catch (_) {}
-
-    return {
-      plan: "free",
-      status: "inactive",
-      updatedAt: null
-    };
-  };
-
-  const getPlanAmount = (planName) => {
-    const normalizedPlan = normalizePlan(planName);
-    const amounts = { free: 0, basic: 19, pro: 29, premium: 59 };
-    return amounts[normalizedPlan] ?? 0;
-  };
-
-  const syncSubscriptionToSupabase = async ({ planName, status = "active", email = "", paymentId = "", orderId = "", amount = null, name = "" } = {}) => {
-    const normalizedPlan = normalizePlan(planName);
-    if (normalizedPlan === "free") return null;
-
-    try {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return null;
-
-      const payload = {
-        user_id: user.id,
-        name: name || user.user_metadata?.full_name || user.email || email || "",
-        email: email || user.email || "",
-        plan: normalizedPlan,
-        amount: amount ?? getPlanAmount(normalizedPlan),
-        payment_id: paymentId || "",
-        order_id: orderId || "",
-        status: String(status || "active").toLowerCase() || "active",
-        purchase_date: new Date().toISOString(),
-        expiry_date: null
-      };
-
-      const { data: existingRows, error: selectError } = await supabaseClient
-        .from("subscriptions")
-        .select("id")
-        .eq("user_id", user.id)
-        .order("purchase_date", { ascending: false });
-
-      if (selectError) {
-        throw selectError;
-      }
-
-      if (Array.isArray(existingRows) && existingRows.length > 0) {
-        const latest = existingRows[0];
-        const { error } = await supabaseClient
-          .from("subscriptions")
-          .update(payload)
-          .eq("id", latest.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabaseClient
-          .from("subscriptions")
-          .insert(payload);
-        if (error) throw error;
-      }
-
-      return payload;
-    } catch (error) {
-      console.warn("Supabase subscription sync skipped:", error);
-      return null;
-    }
-  };
-
-  const persistPlanState = async (planName, status = "active", email = "", extra = {}) => {
-    const normalizedPlan = normalizePlan(planName);
-    const planStatus = String(status || "active").toLowerCase() || "active";
-    const sessionUser = getSessionUser();
-    const state = {
-      plan: normalizedPlan,
-      status: planStatus,
-      updatedAt: new Date().toISOString()
-    };
-    const storageKey = getPlanStorageKey(sessionUser);
-
-    localStorage.setItem(storageKey, JSON.stringify(state));
-    localStorage.setItem("selectedPlan", normalizedPlan);
-    localStorage.setItem("planStatus", planStatus);
-    localStorage.setItem("planActivatedAt", state.updatedAt);
-    localStorage.setItem("templifyxPurchasedPlans", JSON.stringify([{ plan: normalizedPlan, status: planStatus, purchasedAt: state.updatedAt, email }]));
-    window.dispatchEvent(new Event("planChanged"));
-
-    const subscription = await syncSubscriptionToSupabase({
-      planName: normalizedPlan,
-      status: planStatus,
-      email,
-      paymentId: extra.paymentId || "",
-      orderId: extra.orderId || "",
-      amount: typeof extra.amount === "number" ? extra.amount : getPlanAmount(normalizedPlan),
-      name: extra.name || sessionUser?.name || sessionUser?.user_metadata?.full_name || ""
+  function setActivePlan(plan, checkoutEmail = '') {
+    const meta = planMeta[plan];
+    planButtons.forEach((button) => {
+      const buttonPlan = normalizePlan(button.dataset.plan);
+      const isActive = buttonPlan === plan;
+      const card = button.closest('.tx-pricing-card');
+      card.classList.toggle('is-active', isActive);
+      button.textContent = isActive ? 'Active Plan' : (button.dataset.originalLabel || 'Get Started');
+      button.setAttribute('aria-pressed', String(isActive));
     });
 
-    if (subscription) {
-      displaySubscriptionTable(subscription);
-    }
+    const state = { plan, status: 'active', updatedAt: new Date().toISOString() };
+    const user = getSessionUser();
+    localStorage.setItem(getPlanStorageKey(user), JSON.stringify(state));
+    localStorage.setItem('selectedPlan', plan);
+    localStorage.setItem('planStatus', 'active');
+    localStorage.setItem('planActivatedAt', state.updatedAt);
+    localStorage.setItem('templifyxPurchasedPlans', JSON.stringify([{
+      plan,
+      status: 'active',
+      purchasedAt: state.updatedAt,
+      email: checkoutEmail || email.value.trim()
+    }]));
+    window.dispatchEvent(new Event('planChanged'));
+    return meta;
+  }
 
-    return state;
-  };
+  function showPlanModal(button) {
+    activeButton = button;
+    previousFocus = button;
+    const plan = normalizePlan(button.dataset.plan);
+    const meta = planMeta[plan];
+    planName.textContent = meta.label;
+    price.textContent = meta.price;
+    features.textContent = button.dataset.features || meta.features;
+    note.textContent = '';
+    note.dataset.state = '';
+    email.value = '';
+    form.hidden = false;
+    submitButton.disabled = false;
+    submitButton.textContent = plan === 'free' ? 'Activate Free Plan' : 'Continue to Checkout';
+    modal.hidden = false;
+    closeButton.focus();
+  }
 
-  const getActiveSubscription = async () => {
-    const storedState = getStoredPlanState();
-
-    try {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) {
-        return { plan: storedState.plan, status: storedState.status };
-      }
-
-      const { data, error } = await supabaseClient
-        .from("subscriptions")
-        .select("plan, status, expiry_date, purchase_date, payment_id, order_id, amount")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .order("purchase_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error || !data) {
-        return { plan: storedState.plan, status: storedState.status };
-      }
-
-      if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
-        return { plan: "free", status: "expired" };
-      }
-
-      return data;
-    } catch (error) {
-      console.warn("Unable to read subscription from Supabase, using local plan state:", error);
-      return { plan: storedState.plan, status: storedState.status };
-    }
-  };
-
-  const getPurchasedPlans = () => {
-    try {
-      return JSON.parse(localStorage.getItem("templifyxPurchasedPlans") || "[]");
-    } catch (error) {
-      return [];
-    }
-  };
-
-  const savePurchasedPlans = (plans) => {
-    localStorage.setItem("templifyxPurchasedPlans", JSON.stringify(plans));
-  };
-
-  const showCheckoutSuccess = (meta, email) => {
-    const overlay = document.createElement("div");
-    overlay.className = "plan-success-overlay";
-    overlay.innerHTML = `
-      <div class="plan-success-card" role="dialog" aria-live="polite" aria-label="Purchase successful">
-        <button class="plan-success-close" aria-label="Close notification">×</button>
-        <div class="plan-success-icon" aria-hidden="true"> 
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="12" cy="12" r="12" fill="#10B981"/>
-            <path d="M7 12.5l2.6 2.6L17 8.7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="plan-success-title">Purchase successful</div>
-        <div class="plan-success-text">Thank you — your <strong>${meta.label}</strong> plan is now active for <strong>${email}</strong>. You can manage your subscription from your dashboard.</div>
-        <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;">
-          <a href="/dashboard.html" class="btn primary" id="planSuccessDashboardBtn" style="border-radius:999px;padding:10px 16px;text-decoration:none;">Go to Dashboard</a>
-          <button id="planSuccessCloseBtn" class="btn outline" style="border-radius:999px;padding:10px 16px;">Close</button>
-        </div>
-      </div>
-    `;
-
-    const card = overlay.querySelector(".plan-success-card");
-    for (let i = 0; i < 10; i += 1) {
-      const particle = document.createElement("div");
-      particle.className = "plan-success-particle";
-      const angle = (i / 10) * Math.PI * 2;
-      const distance = 60 + Math.random() * 40;
-      particle.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
-      particle.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
-      particle.style.left = `${50 + Math.cos(angle) * 18}%`;
-      particle.style.top = `${50 + Math.sin(angle) * 18}%`;
-      particle.style.animationDelay = `${Math.random() * 0.06}s`;
-      card.appendChild(particle);
-    }
-
-    // Close handlers
-    overlay.querySelector('.plan-success-close')?.addEventListener('click', () => overlay.remove());
-    overlay.querySelector('#planSuccessCloseBtn')?.addEventListener('click', () => overlay.remove());
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.remove();
-    });
-
-    document.body.appendChild(overlay);
-    // Auto-dismiss after 4 seconds if user doesn't interact
-    const autoDismiss = setTimeout(() => {
-      if (document.body.contains(overlay)) overlay.remove();
-    }, 4000);
-
-    // Clear auto-dismiss when user opens dashboard
-    overlay.querySelector('#planSuccessDashboardBtn')?.addEventListener('click', () => clearTimeout(autoDismiss));
-  };
-
-  const setSelectedPlan = (card, planName, { isActive = false } = {}) => {
-    const normalizedPlan = normalizePlan(planName || card.dataset.plan || card.querySelector(".plan-type")?.textContent || "free");
-    const planLabel = card.querySelector(".plan-type")?.textContent?.trim() || normalizedPlan;
-
-    cards.forEach((item) => {
-      item.classList.remove("active", "selected-plan");
-      const button = item.querySelector(".plan-btn");
-      if (button && item.dataset.defaultButton) {
-        button.textContent = item.dataset.defaultButton;
-      }
-    });
-
-    card.classList.remove("active");
-    card.classList.add("selected-plan");
-    if (isActive) {
-      card.classList.add("active");
-    }
-
-    const button = card.querySelector(".plan-btn");
-    if (button) {
-      if (isActive) {
-        button.textContent = "Active Plan";
-      } else if (normalizedPlan === "free") {
-        button.textContent = "Get Free Access";
-      } else {
-        button.textContent = `Upgrade ${planLabel}`;
-      }
-    }
-
-    if (isActive || normalizedPlan === 'free') {
-      if (isActive) {
-        localStorage.setItem("planActivatedAt", new Date().toISOString());
-      }
-      // Persist only active plans (or free plan activation). Do not persist "checkout" state locally for paid plans.
-      persistPlanState(normalizedPlan, "active");
-    }
-  };
-
-  const openPlanCheckout = (card) => {
-    const normalizedPlan = normalizePlan(card?.dataset?.plan || "free");
-    // store current checkout plan in a transient variable (don't persist to localStorage)
-    try { window.currentCheckoutPlan = normalizedPlan; } catch (e) { /* ignore */ }
-    if (normalizedPlan === "free") {
-      setSelectedPlan(card, normalizedPlan);
-      return;
-    }
-
-    const meta = planMeta[normalizedPlan] || planMeta.basic;
-    setSelectedPlan(card, normalizedPlan);
-
-    if (checkoutPlanName) checkoutPlanName.textContent = meta.label.toUpperCase();
-    if (checkoutPlanDesc) checkoutPlanDesc.textContent = meta.desc;
-    if (checkoutPlanPrice) checkoutPlanPrice.textContent = meta.price;
-    if (checkoutTitle) checkoutTitle.textContent = `Secure checkout for your ${meta.label} plan.`;
-    if (checkoutModal) {
-      checkoutModal.classList.remove("hidden");
-      requestAnimationFrame(() => checkoutModal.classList.add("show"));
-      checkoutModal.style.display = "flex";
-    }
-  };
-
-  window.closePlanCheckout = () => {
-    if (checkoutModal) {
-      checkoutModal.classList.remove("show");
-      setTimeout(() => {
-        checkoutModal.classList.add("hidden");
-        checkoutModal.style.display = "none";
-      }, 220);
-    }
-    const emailField = document.getElementById("checkoutEmail");
-    if (emailField) emailField.value = "";
-    try { delete window.currentCheckoutPlan; } catch (e) {}
-    try { localStorage.setItem('templifyxSawPlanPrompt', '1'); } catch (e) {}
-  };
-
-  window.handlePlanCheckout = async (event) => {
-    event.preventDefault();
-    const emailField = document.getElementById("checkoutEmail");
-    const email = emailField?.value?.trim();
-    if (!email) {
-      alert("Please enter your email address to complete checkout.");
-      return;
-    }
-
-    const selectedPlan = normalizePlan(window.currentCheckoutPlan || localStorage.getItem("selectedPlan") || "free");
-    // If user selected BASIC, PRO or PREMIUM plan, create a pending subscription in Supabase and redirect to Razorpay
-    if (selectedPlan === "basic" || selectedPlan === "pro" || selectedPlan === "premium") {
+  function showReturnMessage(message, state) {
+    const pending = (() => {
       try {
-        // create a pending subscription record in Supabase (do not store plan/user details in localStorage)
-        const sessionUser = getSessionUser();
-        const insertPayload = {
-          user_id: sessionUser?.id || null,
-          name: sessionUser?.user_metadata?.full_name || null,
-          email: email || null,
-          plan: selectedPlan,
-          amount: getPlanAmount(selectedPlan),
-          payment_id: null,
-          order_id: null,
-          status: 'pending',
-          purchase_date: new Date().toISOString()
-        };
-        const { data: created, error: insertError } = await supabaseClient.from('subscriptions').insert(insertPayload).select().single();
-        if (insertError) {
-          console.warn('Failed to create pending subscription:', insertError);
-        } else if (created && created.id) {
-          // store only the pending subscription id in sessionStorage (not user or plan details)
-          try { sessionStorage.setItem('templifyxPendingSubscriptionId', String(created.id)); } catch (e) {}
+        return JSON.parse(sessionStorage.getItem('templifyxPendingPlanCheckout') || 'null');
+      } catch (error) {
+        return null;
+      }
+    })();
+    const pendingPlan = normalizePlan(pending && pending.plan);
+    const button = planButtons.find((item) => normalizePlan(item.dataset.plan) === pendingPlan);
+    if (button) showPlanModal(button);
+    note.textContent = message;
+    note.dataset.state = state;
+    if (!button) window.alert(message);
+  }
+
+  planButtons.forEach((button) => {
+    button.dataset.originalLabel = button.textContent.trim();
+    button.addEventListener('click', () => {
+      const plan = normalizePlan(button.dataset.plan);
+      if (!plan) return;
+      if (plan === 'free') {
+        try {
+          setActivePlan(plan);
+        } catch (error) {
+          console.error('Unable to activate the free plan:', error);
+          window.alert('The free plan could not be activated in this browser. Please check your browser storage settings and try again.');
         }
-      } catch (e) {
-        console.warn('Error creating pending subscription:', e);
-      }
-
-      // choose Razorpay link per plan
-      const links = {
-        basic: "https://rzp.io/rzp/TemplifyX",
-        pro: "https://rzp.io/rzp/templifyxpro",
-        premium: "https://rzp.io/rzp/templifyxpremium"
-      };
-      const redirectLink = links[selectedPlan] || links.basic;
-      // Redirect to Razorpay payment link
-      window.location.href = redirectLink;
-      return;
-    }
-    const meta = planMeta[selectedPlan] || planMeta.basic;
-    const purchasedPlans = getPurchasedPlans();
-    const existing = purchasedPlans.find((plan) => normalizePlan(plan.plan) === selectedPlan);
-
-    if (existing) {
-      existing.status = "active";
-      existing.purchasedAt = new Date().toISOString();
-      existing.email = email;
-    } else {
-      purchasedPlans.push({
-        plan: selectedPlan,
-        status: "active",
-        purchasedAt: new Date().toISOString(),
-        email
-      });
-    }
-
-    savePurchasedPlans(purchasedPlans);
-    // Activate immediately for free plan (no payment required)
-    persistPlanState(selectedPlan, "active", email);
-
-    cards.forEach((card) => {
-      const planName = normalizePlan(card.dataset.plan || card.querySelector(".plan-type")?.textContent || "free");
-      if (planName === selectedPlan) {
-        setSelectedPlan(card, selectedPlan, { isActive: true });
-      }
-    });
-
-    showCheckoutSuccess(meta, email);
-    window.closePlanCheckout();
-  };
-
-  cards.forEach((card) => {
-    const button = card.querySelector(".plan-btn");
-    if (button) {
-      card.dataset.defaultButton = button.textContent;
-    }
-
-    const planName = normalizePlan(card.dataset.plan || card.querySelector(".plan-type")?.textContent || "free");
-    card.dataset.plan = planName;
-
-    const badge = document.createElement("div");
-    badge.className = "selected-badge";
-    badge.textContent = "Selected";
-    card.appendChild(badge);
-
-    card.addEventListener("click", () => {
-      if (planName === "free") {
-        setSelectedPlan(card, planName);
         return;
       }
-      openPlanCheckout(card);
-    });
-
-    button?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (planName === "free") {
-        setSelectedPlan(card, planName);
-        return;
-      }
-      openPlanCheckout(card);
+      showPlanModal(button);
     });
   });
 
- // Before: reads getPurchasedPlans() from localStorage
-// After:
-(async () => {
-  const sub = await getActiveSubscription();
-  const resolvedPlan = normalizePlan(sub.plan);
-  const isActive = sub.status === 'active';
-  const matchingCard = Array.from(cards).find((card) => normalizePlan(card.dataset.plan) === resolvedPlan);
-  if (matchingCard) {
-    setSelectedPlan(matchingCard, resolvedPlan, { isActive });
+  modal.querySelectorAll('[data-pricing-close]').forEach((button) => {
+    button.addEventListener('click', closeModal);
+  });
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal.querySelector('.tx-pricing-backdrop')) closeModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hidden) closeModal();
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!email.validity.valid) {
+      email.reportValidity();
+      return;
+    }
+
+    const plan = normalizePlan(activeButton && activeButton.dataset.plan);
+    const address = email.value.trim();
+    if (!plan) {
+      note.textContent = 'Select a valid plan before continuing.';
+      note.dataset.state = 'error';
+      return;
+    }
+
+    if (plan === 'free') {
+      try {
+        setActivePlan(plan);
+        closeModal();
+      } catch (error) {
+        console.error('Unable to activate the free plan:', error);
+        note.textContent = 'The free plan could not be activated. Please check your browser storage settings and try again.';
+        note.dataset.state = 'error';
+      }
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Opening secure checkout…';
+    note.textContent = '';
+    try {
+      sessionStorage.setItem('templifyxPendingPlanCheckout', JSON.stringify({ plan, email: address }));
+      sessionStorage.setItem('templifyxCheckoutReturnPath', '/newindex.html');
+    } catch (error) {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Continue to Checkout';
+      note.textContent = 'Checkout could not be started because session storage is unavailable.';
+      note.dataset.state = 'error';
+      return;
+    }
+
+    window.location.assign(paymentLinks[plan]);
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  const paymentId = params.get('razorpay_payment_id') || params.get('payment_id') || params.get('paymentId');
+  const paymentStatus = params.get('razorpay_payment_link_status');
+  if (paymentId || paymentStatus) {
+    (async () => {
+      let pending;
+      try {
+        pending = JSON.parse(sessionStorage.getItem('templifyxPendingPlanCheckout') || 'null');
+      } catch (error) {
+        pending = null;
+      }
+
+      try {
+        if (!paymentId || !pending || !normalizePlan(pending.plan) || !paymentLinks[pending.plan]) {
+          throw new Error(paymentStatus && paymentStatus !== 'paid'
+            ? 'The payment was not completed. No plan was activated.'
+            : 'Checkout return details are missing, so the payment could not be verified.');
+        }
+
+        const response = await fetch('/api/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ payment_id: paymentId, plan: pending.plan, email: pending.email })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || 'Payment verification failed. Your plan has not been activated.');
+        }
+        if (normalizePlan(result.plan) !== normalizePlan(pending.plan)) {
+          throw new Error('The verified payment does not match the selected plan. Please contact support.');
+        }
+
+        setActivePlan(result.plan, pending.email);
+        showReturnMessage(`Payment verified. Your ${planMeta[result.plan].label} plan is active.`, 'success');
+        form.hidden = true;
+      } catch (error) {
+        console.error('Plan checkout return could not be verified:', error);
+        const message = error instanceof TypeError
+          ? 'Could not reach the payment verification service. Open this page through the TemplifyX server and try again.'
+          : (error.message || 'Payment verification failed. Your plan has not been activated.');
+        showReturnMessage(message, 'error');
+      } finally {
+        try {
+          sessionStorage.removeItem('templifyxPendingPlanCheckout');
+          sessionStorage.removeItem('templifyxCheckoutReturnPath');
+        } catch (storageError) {
+          console.warn('Unable to clear checkout session details:', storageError);
+        }
+        history.replaceState({}, document.title, window.location.pathname);
+      }
+    })();
+  } else {
+    const stored = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(getPlanStorageKey(getSessionUser())) || 'null');
+      } catch (error) {
+        return null;
+      }
+    })();
+    if (stored && stored.status === 'active' && normalizePlan(stored.plan)) {
+      const button = planButtons.find((item) => normalizePlan(item.dataset.plan) === stored.plan);
+      if (button) {
+        button.closest('.tx-pricing-card').classList.add('is-active');
+        button.textContent = 'Active Plan';
+        button.setAttribute('aria-pressed', 'true');
+      }
+    }
   }
 })();
-});
 </script>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "TemplifyX",
-  "url": "https://templifyx.store/",
-  "logo": "https://templifyx.store/images/TemplifyX.png"
-}
-</script>
-
-
-
-</body>
+  </body>
 </html>

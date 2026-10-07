@@ -9,11 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0,0,0,0.4) 100%);
+            color-scheme: dark;
+            --bg: #030509;
+            --white: #f6f8ff;
+            --muted: #c8ced9;
             --card: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0,0,0,0.4) 100%);
             --dark: #e1d5d5fc;
             --text: #ffffff;
-            --muted: hwb(0 97% 3%);
             --border: #faf3f3;
             --black: #ffffff;
             --error: #dc2626;
@@ -27,30 +29,38 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            min-width: 320px;
+            min-height: 100%;
+            margin: 0;
+            background: transparent;
+        }
+
         body {
             min-height: 100vh;
-            background: #050608;
             color: var(--text);
             position: relative;
             overflow-x: hidden;
+            background: transparent;
+            z-index: 0;
         }
 
-        /* Background video */
-        #background-video {
+        #cosmos {
             position: fixed;
             inset: 0;
+            z-index: 0;
+            display: block;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: -2;
             pointer-events: none;
-            opacity: 0.95;
         }
 
         #authPage {
             min-height: 100vh;
             position: relative;
             z-index: 1;
+            isolation: isolate;
         }
 
         .auth-layout {
@@ -661,11 +671,7 @@
         </style>
 </head>
 <body>
-    <video id="background-video" autoplay muted loop playsinline aria-hidden="true">
-        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
-    </video>
-    <div class="grid-bg" aria-hidden="true"></div>
-    <div class="glow-bg" aria-hidden="true"></div>
+    <canvas id="cosmos" aria-hidden="true"></canvas>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
@@ -1155,15 +1161,8 @@
             }
         });
 
-        // No-op background initializer now that we use a background video
-        function initEvilEyeBackground() {
-            // background video is present in DOM; nothing to initialize here
-            return;
-        }
-
         // Initialize page on load
         document.addEventListener('DOMContentLoaded', function() {
-            initEvilEyeBackground();
             checkSession();
             // Reset all forms
             document.getElementById('loginEmail').value = '';
@@ -1565,6 +1564,155 @@
                 showAuthPage();
             }
         }
+    </script>
+
+    <script>
+        (() => {
+            const canvas = document.getElementById("cosmos");
+            const ctx = canvas.getContext("2d");
+            const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+            let width = 0, height = 0, dpr = 1, frame = 0;
+            let particles = [];
+            let pointer = { x: -1000, y: -1000 };
+
+            const random = (min, max) => min + Math.random() * (max - min);
+
+            function resize() {
+                dpr = Math.min(window.devicePixelRatio || 1, 2);
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = Math.round(width * dpr);
+                canvas.height = Math.round(height * dpr);
+                canvas.style.width = width + "px";
+                canvas.style.height = height + "px";
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                const count = Math.max(75, Math.min(190, Math.round(width * height / 6200)));
+                particles = Array.from({ length: count }, () => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const band = Math.random();
+                    const radius = band < .68 ? random(.29, .52) : random(.18, .68);
+                    return {
+                        angle,
+                        radius,
+                        speed: random(-.00022, .00022) * (Math.random() < .5 ? 1 : -1),
+                        wobble: random(0, Math.PI * 2),
+                        wobbleSpeed: random(.001, .006),
+                        size: Math.random() < .12 ? random(1.4, 2.5) : random(.45, 1.25),
+                        opacity: random(.28, .88),
+                        phase: Math.random() * 1000
+                    };
+                });
+            }
+
+            function draw(time) {
+                frame = time;
+                ctx.clearRect(0, 0, width, height);
+
+                const bg = ctx.createRadialGradient(width * .5, height * .49, 0, width * .5, height * .49, Math.max(width, height) * .7);
+                bg.addColorStop(0, "rgba(25, 31, 43, .42)");
+                bg.addColorStop(0.28, "rgba(8, 11, 17, .26)");
+                bg.addColorStop(1, "rgba(2, 3, 6, 0)");
+                ctx.fillStyle = "#05070b";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, width, height);
+
+                const cx = width * .5;
+                const cy = height * .51;
+                const scale = Math.min(width, height);
+                const rx = Math.min(width * .43, scale * .81);
+                const ry = Math.min(height * .43, scale * .48);
+                const positions = particles.map(p => {
+                    const wobble = Math.sin(time * p.wobbleSpeed + p.wobble) * 5;
+                    const angle = p.angle + (reduceMotion.matches ? 0 : time * p.speed);
+                    return {
+                        x: cx + Math.cos(angle) * (rx * p.radius + wobble),
+                        y: cy + Math.sin(angle) * (ry * p.radius + wobble * .62),
+                        size: p.size,
+                        opacity: p.opacity,
+                        phase: p.phase
+                    };
+                });
+
+                const maxDistance = Math.max(54, Math.min(105, scale * .18));
+                for (let i = 0; i < positions.length; i++) {
+                    const a = positions[i];
+                    for (let j = i + 1; j < positions.length; j++) {
+                        const b = positions[j];
+                        const dx = a.x - b.x, dy = a.y - b.y;
+                        const distance = Math.hypot(dx, dy);
+                        if (distance < maxDistance) {
+                            const alpha = (1 - distance / maxDistance) * .19;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.strokeStyle = `rgba(198, 216, 255, ${alpha})`;
+                            ctx.lineWidth = .65;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (let k = 0; k < 3; k++) {
+                    const shift = time * (reduceMotion.matches ? 0 : .000025) * (k % 2 ? -1 : 1);
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy, rx * (.77 + k * .105), ry * (.73 + k * .095), -.12 + k * .08 + shift, .18 + k * .62, 2.7 + k * .4);
+                    ctx.strokeStyle = `rgba(208, 224, 255, ${.075 - k * .014})`;
+                    ctx.lineWidth = .8;
+                    ctx.stroke();
+                }
+
+                positions.forEach((p, i) => {
+                    const pulse = .72 + Math.sin(time * .0015 + p.phase) * .28;
+                    const glow = p.size > 1.4 ? 11 : 0;
+                    if (glow) {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, glow * pulse, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(183, 210, 255, ${.13 * p.opacity})`;
+                        ctx.fill();
+                    }
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * pulse, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(241, 247, 255, ${p.opacity})`;
+                    ctx.fill();
+                });
+
+                if (pointer.x >= 0) {
+                    const light = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 170);
+                    light.addColorStop(0, "rgba(111, 153, 225, .09)");
+                    light.addColorStop(1, "rgba(111, 153, 225, 0)");
+                    ctx.fillStyle = light;
+                    ctx.fillRect(pointer.x - 170, pointer.y - 170, 340, 340);
+                }
+
+                if (!reduceMotion.matches) requestAnimationFrame(draw);
+            }
+
+            window.addEventListener("resize", () => {
+                resize();
+                if (reduceMotion.matches) draw(frame);
+            }, { passive: true });
+
+            window.addEventListener("pointermove", event => {
+                pointer.x = event.clientX;
+                pointer.y = event.clientY;
+                if (reduceMotion.matches) draw(frame);
+            }, { passive: true });
+
+            window.addEventListener("pointerleave", () => {
+                pointer.x = pointer.y = -1000;
+                if (reduceMotion.matches) draw(frame);
+            });
+
+            reduceMotion.addEventListener?.("change", () => {
+                if (!reduceMotion.matches) requestAnimationFrame(draw);
+                else draw(frame);
+            });
+
+            resize();
+            requestAnimationFrame(draw);
+        })();
     </script>
 </body>
 </html>

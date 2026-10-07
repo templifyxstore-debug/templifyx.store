@@ -78,7 +78,8 @@ function serveHtmlPage(req, res, next) {
 }
 
 app.get('/:page.html', (req, res) => {
-  res.redirect(`/${req.params.page}/`);
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  res.redirect(`/${req.params.page}/${query}`);
 });
 
 app.get('/:page', serveHtmlPage);
@@ -88,6 +89,8 @@ app.use(express.static(path.join(__dirname)));
 // Razorpay integration: verify payment status using server-side secret
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+const RAZORPAY_PLAN_CURRENCY = (process.env.RAZORPAY_PLAN_CURRENCY || 'USD').toUpperCase();
+const RAZORPAY_PLAN_AMOUNTS_MINOR = { basic: 1900, pro: 2900, premium: 5900 };
 const fetchImpl = globalThis.fetch || require('node-fetch');
 
 function authMiddleware(req, res, next) {
@@ -166,6 +169,11 @@ app.get('/preview', (req, res) => {
 app.post('/api/verify-payment', authMiddleware, async (req, res) => {
   const { payment_id, plan, email } = req.body || {};
   if (!payment_id) return res.status(400).json({ error: 'Missing payment_id' });
+  const normalizedPlan = String(plan || '').trim().toLowerCase();
+  const expectedAmount = normalizedPlan ? RAZORPAY_PLAN_AMOUNTS_MINOR[normalizedPlan] : null;
+  if (normalizedPlan && !expectedAmount) {
+    return res.status(400).json({ error: 'A valid paid plan is required.' });
+  }
 
   if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
     return res.status(501).json({ error: 'Razorpay not configured on server.' });
@@ -186,18 +194,32 @@ app.post('/api/verify-payment', authMiddleware, async (req, res) => {
     }
 
     const data = await resp.json();
-    // Razorpay payment statuses: created, authorized, captured, failed, refunded
-    if (data.status === 'captured' || data.status === 'authorized') {
-      // mark purchased for demo user
-      const userId = req.user.id;
-      userPurchases[userId] = userPurchases[userId] || new Set();
-      // map plan to a pseudo product id for demo purposes
-      const productId = `plan_${String(plan || 'basic')}`.toUpperCase();
-      userPurchases[userId].add(productId);
+    if (data.status !== 'captured') {
+      return res.status(409).json({ error: 'Payment has not been captured.', status: data.status });
+    }
+
+    if (normalizedPlan && (data.currency !== RAZORPAY_PLAN_CURRENCY || data.amount !== expectedAmount)) {
+      return res.status(409).json({ error: 'Payment amount or currency does not match the selected plan.' });
+    }
+
+    const userId = req.user.id;
+    userPurchases[userId] = userPurchases[userId] || new Set();
+    const productId = `PLAN_${(normalizedPlan || 'basic').toUpperCase()}`;
+    userPurchases[userId].add(productId);
+
+    if (!normalizedPlan) {
       return res.json({ ok: true, status: data.status, productId });
     }
 
-    return res.status(400).json({ ok: false, status: data.status });
+    return res.json({
+      ok: true,
+      status: data.status,
+      plan: normalizedPlan,
+      email: String(email || ''),
+      amount: data.amount / 100,
+      currency: data.currency,
+      payment_id
+    });
   } catch (err) {
     console.error('verify-payment error', err);
     return res.status(500).json({ error: 'Internal error' });

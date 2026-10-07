@@ -23,15 +23,38 @@
   }
   * { font-family: 'Inter', sans-serif; }
   body {
-    background: var(--bg);
+    background: transparent;
     color: var(--text);
     overflow-x: hidden;
     position: relative;
     min-height: 100vh;
     isolation: isolate;
   }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 49%, rgba(25, 31, 43, .4) 0, rgba(8, 11, 17, .25) 28%, transparent 61%),
+      linear-gradient(145deg, #05070b 0%, #020306 55%, #070a10 100%);
+  }
+
+  #cosmos {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
   /* background video will be placed in the DOM; keep styles concise */
   #background-video {
+    display: none;
     position: fixed;
     inset: 0;
     width: 100%;
@@ -42,6 +65,7 @@
     opacity: 0.95;
   }
   .glow-bg {
+    display: none;
     position: fixed;
     inset: 0;
     pointer-events: none;
@@ -52,6 +76,7 @@
       radial-gradient(700px circle at 50% 90%, rgba(59, 130, 246, 0.08), transparent 50%);
   }
   .grid-bg {
+    display: none;
     position: fixed;
     inset: 0;
     background-image:
@@ -69,37 +94,110 @@
   }
   .glass:hover { border-color: var(--border-hover); }
   .card {
-    background: #000000;
+    background: #07070a;
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 22px;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 14px 36px rgba(0,0,0,0.4);
   }
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgb(0, 0, 0), transparent 50%);
-    background: linear-gradient(#e0060600 0 0) content-box, linear-gradient(#ffffff00 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.4s;
-    pointer-events: none;
+  .card .product-card-preview {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    background: #07070a;
+    cursor: pointer;
+    text-align: left;
   }
-  .card:hover::before { opacity: 1; }
+  .card .product-card-preview img,
+  .card .product-card-preview video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.55s ease;
+  }
+  .card:hover .product-card-preview img,
+  .card:hover .product-card-preview video { transform: scale(1.035); }
+  .card .product-card-preview:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
+  }
+  .card .product-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding: 15px 17px;
+    background: #07070a;
+  }
+  .card .product-card-name {
+    overflow: hidden;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card .product-card-plan {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .card .product-card-plan-icon {
+    font-size: 11px;
+    line-height: 1;
+  }
+  .card .product-card-buy {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 7px;
+    padding: 9px 13px;
+    background: #fff;
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .card .product-card-buy:hover {
+    background: #e5e5e5;
+    transform: translateY(-1px);
+  }
+  .card.is-returning {
+    transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+  }
   .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 30px 60px -20px #949292 , 0 0 40px -10px rgba(139, 92, 246, 0.2);
+    border-color: rgba(255,255,255,0.28);
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.12), 0 0 40px -10px rgba(99,102,241,0.3);
+    transform: translateY(-3px);
   }
+  .template-card-preview + .p-4 { min-height: 154px; }
   .card-img-wrap {
     position: relative;
     overflow: hidden;
-    aspect-ratio: 4/3;
+    aspect-ratio: 16/10;
   }
+  #productsGrid .card-img-wrap > button { display: none; }
   .card-img-wrap img {
     transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
     width: 100%;
@@ -290,6 +388,9 @@
     opacity: 1;
     transition: opacity 0.2s ease;
     min-height: 240px;
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+    perspective: 1400px;
   }
   #productsGrid.is-loading {
     opacity: 0;
@@ -471,6 +572,106 @@
     color: #fff;
     border: 1px solid rgba(255,255,255,0.18);
   }
+  .product-details-overlay {
+    align-items: center;
+    background: rgba(0,0,0,0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .product-details-overlay:not(.hidden) {
+    animation: productDetailsBackdropIn 220ms ease-out both;
+  }
+  .product-details-dialog {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.95fr);
+    grid-template-rows: minmax(0, 1fr);
+    width: min(1320px, 100%);
+    height: min(550px, calc(100vh - 48px));
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    background: #0a0b0e;
+    box-shadow: 0 28px 90px rgba(0,0,0,0.65);
+    transform-origin: center;
+    animation: productDetailsDialogIn 280ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  }
+  @keyframes productDetailsBackdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes productDetailsDialogIn {
+    from { opacity: 0; transform: translateY(14px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .product-details-overlay:not(.hidden),
+    .product-details-dialog {
+      animation: none;
+    }
+  }
+  .product-details-preview {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #050609;
+  }
+  .product-details-preview img,
+  .product-details-preview video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .product-details-preview:fullscreen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050609;
+  }
+  .product-details-preview:fullscreen img,
+  .product-details-preview:fullscreen video {
+    object-fit: contain;
+  }
+  .product-details-content {
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 32px;
+  }
+  .product-details-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: #d1d5db;
+    line-height: 1.5;
+  }
+  .product-details-feature i {
+    margin-top: 4px;
+    color: #34d399;
+    font-size: 13px;
+  }
+  @media (max-width: 760px) {
+    .product-details-overlay {
+      align-items: flex-start;
+      padding: 12px;
+      overflow-y: auto;
+    }
+    .product-details-dialog {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(220px, 42vh) auto;
+      height: auto;
+      min-height: calc(100vh - 24px);
+      overflow: visible;
+    }
+    .product-details-preview {
+      border-radius: 17px 17px 0 0;
+    }
+    .product-details-content {
+      overflow: visible;
+      padding: 24px;
+    }
+  }
 </style>
 </head>
 <body class="min-h-screen">
@@ -498,6 +699,7 @@
   </ul>
 </aside>
 
+  <canvas id="cosmos" aria-hidden="true"></canvas>
   <video id="background-video" autoplay muted loop playsinline aria-hidden="true">
     <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
   </video>
@@ -542,60 +744,6 @@
     </div>
   </header>
 
-  <!-- Hero / Section Header -->
-  <section class="max-w-7xl mx-auto px-6 pt-20 pb-10">
-    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
-      <div class="max-w-3xl">
-        <div class="pill-products inline-block mb-6">
-          <i class="fa-solid fa-bolt text-[10px] mr-1"></i> Products
-        </div>
-        <h1 class="headline">Latest From<br/>The Team.</h1>
-        <p class="text-white/50 mt-6 text-lg max-w-xl leading-relaxed">
-          Hand-crafted design systems, web templates, and mobile UI kits built for modern teams who ship fast.
-        </p>
-        <p class="text-white/60 mt-3 text-sm max-w-xl leading-relaxed" id="adminProductNote">
-          Admin note: You can review and update product pricing and details directly from each product card before customers check out.
-        </p>
-      </div>
-
-      <div class="glass rounded-2xl p-6 max-w-sm">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-info text-white/80 text-sm"></i>
-          </div>
-          <div>
-            <p class="text-white font-semibold text-sm mb-1">How it works</p>
-            <p class="text-white/50 text-sm leading-relaxed">
-              Open any product card to view details, then add it to cart and proceed to checkout.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
-      <div class="glass rounded-2xl p-5">
-        <div class="stat-num">120+</div>
-        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Products</div>
-      </div>
-      <div class="glass rounded-2xl p-5">
-        <div class="stat-num">24k</div>
-        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Customers</div>
-      </div>
-      <div class="glass rounded-2xl p-5">
-        <div class="stat-num">4.9<span class="text-white/30">/5</span></div>
-        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Rating</div>
-      </div>
-      <div class="glass rounded-2xl p-5">
-        <div class="stat-num">Soon</div>
-        <div class="text-white/50 text-xs mt-1 uppercase tracking-widest">Updates</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider max-w-7xl mx-auto"></div>
-
   <!-- Filters -->
   <section class="max-w-7xl mx-auto px-6 py-8">
     <div class="flex flex-wrap items-center justify-between gap-4">
@@ -608,6 +756,7 @@
         <button class="filter-btn" data-filter="web">Web Templates</button>
         <button class="filter-btn" data-filter="sign-ui">Sign UI</button>
         <button class="filter-btn" data-filter="icons">Icons</button>
+        <button class="filter-btn" data-filter="portfolio">Portfolio</button>
       </div>
       <div class="flex items-center gap-3 text-sm text-white/50">
         <span>Sort:</span>
@@ -620,14 +769,12 @@
 
   <!-- Products Grid -->
   <section class="max-w-7xl mx-auto px-6 pb-24">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 is-loading" id="productsGrid" aria-busy="true">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8 is-loading" id="productsGrid" aria-busy="true">
 
       <!-- Card 1 -->
-      <article class="card" data-filter="web" data-product-id="G7H8I9" data-product-name="Digital Product Web Template" data-product-price="0" data-product-old-price="99" data-product-category="HTML" data-product-tech="Figma" data-product-rating="4.9" data-product-sales="320" data-product-image="video/web2.mp4">
+      <article class="card" data-filter="web" data-product-id="G7H8I9" data-product-name="Digital Product Web Template" data-product-price="0" data-product-old-price="99" data-product-category="HTML" data-product-tech="Figma" data-product-rating="4.9" data-product-sales="320" data-product-image="https://res.cloudinary.com/dtz0urit6/image/upload/q_auto:best,f_jpg/cloudinary-tools-uploads/zf1hyt6k77phkyfsfrho">
         <div class="card-img-wrap">
-          <video class="w-full h-full object-cover" autoplay muted loop playsinline>
-            <source src="video/web2.mp4" type="video/mp4">
-          </video>
+          <img class="w-full h-full object-cover" src="https://res.cloudinary.com/dtz0urit6/image/upload/q_auto:best,f_jpg/cloudinary-tools-uploads/zf1hyt6k77phkyfsfrho" alt="Digital Product Web Template"/>
           <div class="img-overlay"></div>
           <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm">
             <i class="fa-regular fa-heart"></i>
@@ -649,7 +796,7 @@
           <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
             <div class="flex items-baseline gap-2">
               <span class="price-old">$99</span>
-              <span class="price-new">$Free</span>
+              <span class="price-new"></span>
             </div>
             <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2" onclick="showProductDetails('G7H8I9')">
               View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
@@ -1107,59 +1254,54 @@
   </button>
 
   <!-- Product Details Modal -->
-  <div id="productDetailsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.8);" onclick="closeProductDetails(event)">
-    <div class="bg-black border border-white/10 rounded-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-      <div class="flex justify-between items-start mb-6">
-        <h2 id="detailsProductName" class="text-3xl font-bold"></h2>
-        <button class="text-white/60 hover:text-white text-2xl" onclick="closeProductDetails()">×</button>
+  <div id="productDetailsModal" class="product-details-overlay hidden fixed inset-0 z-50 flex justify-center p-4" onclick="closeProductDetails(event)">
+    <div class="product-details-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsProductName" onclick="event.stopPropagation()">
+      <div id="detailsPreviewStage" class="product-details-preview">
+        <img id="detailsProductImage" src="" alt=""/>
+        <video id="detailsProductVideo" class="hidden" autoplay muted loop playsinline></video>
       </div>
-      <div class="flex items-center justify-between gap-4 mb-4 text-sm text-white/60">
-        <span class="flex items-center gap-2">
-          <span id="detailsProductId" class="uppercase tracking-[0.2em] text-xs font-medium"></span>
+
+      <section class="product-details-content">
+        <button class="absolute top-5 right-5 w-11 h-11 rounded-full border border-white/20 bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition text-2xl" aria-label="Close product details" onclick="closeProductDetails()">×</button>
+        <h2 id="detailsProductName" class="text-3xl md:text-4xl font-extrabold tracking-tight pr-10 mb-5"></h2>
+        <p id="detailsDescription" class="text-white/60 leading-relaxed mb-6"></p>
+
+        <div class="grid grid-cols-2 gap-3 mb-6 text-sm">
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+            <p class="text-white/40 text-[10px] uppercase tracking-[0.16em] mb-1">Product ID</p>
+            <p id="detailsProductId" class="text-white/85 font-medium break-all"></p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+            <p class="text-white/40 text-[10px] uppercase tracking-[0.16em] mb-1">Category</p>
+            <p id="detailsCategory" class="text-white/85 font-medium"></p>
+          </div>
+        </div>
+
+        <ul class="space-y-3 mb-6">
+          <li class="product-details-feature"><i class="fa-solid fa-check"></i><span>Technology: <span id="detailsTech"></span></span></li>
+          <li class="product-details-feature"><i class="fa-solid fa-check"></i><span id="detailsRating"><i class="fa-solid fa-star text-yellow-400"></i></span></li>
+          <li class="product-details-feature"><i class="fa-solid fa-check"></i><span id="detailsSales"></span></li>
+        </ul>
+
+        <div class="flex items-center gap-3 mb-6">
           <span id="detailsTier" class="tier-badge-inline"></span>
-        </span>
-      </div>
-      
-      <img id="detailsProductImage" src="" alt="" class="w-full h-96 object-cover rounded-xl mb-6"/>
-      <video id="detailsProductVideo" class="hidden w-full h-96 object-cover rounded-xl mb-6" autoplay muted loop playsinline></video>
-      
-      <div class="space-y-4 mb-8">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-white/50 text-sm uppercase tracking-widest mb-2" id="detailsCategory"></p>
-            <div class="flex items-center gap-3">
-              <span id="detailsRating" class="text-yellow-400"><i class="fa-solid fa-star"></i></span>
-              <span id="detailsSales" class="text-white/60 text-sm"></span>
-            </div>
-          </div>
-          <div class="text-right">
-            <div class="flex items-baseline gap-3 mb-2">
-              <span id="detailsOldPrice" class="price-old"></span>
-              <span id="detailsNewPrice" class="price-new"></span>
-            </div>
-            <p class="text-white/50 text-sm" id="detailsSavings"></p>
-          </div>
+          <span id="detailsOldPrice" class="price-old"></span>
+          <span id="detailsNewPrice" class="price-new"></span>
+          <span id="detailsSavings" class="text-white/50 text-sm"></span>
         </div>
 
-        <div class="border-t border-white/5 pt-4">
-          <h3 class="font-semibold mb-2">Description</h3>
-          <p id="detailsDescription" class="text-white/70 leading-relaxed"></p>
+        <div class="flex flex-wrap gap-3">
+          <button class="btn-white px-5 py-3 rounded-xl" onclick="enterProductFullscreen()">
+            Enter Fullscreen
+          </button>
+          <button class="border border-white/25 text-white font-semibold px-5 py-3 rounded-xl hover:bg-white/5 transition" onclick="addToCart()">
+            <i class="fa-solid fa-cart-plus mr-2"></i> Add to Cart
+          </button>
+          <button class="border border-white/25 text-white font-semibold px-5 py-3 rounded-xl hover:bg-white/5 transition" onclick="closeProductDetails()">
+            Close
+          </button>
         </div>
-
-        <div class="border-t border-white/5 pt-4">
-          <h3 class="font-semibold mb-2">Tech Stack</h3>
-          <p id="detailsTech" class="text-white/70"></p>
-        </div>
-      </div>
-
-      <div class="flex gap-3">
-        <button class="flex-1 bg-white text-black font-bold py-3 rounded-full hover:bg-white/90 transition" onclick="addToCart()">
-          <i class="fa-solid fa-cart-plus mr-2"></i> Add to Cart
-        </button>
-        <button class="flex-1 border border-white/20 text-white font-bold py-3 rounded-full hover:bg-white/5 transition" onclick="closeProductDetails()">
-          Close
-        </button>
-      </div>
+      </section>
     </div>
   </div>
 
@@ -1754,55 +1896,37 @@ async function refreshPlanTier() {
                      normalizedCat.includes('icon') ? 'icons' :
                      normalizedCat.includes('ui') || normalizedCat.includes('mobile') ? 'ui' :
                      'web';
-      const tag = products.indexOf(p) === 0 ? 'New' : products.indexOf(p) < 3 ? 'Popular' : 'Premium';
       const tier = normalizePlanName(p.tier || 'free');
       const tierStyles = {
-        free: { label:'Free', color:'#cbd5e1', bg:'rgba(203,213,225,0.16)' },
-        basic: { label:'Basic', color:'#cbd5e1', bg:'rgba(203,213,225,0.16)' },
-        pro: { label:'Pro', color:'#facc15', bg:'rgba(250,204,21,0.18)' },
-        premium: { label:'Premium', color:'#f87171', bg:'rgba(248,113,113,0.18)' }
+        free: { label:'Free', color:'#cbd5e1', bg:'rgba(203,213,225,0.16)', crown:'#ffffff', crownGlow:'none' },
+        basic: { label:'Basic', color:'#7dd3fc', bg:'rgba(125,211,252,0.18)', crown:'#7dd3fc', crownGlow:'drop-shadow(0 0 3px rgba(125,211,252,0.9)) drop-shadow(0 0 6px rgba(125,211,252,0.55))' },
+        pro: { label:'Pro', color:'#facc15', bg:'rgba(250,204,21,0.18)', crown:'#facc15', crownGlow:'drop-shadow(0 0 3px rgba(250,204,21,0.9)) drop-shadow(0 0 6px rgba(250,204,21,0.55))' },
+        premium: { label:'Premium', color:'#f87171', bg:'rgba(248,113,113,0.18)', crown:'#fb4c5c', crownGlow:'drop-shadow(0 0 3px rgba(251,76,92,0.95)) drop-shadow(0 0 7px rgba(251,76,92,0.7))' }
       };
       const tierData = tierStyles[tier] || tierStyles.free;
-      const tierBadge = `<span class="tier-badge-card" style="color:${tierData.color};background:${tierData.bg};"><i class="fa-solid fa-crown"></i>${tierData.label}</span>`;
-      const isVideo = /\.(mp4|webm|ogg)$/i.test(p.previewImage || '');
+      const cardPreviewImage = /^digital products? web template$/i.test(String(p.name || ''))
+        ? 'https://res.cloudinary.com/dtz0urit6/image/upload/q_auto:best,f_jpg/cloudinary-tools-uploads/zf1hyt6k77phkyfsfrho'
+        : p.previewImage || '';
+      const isVideo = /\.(mp4|webm|ogg)$/i.test(cardPreviewImage);
       const canAccess = canAccessProductTier(tier);
-      const accessText = canAccess ? 'View Details' : `Unlock ${getPlanLabel(tier)}`;
-      const accessAction = canAccess ? `showProductDetails('${escapeHtml(p.product_id)}')` : `showUpgradeRequiredModal('${escapeHtml(p.name)}', '${escapeHtml(tier)}')`;
-      const lockOverlay = canAccess ? '' : `<div class="absolute inset-x-4 bottom-4 z-10"><div class="rounded-xl border border-amber-400/30 bg-black/80 px-3 py-2 text-[11px] text-amber-200 backdrop-blur"><div class="font-semibold">Locked for ${getPlanLabel(getCurrentPlanTier())} plan</div><div class="mt-1 text-white/70">Upgrade to unlock this template</div></div></div>`;
+      const sales = Math.floor(Math.random() * 1000);
+      const buyAction = canAccess
+        ? `buyProductFromCard('${escapeHtml(p.product_id)}')`
+        : `showUpgradeRequiredModal('${escapeHtml(p.name)}', '${escapeHtml(tier)}')`;
       
       return `
-      <article class="card" data-filter="${filter}" data-product-id="${escapeHtml(p.product_id)}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price||0}" data-product-old-price="${p.price ? p.price * 1.5 : 99}" data-product-category="${escapeHtml(cat)}" data-product-tech="${escapeHtml(p.code)}" data-product-rating="4.9" data-product-sales="${Math.floor(Math.random()*1000)}" data-product-image="${escapeHtml(p.previewImage||'')}" data-product-tier="${escapeHtml(tier)}">
-        <div class="card-img-wrap">
-          ${isVideo ? `<video class="w-full h-full object-cover" autoplay muted loop playsinline><source src="${escapeHtml(p.previewImage)}" type="video/mp4"></video>` : `<img src="${escapeHtml(p.previewImage)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'"/>`}
-          <div class="img-overlay"></div>
-          <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 border border-white/10 backdrop-blur hover:bg-white hover:text-black transition text-white/80 text-sm" onclick="event.stopPropagation()">
-            <i class="fa-regular fa-heart"></i>
+      <article class="card group" data-filter="${filter}" data-product-id="${escapeHtml(p.product_id)}" data-product-name="${escapeHtml(p.name)}" data-product-description="${escapeHtml(p.description || '')}" data-product-price="${p.price||0}" data-product-old-price="${p.price ? p.price * 1.5 : 99}" data-product-category="${escapeHtml(cat)}" data-product-tech="${escapeHtml(p.code)}" data-product-rating="4.9" data-product-sales="${sales}" data-product-image="${escapeHtml(cardPreviewImage)}" data-product-tier="${escapeHtml(tier)}">
+        <button class="product-card-preview" type="button" onclick="showProductDetails('${escapeHtml(p.product_id)}')" aria-label="View details for ${escapeHtml(p.name)}">
+          ${isVideo ? `<video src="${escapeHtml(cardPreviewImage)}" autoplay muted loop playsinline></video>` : `<img src="${escapeHtml(cardPreviewImage)}" alt="${escapeHtml(p.name)} preview" onerror="this.style.display='none'"/>`}
+        </button>
+        <div class="product-card-footer">
+          <div class="min-w-0">
+            <h3 class="product-card-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
+            <span class="product-card-plan" style="color:${tierData.color};background:${tierData.bg};"><i class="fa-solid fa-crown product-card-plan-icon" style="color:${tierData.crown};filter:${tierData.crownGlow};" aria-hidden="true"></i><span>${escapeHtml(tierData.label)}</span></span>
+          </div>
+          <button class="product-card-buy ${canAccess ? '' : 'opacity-70'}" type="button" onclick="${buyAction}" aria-label="Buy ${escapeHtml(p.name)}">
+            <i class="fa-solid fa-cart-shopping mr-1.5"></i> Buy
           </button>
-          ${lockOverlay}
-        </div>
-        <div class="p-5">
-          <div class="flex flex-wrap items-center gap-2 mb-3">
-            <div class="chip-cat">${escapeHtml(cat)}</div>
-            ${tierBadge}
-          </div>
-          <h3 class="text-xl font-bold mt-2">${escapeHtml(p.name)}</h3>
-          <p class="text-white/50 text-sm mt-2 leading-relaxed">${escapeHtml(p.description||'Premium product from TemplifyX')}</p>
-          <div class="flex items-center gap-3 mt-4 text-xs text-white/40">
-            <span><i class="fa-solid fa-star text-yellow-400"></i> 4.9</span>
-            <span>·</span>
-            <span>${Math.floor(Math.random()*1000)} sales</span>
-            <span>·</span>
-            <span>${escapeHtml(p.code)}</span>
-          </div>
-          <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
-            <div class="flex items-baseline gap-2">
-              <span class="price-old">$${(p.price ? Math.round(p.price * 1.5) : 99)}</span>
-              <span class="price-new">$${p.price || 'Free'}</span>
-            </div>
-            <button class="btn-white px-5 py-2.5 rounded-full text-sm flex items-center gap-2 ${canAccess ? '' : 'opacity-70'}" onclick="${accessAction}">
-              ${accessText} <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </button>
-          </div>
         </div>
       </article>`;
     }).join('');
@@ -1823,20 +1947,29 @@ async function refreshPlanTier() {
   }
   
   function attachCardEventListeners(){
+    document.querySelectorAll('.tilt-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.classList.remove('is-returning');
+      });
+      card.addEventListener('mousemove', e => {
+        card.classList.remove('is-returning');
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rotateX = (-y / rect.height) * 10;
+        const rotateY = (x / rect.width) * 10;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px) scale3d(1.02, 1.02, 1.02)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.classList.add('is-returning');
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0) scale3d(1, 1, 1)';
+      });
+    });
+
     // Prevent filter trigger on button clicks
     document.querySelectorAll('.card button, .card a').forEach(element => {
       element.addEventListener('click', (e) => {
         e.stopPropagation();
-      });
-    });
-    
-    // Reattach heart toggle for new cards
-    document.querySelectorAll('.card button i.fa-heart').forEach(icon => {
-      icon.parentElement.addEventListener('click', (e) => {
-        e.stopPropagation();
-        icon.classList.toggle('fa-regular');
-        icon.classList.toggle('fa-solid');
-        icon.classList.toggle('text-red-500');
       });
     });
     
@@ -1849,9 +1982,9 @@ async function refreshPlanTier() {
         const cards = document.querySelectorAll('.card[data-filter]');
         cards.forEach(card => {
           if (filterValue === 'all') {
-            card.style.display = 'block';
+            card.style.display = 'flex';
           } else if (card.getAttribute('data-filter') === filterValue) {
-            card.style.display = 'block';
+            card.style.display = 'flex';
           } else {
             card.style.display = 'none';
           }
@@ -1895,22 +2028,14 @@ async function refreshPlanTier() {
   }
 
   // Show Product Details Modal
-  async function showProductDetails(productId) {
+  function showProductDetails(productId) {
     const card = document.querySelector(`[data-product-id="${productId}"]`);
     if (!card) return;
-
-    const productTier = normalizePlanName(card.dataset.productTier || 'free');
-    if (!canAccessProductTier(productTier)) {
-      showUpgradeRequiredModal(card.dataset.productName || 'This template', productTier);
-      return;
-    }
-
-    const storeProducts = await loadProductsFromStorage();
-    const storeProduct = storeProducts.find(p => String(p.id) === String(productId) || String(p.product_id) === String(productId));
 
     currentProduct = {
       id: productId,
       name: card.dataset.productName,
+      description: card.dataset.productDescription || '',
       price: parseFloat(card.dataset.productPrice),
       oldPrice: parseFloat(card.dataset.productOldPrice),
       category: card.dataset.productCategory,
@@ -1919,8 +2044,8 @@ async function refreshPlanTier() {
       sales: card.dataset.productSales,
       image: card.dataset.productImage,
       tier: card.dataset.productTier || 'free',
-      previewUrl: storeProduct?.previewUrl || '',
-      templateHtml: storeProduct?.templateHtml || storeProduct?.template_html || ''
+      previewUrl: '',
+      templateHtml: ''
     };
 
     const detailsImage = document.getElementById('detailsProductImage');
@@ -1943,6 +2068,7 @@ async function refreshPlanTier() {
       detailsImage.classList.remove('hidden');
       detailsImage.src = currentProduct.image;
     }
+    detailsImage.alt = `${currentProduct.name} preview`;
     document.getElementById('detailsProductId').textContent = currentProduct.id ? `ID: ${currentProduct.id}` : '';
     document.getElementById('detailsCategory').textContent = currentProduct.category;
     document.getElementById('detailsRating').innerHTML = `<i class="fa-solid fa-star text-yellow-400"></i> ${currentProduct.rating} (${currentProduct.sales} sales)`;
@@ -1956,7 +2082,7 @@ async function refreshPlanTier() {
       document.getElementById('detailsSavings').textContent = '';
     }
     document.getElementById('detailsTech').textContent = currentProduct.tech;
-    document.getElementById('detailsTier').innerHTML = currentProduct.tier ? `<i class="fa-solid fa-crown"></i> ${currentProduct.tier.charAt(0).toUpperCase() + currentProduct.tier.slice(1)}` : '';
+    document.getElementById('detailsTier').innerHTML = currentProduct.tier ? `<i class="fa-solid fa-crown" aria-hidden="true"></i> ${currentProduct.tier.charAt(0).toUpperCase() + currentProduct.tier.slice(1)}` : '';
     
     // Set description based on product
     const descriptions = {
@@ -1972,10 +2098,42 @@ async function refreshPlanTier() {
       10: 'Customer relationship management dashboard with sales pipeline views.',
       11: 'Enterprise analytics dashboard with advanced reporting and export features.'
     };
-    document.getElementById('detailsDescription').textContent = descriptions[productId] || 'Premium digital product for your project.';
+    document.getElementById('detailsDescription').textContent = currentProduct.description || descriptions[productId] || 'Premium digital product for your project.';
 
-    // Show modal
-    document.getElementById('productDetailsModal').classList.remove('hidden');
+    // Show immediately using card data while optional catalog details load.
+    const modal = document.getElementById('productDetailsModal');
+    modal.classList.remove('hidden');
+    document.body.style.overflowY = 'hidden';
+
+    loadProductsFromStorage().then(storeProducts => {
+      if (!currentProduct || String(currentProduct.id) !== String(productId)) return;
+      const storeProduct = storeProducts.find(p => String(p.id) === String(productId) || String(p.product_id) === String(productId));
+      if (!storeProduct) return;
+
+      currentProduct.description = currentProduct.description || storeProduct.description || '';
+      currentProduct.previewUrl = storeProduct.previewUrl || '';
+      currentProduct.templateHtml = storeProduct.templateHtml || storeProduct.template_html || '';
+      if (currentProduct.description) {
+        document.getElementById('detailsDescription').textContent = currentProduct.description;
+      }
+    }).catch(error => {
+      console.warn('Unable to load additional product details:', error);
+    });
+  }
+
+  async function enterProductFullscreen() {
+    const preview = document.getElementById('detailsPreviewStage');
+    if (typeof preview.requestFullscreen !== 'function') {
+      window.alert('Fullscreen preview is not supported by this browser.');
+      return;
+    }
+
+    try {
+      await preview.requestFullscreen();
+    } catch (error) {
+      console.error('Unable to enter fullscreen preview:', error);
+      window.alert('Unable to open the fullscreen preview.');
+    }
   }
 
   // Close Product Details Modal
@@ -1987,9 +2145,36 @@ async function refreshPlanTier() {
     detailsVideo.classList.add('hidden');
     document.getElementById('detailsProductImage').classList.remove('hidden');
     document.getElementById('productDetailsModal').classList.add('hidden');
+    document.body.style.overflowY = '';
   }
 
   // Add to Cart
+  async function buyProductFromCard(productId) {
+    const card = document.querySelector(`[data-product-id="${productId}"]`);
+    if (!card) return;
+
+    const tier = normalizePlanName(card.dataset.productTier || 'free');
+    if (!canAccessProductTier(tier)) {
+      showUpgradeRequiredModal(card.dataset.productName || 'This template', tier);
+      return;
+    }
+
+    const storeProducts = await loadProductsFromStorage();
+    const storeProduct = storeProducts.find(p => String(p.id) === String(productId) || String(p.product_id) === String(productId));
+
+    currentProduct = {
+      id: productId,
+      name: card.dataset.productName,
+      price: parseFloat(card.dataset.productPrice),
+      category: card.dataset.productCategory,
+      image: card.dataset.productImage,
+      previewUrl: storeProduct?.previewUrl || '',
+      templateHtml: storeProduct?.templateHtml || storeProduct?.template_html || ''
+    };
+
+    addToCart();
+  }
+
   function addToCart() {
     if (!currentProduct) return;
 
@@ -2309,6 +2494,154 @@ async function refreshPlanTier() {
 
   // Initialize cart on page load
   loadCart();
+
+  (() => {
+    const canvas = document.getElementById('cosmos');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let width = 0, height = 0, dpr = 1, frame = 0;
+    let particles = [];
+    let pointer = { x: -1000, y: -1000 };
+
+    const random = (min, max) => min + Math.random() * (max - min);
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const count = Math.max(75, Math.min(190, Math.round(width * height / 6200)));
+      particles = Array.from({ length: count }, () => {
+        const angle = Math.random() * Math.PI * 2;
+        const band = Math.random();
+        const radius = band < .68 ? random(.29, .52) : random(.18, .68);
+        return {
+          angle,
+          radius,
+          speed: random(-.00022, .00022) * (Math.random() < .5 ? 1 : -1),
+          wobble: random(0, Math.PI * 2),
+          wobbleSpeed: random(.001, .006),
+          size: Math.random() < .12 ? random(1.4, 2.5) : random(.45, 1.25),
+          opacity: random(.28, .88),
+          phase: Math.random() * 1000
+        };
+      });
+    }
+
+    function draw(time) {
+      frame = time;
+      ctx.clearRect(0, 0, width, height);
+
+      const bg = ctx.createRadialGradient(width * .5, height * .49, 0, width * .5, height * .49, Math.max(width, height) * .7);
+      bg.addColorStop(0, 'rgba(25, 31, 43, .42)');
+      bg.addColorStop(0.28, 'rgba(8, 11, 17, .26)');
+      bg.addColorStop(1, 'rgba(2, 3, 6, 0)');
+      ctx.fillStyle = '#05070b';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      const cx = width * .5;
+      const cy = height * .51;
+      const scale = Math.min(width, height);
+      const rx = Math.min(width * .43, scale * .81);
+      const ry = Math.min(height * .43, scale * .48);
+      const positions = particles.map(p => {
+        const wobble = Math.sin(time * p.wobbleSpeed + p.wobble) * 5;
+        const angle = p.angle + (reduceMotion.matches ? 0 : time * p.speed);
+        return {
+          x: cx + Math.cos(angle) * (rx * p.radius + wobble),
+          y: cy + Math.sin(angle) * (ry * p.radius + wobble * .62),
+          size: p.size,
+          opacity: p.opacity,
+          phase: p.phase
+        };
+      });
+
+      const maxDistance = Math.max(54, Math.min(105, scale * .18));
+      for (let i = 0; i < positions.length; i++) {
+        const a = positions[i];
+        for (let j = i + 1; j < positions.length; j++) {
+          const b = positions[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance < maxDistance) {
+            const alpha = (1 - distance / maxDistance) * .19;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(198, 216, 255, ${alpha})`;
+            ctx.lineWidth = .65;
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (let k = 0; k < 3; k++) {
+        const shift = time * (reduceMotion.matches ? 0 : .000025) * (k % 2 ? -1 : 1);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx * (.77 + k * .105), ry * (.73 + k * .095), -.12 + k * .08 + shift, .18 + k * .62, 2.7 + k * .4);
+        ctx.strokeStyle = `rgba(208, 224, 255, ${.075 - k * .014})`;
+        ctx.lineWidth = .8;
+        ctx.stroke();
+      }
+
+      positions.forEach((p) => {
+        const pulse = .72 + Math.sin(time * .0015 + p.phase) * .28;
+        const glow = p.size > 1.4 ? 11 : 0;
+        if (glow) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, glow * pulse, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(183, 210, 255, ${.13 * p.opacity})`;
+          ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(241, 247, 255, ${p.opacity})`;
+        ctx.fill();
+      });
+
+      if (pointer.x >= 0) {
+        const light = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 170);
+        light.addColorStop(0, 'rgba(111, 153, 225, .09)');
+        light.addColorStop(1, 'rgba(111, 153, 225, 0)');
+        ctx.fillStyle = light;
+        ctx.fillRect(pointer.x - 170, pointer.y - 170, 340, 340);
+      }
+
+      if (!reduceMotion.matches) requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => {
+      resize();
+      if (reduceMotion.matches) draw(frame);
+    }, { passive: true });
+
+    window.addEventListener('pointermove', event => {
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      if (reduceMotion.matches) draw(frame);
+    }, { passive: true });
+
+    window.addEventListener('pointerleave', () => {
+      pointer.x = pointer.y = -1000;
+      if (reduceMotion.matches) draw(frame);
+    });
+
+    reduceMotion.addEventListener?.('change', () => {
+      if (!reduceMotion.matches) requestAnimationFrame(draw);
+      else draw(frame);
+    });
+
+    resize();
+    requestAnimationFrame(draw);
+  })();
 
   // Handle Logout
   async function handleLogout() {
