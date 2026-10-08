@@ -168,6 +168,12 @@
     font-size: 11px;
     line-height: 1;
   }
+  .card .product-card-price {
+    margin-top: 7px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+  }
   .card .product-card-buy {
     flex: 0 0 auto;
     border: 0;
@@ -1420,26 +1426,31 @@
             This cart contains free templates. Your purchase will be added instantly to your dashboard.
           </div>
           <div id="checkoutPaidNotice" class="hidden rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/60">
-            Secure checkout is available for paid templates. Complete the payment below to finish your purchase.
+            Pay for your paid templates with Razorpay. After payment, return here, confirm it, and complete your purchase.
           </div>
           <div id="checkoutRazorpayWrap" class="hidden mt-4">
             <div class="rounded-xl border border-white/10 bg-black/40 p-3 text-center">
               <a
-                href="https://razorpay.com/payment-button/pl_T9NfOGbAdOZtA5/view/?utm_source=payment_button&utm_medium=button&utm_campaign=payment_button"
+                href="https://rzp.io/rzp/YQ4eEjC"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                onclick="markCheckoutPaymentOpened()"
               >
                 <i class="fa-solid fa-credit-card"></i>
-                Pay Now 
+                Pay Now
               </a>
             </div>
+            <label id="checkoutPaymentConfirmationWrap" class="hidden mt-4 flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+              <input id="checkoutPaymentConfirmation" type="checkbox" class="mt-1 accent-white" onchange="updatePaidCheckoutCompletion()" />
+              <span>I completed the Razorpay payment for this order.</span>
+            </label>
           </div>
         </div>
 
         <div class="flex gap-3">
           <div id="checkoutPrimarySlot" class="flex-1">
-            <button type="button" id="checkoutPrimaryBtn" class="w-full bg-white text-black font-bold py-3 rounded-full hover:bg-white/90 transition" onclick="processCheckout(event)">
+            <button type="button" id="checkoutPrimaryBtn" class="w-full bg-white text-black font-bold py-3 rounded-full hover:bg-white/90 transition disabled:cursor-not-allowed disabled:opacity-50" onclick="processCheckout(event)">
               <i class="fa-solid fa-lock mr-2"></i> Complete Purchase
             </button>
           </div>
@@ -1690,7 +1701,7 @@
       previewUrl: item?.preview_url || item?.previewUrl || '',
       category: item?.category || '',
       tier: item?.tier || 'free',
-      price: item?.price || '',
+      price: Number.isFinite(Number(item?.price)) ? Number(item.price) : 0,
       product_id: item?.product_id || item?.id || ''
     };
   }
@@ -1897,6 +1908,9 @@ async function refreshPlanTier() {
                      normalizedCat.includes('ui') || normalizedCat.includes('mobile') ? 'ui' :
                      'web';
       const tier = normalizePlanName(p.tier || 'free');
+      const productPrice = Number(p.price);
+      const price = Number.isFinite(productPrice) && productPrice > 0 ? productPrice : 0;
+      const isPaidProduct = price > 0;
       const tierStyles = {
         free: { label:'Free', color:'#cbd5e1', bg:'rgba(203,213,225,0.16)', crown:'#ffffff', crownGlow:'none' },
         basic: { label:'Basic', color:'#7dd3fc', bg:'rgba(125,211,252,0.18)', crown:'#7dd3fc', crownGlow:'drop-shadow(0 0 3px rgba(125,211,252,0.9)) drop-shadow(0 0 6px rgba(125,211,252,0.55))' },
@@ -1910,12 +1924,12 @@ async function refreshPlanTier() {
       const isVideo = /\.(mp4|webm|ogg)$/i.test(cardPreviewImage);
       const canAccess = canAccessProductTier(tier);
       const sales = Math.floor(Math.random() * 1000);
-      const buyAction = canAccess
+      const buyAction = canAccess || isPaidProduct
         ? `buyProductFromCard('${escapeHtml(p.product_id)}')`
         : `showUpgradeRequiredModal('${escapeHtml(p.name)}', '${escapeHtml(tier)}')`;
       
       return `
-      <article class="card group" data-filter="${filter}" data-product-id="${escapeHtml(p.product_id)}" data-product-name="${escapeHtml(p.name)}" data-product-description="${escapeHtml(p.description || '')}" data-product-price="${p.price||0}" data-product-old-price="${p.price ? p.price * 1.5 : 99}" data-product-category="${escapeHtml(cat)}" data-product-tech="${escapeHtml(p.code)}" data-product-rating="4.9" data-product-sales="${sales}" data-product-image="${escapeHtml(cardPreviewImage)}" data-product-tier="${escapeHtml(tier)}">
+      <article class="card group" data-filter="${filter}" data-product-id="${escapeHtml(p.product_id)}" data-product-name="${escapeHtml(p.name)}" data-product-description="${escapeHtml(p.description || '')}" data-product-price="${price}" data-product-old-price="${price ? price * 1.5 : 99}" data-product-category="${escapeHtml(cat)}" data-product-tech="${escapeHtml(p.code)}" data-product-rating="4.9" data-product-sales="${sales}" data-product-image="${escapeHtml(cardPreviewImage)}" data-product-tier="${escapeHtml(tier)}">
         <button class="product-card-preview" type="button" onclick="showProductDetails('${escapeHtml(p.product_id)}')" aria-label="View details for ${escapeHtml(p.name)}">
           ${isVideo ? `<video src="${escapeHtml(cardPreviewImage)}" autoplay muted loop playsinline></video>` : `<img src="${escapeHtml(cardPreviewImage)}" alt="${escapeHtml(p.name)} preview" onerror="this.style.display='none'"/>`}
         </button>
@@ -1923,8 +1937,9 @@ async function refreshPlanTier() {
           <div class="min-w-0">
             <h3 class="product-card-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
             <span class="product-card-plan" style="color:${tierData.color};background:${tierData.bg};"><i class="fa-solid fa-crown product-card-plan-icon" style="color:${tierData.crown};filter:${tierData.crownGlow};" aria-hidden="true"></i><span>${escapeHtml(tierData.label)}</span></span>
+            <div class="product-card-price">${isPaidProduct ? `$${price.toFixed(2)}` : 'Free'}</div>
           </div>
-          <button class="product-card-buy ${canAccess ? '' : 'opacity-70'}" type="button" onclick="${buyAction}" aria-label="Buy ${escapeHtml(p.name)}">
+          <button class="product-card-buy ${canAccess || isPaidProduct ? '' : 'opacity-70'}" type="button" onclick="${buyAction}" aria-label="Buy ${escapeHtml(p.name)}">
             <i class="fa-solid fa-cart-shopping mr-1.5"></i> Buy
           </button>
         </div>
@@ -2033,7 +2048,8 @@ async function refreshPlanTier() {
     if (!card) return;
 
     const tier = normalizePlanName(card.dataset.productTier || 'free');
-    if (!canAccessProductTier(tier)) {
+    const productPrice = Number(card.dataset.productPrice || 0);
+    if (productPrice <= 0 && !canAccessProductTier(tier)) {
       showUpgradeRequiredModal(card.dataset.productName || 'This template', tier);
       return;
     }
@@ -2160,7 +2176,8 @@ async function refreshPlanTier() {
     if (!card) return;
 
     const tier = normalizePlanName(card.dataset.productTier || 'free');
-    if (!canAccessProductTier(tier)) {
+    const productPrice = Number(card.dataset.productPrice || 0);
+    if (productPrice <= 0 && !canAccessProductTier(tier)) {
       showUpgradeRequiredModal(card.dataset.productName || 'This template', tier);
       return;
     }
@@ -2186,7 +2203,7 @@ async function refreshPlanTier() {
     if (!currentProduct) return;
 
     const tier = normalizePlanName(currentProduct.tier || 'free');
-    if (!canAccessProductTier(tier)) {
+    if (Number(currentProduct.price || 0) <= 0 && !canAccessProductTier(tier)) {
       showUpgradeRequiredModal(currentProduct.name || 'This template', tier);
       return;
     }
@@ -2404,14 +2421,34 @@ async function refreshPlanTier() {
     const paidNotice = document.getElementById('checkoutPaidNotice');
     const razorpayWrap = document.getElementById('checkoutRazorpayWrap');
     const primaryBtn = document.getElementById('checkoutPrimaryBtn');
+    const paymentConfirmationWrap = document.getElementById('checkoutPaymentConfirmationWrap');
+    const paymentConfirmation = document.getElementById('checkoutPaymentConfirmation');
     const hasPaid = hasPaidItems();
 
     freeNotice.classList.toggle('hidden', hasPaid);
     paidNotice.classList.toggle('hidden', !hasPaid);
     razorpayWrap.classList.toggle('hidden', !hasPaid);
+    paymentConfirmationWrap.classList.add('hidden');
+    paymentConfirmation.checked = false;
+    paidCheckoutPaymentStarted = false;
+    primaryBtn.disabled = hasPaid;
     primaryBtn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> Complete Purchase';
 
     document.getElementById('checkoutModal').classList.remove('hidden');
+  }
+
+  let paidCheckoutPaymentStarted = false;
+
+  function markCheckoutPaymentOpened() {
+    paidCheckoutPaymentStarted = true;
+    document.getElementById('checkoutPaymentConfirmationWrap').classList.remove('hidden');
+    updatePaidCheckoutCompletion();
+  }
+
+  function updatePaidCheckoutCompletion() {
+    const confirmation = document.getElementById('checkoutPaymentConfirmation');
+    const primaryBtn = document.getElementById('checkoutPrimaryBtn');
+    primaryBtn.disabled = !paidCheckoutPaymentStarted || !confirmation.checked;
   }
 
   // Process Checkout
@@ -2424,7 +2461,10 @@ async function refreshPlanTier() {
     }
 
     if (hasPaidItems()) {
-      return;
+      if (!paidCheckoutPaymentStarted || !document.getElementById('checkoutPaymentConfirmation').checked) {
+        alert('Complete the Razorpay payment, then confirm it here before finishing your purchase.');
+        return;
+      }
     }
 
     finalizePurchase();
