@@ -2032,6 +2032,12 @@ async function refreshPlanTier() {
     const card = document.querySelector(`[data-product-id="${productId}"]`);
     if (!card) return;
 
+    const tier = normalizePlanName(card.dataset.productTier || 'free');
+    if (!canAccessProductTier(tier)) {
+      showUpgradeRequiredModal(card.dataset.productName || 'This template', tier);
+      return;
+    }
+
     currentProduct = {
       id: productId,
       name: card.dataset.productName,
@@ -2043,7 +2049,7 @@ async function refreshPlanTier() {
       rating: card.dataset.productRating,
       sales: card.dataset.productSales,
       image: card.dataset.productImage,
-      tier: card.dataset.productTier || 'free',
+      tier,
       previewUrl: '',
       templateHtml: ''
     };
@@ -2168,6 +2174,7 @@ async function refreshPlanTier() {
       price: parseFloat(card.dataset.productPrice),
       category: card.dataset.productCategory,
       image: card.dataset.productImage,
+      tier,
       previewUrl: storeProduct?.previewUrl || '',
       templateHtml: storeProduct?.templateHtml || storeProduct?.template_html || ''
     };
@@ -2177,6 +2184,12 @@ async function refreshPlanTier() {
 
   function addToCart() {
     if (!currentProduct) return;
+
+    const tier = normalizePlanName(currentProduct.tier || 'free');
+    if (!canAccessProductTier(tier)) {
+      showUpgradeRequiredModal(currentProduct.name || 'This template', tier);
+      return;
+    }
 
     console.log('Adding to cart:', {
       name: currentProduct.name,
