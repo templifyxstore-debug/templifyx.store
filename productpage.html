@@ -1426,7 +1426,7 @@
             This cart contains free templates. Your purchase will be added instantly to your dashboard.
           </div>
           <div id="checkoutPaidNotice" class="hidden rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/60">
-            Pay securely with Razorpay. After payment is verified, your purchase will be added to your dashboard.
+            Pay with Razorpay, then return to this page. We will ask you to confirm the payment before adding your product to the dashboard.
           </div>
           <div id="checkoutRazorpayWrap" class="hidden mt-4">
             <div class="rounded-xl border border-white/10 bg-black/40 p-3 text-center">
@@ -2312,15 +2312,16 @@ async function refreshPlanTier() {
     return cart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
   }
 
-  let verifiedPaidCheckout = false;
+  let paidCheckoutApproved = false;
 
   function finalizePurchase() {
     if (!cart || cart.length === 0) {
       alert('Your cart is empty!');
       return;
     }
-    if (hasPaidItems() && !verifiedPaidCheckout) {
-      alert('A verified Razorpay payment is required before completing this purchase.');
+
+    if (hasPaidItems() && !paidCheckoutApproved) {
+      alert('Confirm your Razorpay payment before completing this purchase.');
       return;
     }
 
@@ -2376,7 +2377,7 @@ async function refreshPlanTier() {
     }
 
     cart = [];
-    verifiedPaidCheckout = false;
+    paidCheckoutApproved = false;
     saveCart();
     document.getElementById('checkoutModal').classList.add('hidden');
     document.getElementById('cartModal').classList.add('hidden');
@@ -2448,7 +2449,7 @@ async function refreshPlanTier() {
     try {
       result = JSON.parse(responseText);
     } catch (error) {
-      throw new Error(`Checkout could not ${action} (HTTP ${response.status}). Ensure the Cloudflare Pages Functions are deployed and configured.`);
+      throw new Error(`Checkout could not ${action}.`);
     }
 
     if (!response.ok) throw new Error(result.error || `Checkout could not ${action} (HTTP ${response.status}).`);
@@ -2472,21 +2473,12 @@ async function refreshPlanTier() {
       primaryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Preparing payment';
 
       try {
-        const orderResponse = await fetch('/api/create-payment-link', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: cart.map(item => ({ id: item.id, quantity: item.quantity || 1 }))
-          })
-        });
-        const paymentLink = await readCheckoutApiResponse(orderResponse, 'start payment');
-        if (!paymentLink.payment_url || !paymentLink.id || !paymentLink.reference_id) {
-          throw new Error('The checkout service returned an incomplete Razorpay payment link.');
-        }
-        window.location.assign(paymentLink.payment_url);
+        saveCart();
+        localStorage.setItem('templifyxPendingManualPayment', 'true');
+        window.location.assign('https://rzp.io/rzp/YQ4eEjC');
       } catch (error) {
         console.error('Unable to start Razorpay checkout:', error);
-        alert(error.message || 'Unable to start payment. Please try again.');
+        alert('We could not open Razorpay. Your cart is still saved. Please try again shortly.');
         paidCheckoutProcessing = false;
         primaryBtn.disabled = false;
         primaryBtn.innerHTML = '<i class="fa-solid fa-credit-card mr-2"></i> Pay with Razorpay';
@@ -2519,6 +2511,91 @@ async function refreshPlanTier() {
     } catch (error) {
       console.warn('Unable to sync purchased items across pages', error);
     }
+  }
+
+  async function handleRazorpayReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get('razorpay_payment_id');
+    const paymentLinkId = params.get('razorpay_payment_link_id');
+    const referenceId = params.get('razorpay_payment_link_reference_id');
+    const linkStatus = params.get('razorpay_payment_link_status');
+    const signature = params.get('razorpay_signature');
+    const callbackError = params.get('checkout_error');
+    if (!paymentId && !paymentLinkId && !referenceId && !signature && !callbackError) {
+      if (localStorage.getItem('templifyxPendingManualPayment') !== 'true') return;
+      localStorage.removeItem('templifyxPendingManualPayment');
+      if (!hasPaidItems()) return;
+      if (!window.confirm('Did you complete the Razorpay payment? This confirmation is not verified by Razorpay. If you confirm, your product will be added to the dashboard.')) return;
+      paidCheckoutApproved = true;
+      finalizePurchase();
+      return;
+    }
+
+    if (callbackError) {
+      clearRazorpayReturnParameters();
+      alert(`Razorpay could not complete this payment: ${callbackError}. Your cart is still saved.`);
+      return;
+    }
+    if (!paymentId || !paymentLinkId || !referenceId || !linkStatus || !signature) {
+      clearRazorpayReturnParameters();
+      alert('Razorpay returned incomplete payment details. Your cart is still saved. If you were charged, contact support.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/verify-product-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_payment_id: paymentId,
+          razorpay_payment_link_id: paymentLinkId,
+          razorpay_payment_link_reference_id: referenceId,
+          razorpay_payment_link_status: linkStatus,
+          razorpay_signature: signature
+        })
+      });
+      const verification = await readCheckoutApiResponse(response, 'verify the returned payment');
+      if (!verification.ok || !Array.isArray(verification.items)) {
+        throw new Error('The payment could not be verified.');
+      }
+
+      const savedCart = Array.isArray(cart) ? cart : [];
+      let catalog = [];
+      try {
+        catalog = await loadProductsFromStorage();
+      } catch (error) {
+        console.warn('Unable to load product details for verified checkout:', error);
+      }
+      cart = verification.items.map(item => {
+        const productId = String(item.id);
+        const savedItem = savedCart.find(candidate => String(candidate.id) === productId);
+        const catalogItem = catalog.find(candidate =>
+          String(candidate.product_id || candidate.id) === productId
+        ) || {};
+        return {
+          id: item.id,
+          name: item.name || savedItem?.name || catalogItem.name || 'Purchased template',
+          price: Number(item.price),
+          image: savedItem?.image || catalogItem.previewImage || catalogItem.image || '',
+          category: savedItem?.category || catalogItem.category || '',
+          previewUrl: savedItem?.previewUrl || catalogItem.previewUrl || '',
+          templateHtml: savedItem?.templateHtml || catalogItem.templateHtml || catalogItem.template_html || '',
+          quantity: Number(item.quantity)
+        };
+      });
+      if (!cart.length) throw new Error('The verified payment did not include any products.');
+
+      paidCheckoutApproved = true;
+      clearRazorpayReturnParameters();
+      finalizePurchase();
+    } catch (error) {
+      console.error('Unable to complete the returned Razorpay payment:', error);
+      alert(`${error.message || 'Payment verification failed.'} Refresh this page to retry fulfillment. If you were charged, contact support.`);
+    }
+  }
+
+  function clearRazorpayReturnParameters() {
+    window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
   }
 
   async function getActiveSubscription() {
@@ -2575,83 +2652,9 @@ async function refreshPlanTier() {
   // Initialize cart on page load
   loadCart();
   handleRazorpayReturn();
-
-  async function handleRazorpayReturn() {
-    const params = new URLSearchParams(window.location.search);
-    const paymentId = params.get('razorpay_payment_id');
-    const paymentLinkId = params.get('razorpay_payment_link_id');
-    const referenceId = params.get('razorpay_payment_link_reference_id');
-    const linkStatus = params.get('razorpay_payment_link_status');
-    const signature = params.get('razorpay_signature');
-    const callbackError = params.get('checkout_error');
-    if (!paymentId && !paymentLinkId && !referenceId && !signature && !callbackError) return;
-
-    if (callbackError) {
-      clearRazorpayReturnParameters();
-      alert(`Razorpay could not complete this payment: ${callbackError}. Your cart is still saved.`);
-      return;
-    }
-    if (!paymentId || !paymentLinkId || !referenceId || !linkStatus || !signature) {
-      clearRazorpayReturnParameters();
-      alert('Razorpay returned incomplete payment details. Your cart is still saved. If you were charged, contact support.');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/verify-product-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          razorpay_payment_id: paymentId,
-          razorpay_payment_link_id: paymentLinkId,
-          razorpay_payment_link_reference_id: referenceId,
-          razorpay_payment_link_status: linkStatus,
-          razorpay_signature: signature
-        })
-      });
-      const verification = await readCheckoutApiResponse(response, 'verify the returned payment');
-      if (!verification.ok || !Array.isArray(verification.items)) {
-        throw new Error('The payment could not be verified.');
-      }
-
-      const savedCart = Array.isArray(cart) ? cart : [];
-      let catalog = [];
-      try {
-        catalog = await loadProductsFromStorage();
-      } catch (error) {
-        console.warn('Unable to load product details for verified checkout:', error);
-      }
-      cart = verification.items.map(item => {
-        const productId = String(item.id);
-        const savedItem = savedCart.find(candidate => String(candidate.id) === productId);
-        const catalogItem = catalog.find(candidate =>
-          String(candidate.product_id || candidate.id) === productId
-        ) || {};
-        return {
-          id: item.id,
-          name: item.name || savedItem?.name || catalogItem.name || 'Purchased template',
-          price: Number(item.price),
-          image: savedItem?.image || catalogItem.previewImage || catalogItem.image || '',
-          category: savedItem?.category || catalogItem.category || '',
-          previewUrl: savedItem?.previewUrl || catalogItem.previewUrl || '',
-          templateHtml: savedItem?.templateHtml || catalogItem.templateHtml || catalogItem.template_html || '',
-          quantity: Number(item.quantity)
-        };
-      });
-      if (!cart.length) throw new Error('The verified payment did not include any products.');
-
-      verifiedPaidCheckout = true;
-      clearRazorpayReturnParameters();
-      finalizePurchase();
-    } catch (error) {
-      console.error('Unable to complete the returned Razorpay payment:', error);
-      alert(`${error.message || 'Payment verification failed.'} Refresh this page to retry fulfillment. If you were charged, contact support.`);
-    }
-  }
-
-  function clearRazorpayReturnParameters() {
-    window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
-  }
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) handleRazorpayReturn();
+  });
 
   (() => {
     const canvas = document.getElementById('cosmos');

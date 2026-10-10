@@ -35,7 +35,7 @@ export async function onRequestPost({ request, env }) {
         Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
-    const catalog = await catalogResponse.json();
+    const catalog = await readResponse(catalogResponse);
     if (!catalogResponse.ok || !Array.isArray(catalog)) {
       console.error('Unable to load product catalog:', catalog);
       return json({ error: 'Unable to validate cart prices. Please try again later.' }, 502);
