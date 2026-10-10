@@ -1426,25 +1426,15 @@
             This cart contains free templates. Your purchase will be added instantly to your dashboard.
           </div>
           <div id="checkoutPaidNotice" class="hidden rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/60">
-            Pay for your paid templates with Razorpay. After payment, return here, confirm it, and complete your purchase.
+            Pay securely with Razorpay. After payment is verified, your purchase will be added to your dashboard.
           </div>
           <div id="checkoutRazorpayWrap" class="hidden mt-4">
             <div class="rounded-xl border border-white/10 bg-black/40 p-3 text-center">
-              <a
-                href="https://rzp.io/rzp/YQ4eEjC"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-                onclick="markCheckoutPaymentOpened()"
-              >
+              <button type="button" class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90" onclick="processCheckout(event)">
                 <i class="fa-solid fa-credit-card"></i>
                 Pay Now
-              </a>
+              </button>
             </div>
-            <label id="checkoutPaymentConfirmationWrap" class="hidden mt-4 flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/80">
-              <input id="checkoutPaymentConfirmation" type="checkbox" class="mt-1 accent-white" onchange="updatePaidCheckoutCompletion()" />
-              <span>I completed the Razorpay payment for this order.</span>
-            </label>
           </div>
         </div>
 
@@ -2322,13 +2312,27 @@ async function refreshPlanTier() {
     return cart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
   }
 
+  let verifiedPaidCheckout = false;
+
   function finalizePurchase() {
     if (!cart || cart.length === 0) {
       alert('Your cart is empty!');
       return;
     }
+    if (hasPaidItems() && !verifiedPaidCheckout) {
+      alert('A verified Razorpay payment is required before completing this purchase.');
+      return;
+    }
 
-    const savedPurchases = JSON.parse(localStorage.getItem('templifyxPurchased') || '[]');
+    let savedPurchases;
+    try {
+      const storedPurchases = JSON.parse(localStorage.getItem('templifyxPurchased') || '[]');
+      savedPurchases = Array.isArray(storedPurchases) ? storedPurchases : [];
+    } catch (error) {
+      console.error('Unable to read saved purchases:', error);
+      alert('Your purchases could not be loaded. Please try again.');
+      return;
+    }
 
     cart.forEach(item => {
       const existing = savedPurchases.find(p => p.id === item.id);
@@ -2372,9 +2376,11 @@ async function refreshPlanTier() {
     }
 
     cart = [];
+    verifiedPaidCheckout = false;
     saveCart();
     document.getElementById('checkoutModal').classList.add('hidden');
     document.getElementById('cartModal').classList.add('hidden');
+    window.location.assign('dashboard.html?view=products');
   }
 
   function activateSelectedPlan() {
@@ -2421,34 +2427,32 @@ async function refreshPlanTier() {
     const paidNotice = document.getElementById('checkoutPaidNotice');
     const razorpayWrap = document.getElementById('checkoutRazorpayWrap');
     const primaryBtn = document.getElementById('checkoutPrimaryBtn');
-    const paymentConfirmationWrap = document.getElementById('checkoutPaymentConfirmationWrap');
-    const paymentConfirmation = document.getElementById('checkoutPaymentConfirmation');
     const hasPaid = hasPaidItems();
 
     freeNotice.classList.toggle('hidden', hasPaid);
     paidNotice.classList.toggle('hidden', !hasPaid);
     razorpayWrap.classList.toggle('hidden', !hasPaid);
-    paymentConfirmationWrap.classList.add('hidden');
-    paymentConfirmation.checked = false;
-    paidCheckoutPaymentStarted = false;
-    primaryBtn.disabled = hasPaid;
-    primaryBtn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> Complete Purchase';
+    primaryBtn.disabled = false;
+    primaryBtn.innerHTML = hasPaid
+      ? '<i class="fa-solid fa-credit-card mr-2"></i> Pay with Razorpay'
+      : '<i class="fa-solid fa-lock mr-2"></i> Complete Purchase';
 
     document.getElementById('checkoutModal').classList.remove('hidden');
   }
 
-  let paidCheckoutPaymentStarted = false;
+  let paidCheckoutProcessing = false;
 
-  function markCheckoutPaymentOpened() {
-    paidCheckoutPaymentStarted = true;
-    document.getElementById('checkoutPaymentConfirmationWrap').classList.remove('hidden');
-    updatePaidCheckoutCompletion();
-  }
+  async function readCheckoutApiResponse(response, action) {
+    const responseText = await response.text();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (error) {
+      throw new Error(`Checkout could not ${action} (HTTP ${response.status}). Ensure the Cloudflare Pages Functions are deployed and configured.`);
+    }
 
-  function updatePaidCheckoutCompletion() {
-    const confirmation = document.getElementById('checkoutPaymentConfirmation');
-    const primaryBtn = document.getElementById('checkoutPrimaryBtn');
-    primaryBtn.disabled = !paidCheckoutPaymentStarted || !confirmation.checked;
+    if (!response.ok) throw new Error(result.error || `Checkout could not ${action} (HTTP ${response.status}).`);
+    return result;
   }
 
   // Process Checkout
@@ -2461,10 +2465,33 @@ async function refreshPlanTier() {
     }
 
     if (hasPaidItems()) {
-      if (!paidCheckoutPaymentStarted || !document.getElementById('checkoutPaymentConfirmation').checked) {
-        alert('Complete the Razorpay payment, then confirm it here before finishing your purchase.');
-        return;
+      if (paidCheckoutProcessing) return;
+      const primaryBtn = document.getElementById('checkoutPrimaryBtn');
+      paidCheckoutProcessing = true;
+      primaryBtn.disabled = true;
+      primaryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Preparing payment';
+
+      try {
+        const orderResponse = await fetch('/api/create-payment-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cart.map(item => ({ id: item.id, quantity: item.quantity || 1 }))
+          })
+        });
+        const paymentLink = await readCheckoutApiResponse(orderResponse, 'start payment');
+        if (!paymentLink.payment_url || !paymentLink.id || !paymentLink.reference_id) {
+          throw new Error('The checkout service returned an incomplete Razorpay payment link.');
+        }
+        window.location.assign(paymentLink.payment_url);
+      } catch (error) {
+        console.error('Unable to start Razorpay checkout:', error);
+        alert(error.message || 'Unable to start payment. Please try again.');
+        paidCheckoutProcessing = false;
+        primaryBtn.disabled = false;
+        primaryBtn.innerHTML = '<i class="fa-solid fa-credit-card mr-2"></i> Pay with Razorpay';
       }
+      return;
     }
 
     finalizePurchase();
@@ -2547,6 +2574,67 @@ async function refreshPlanTier() {
 
   // Initialize cart on page load
   loadCart();
+  handleRazorpayReturn();
+
+  async function handleRazorpayReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get('razorpay_payment_id');
+    const paymentLinkId = params.get('razorpay_payment_link_id');
+    const referenceId = params.get('razorpay_payment_link_reference_id');
+    const linkStatus = params.get('razorpay_payment_link_status');
+    const signature = params.get('razorpay_signature');
+    const callbackError = params.get('checkout_error');
+    if (!paymentId && !paymentLinkId && !referenceId && !signature && !callbackError) return;
+
+    window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
+
+    if (callbackError) {
+      alert(`Razorpay could not complete this payment: ${callbackError}. Your cart is still saved.`);
+      return;
+    }
+    if (!paymentId || !paymentLinkId || !referenceId || !linkStatus || !signature) {
+      alert('Razorpay returned incomplete payment details. Your cart is still saved. If you were charged, contact support.');
+      return;
+    }
+    if (!cart.length || !hasPaidItems()) {
+      alert('The paid cart could not be restored after returning from Razorpay. If you were charged, contact support.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/verify-product-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_payment_id: paymentId,
+          razorpay_payment_link_id: paymentLinkId,
+          razorpay_payment_link_reference_id: referenceId,
+          razorpay_payment_link_status: linkStatus,
+          razorpay_signature: signature
+        })
+      });
+      const verification = await readCheckoutApiResponse(response, 'verify the returned payment');
+      if (!verification.ok || !Array.isArray(verification.items)) {
+        throw new Error('The payment could not be verified.');
+      }
+
+      const expectedItems = cart
+        .map(item => ({ id: String(item.id), quantity: Number(item.quantity || 1) }))
+        .sort((a, b) => a.id.localeCompare(b.id));
+      const verifiedItems = verification.items
+        .map(item => ({ id: String(item.id), quantity: Number(item.quantity) }))
+        .sort((a, b) => a.id.localeCompare(b.id));
+      if (JSON.stringify(expectedItems) !== JSON.stringify(verifiedItems)) {
+        throw new Error('The verified payment does not match the items in your saved cart.');
+      }
+
+      verifiedPaidCheckout = true;
+      finalizePurchase();
+    } catch (error) {
+      console.error('Unable to complete the returned Razorpay payment:', error);
+      alert(`${error.message || 'Payment verification failed.'} Your cart is still saved. If you were charged, contact support.`);
+    }
+  }
 
   (() => {
     const canvas = document.getElementById('cosmos');
