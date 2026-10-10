@@ -34,6 +34,15 @@ async function isValidSignature(paymentLinkId, referenceId, status, paymentId, s
   return difference === 0;
 }
 
+async function getCheckoutOrder(env, referenceId) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const order = await env.CHECKOUT_ORDERS.get(referenceId, 'json');
+    if (order) return order;
+    if (attempt < 7) await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  return null;
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET || !env.CHECKOUT_ORDERS) {
@@ -50,7 +59,7 @@ export async function onRequestPost({ request, env }) {
       return json({ error: 'Payment verification details are missing.' }, 400);
     }
 
-    const storedOrder = await env.CHECKOUT_ORDERS.get(referenceId, 'json');
+    const storedOrder = await getCheckoutOrder(env, referenceId);
     if (!storedOrder) {
       return json({ error: 'The checkout order is missing or expired. If you were charged, contact support.' }, 400);
     }
